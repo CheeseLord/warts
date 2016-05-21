@@ -1,0 +1,116 @@
+Do it in Python
+Not reinventing the wheel -- use whatever tools are available
+
+Some sort of collaborative RTS?
+
+
+Like pandemic.
+Maybe a "multiplayer sim city"?
+
+Like the idea of resource collection
+    - Finite/infinite total resources?
+    - Few/many varieties of resources?
+
+Also, what do with resources?
+
+Should be possible to trade, but with a cost (not just a single pool that
+everyone draws from).
+
+"Don't like realism as a general rule".
+High fantasy or absurdist fantasy setting?
+Troll more.
+    - Subvert *all* the tropes.
+
+Finite map
+Start with hand-drawn maps
+    - Maybe have an option to use procedurally-generated maps?
+
+Themes?
+    - Settling a high-fantasy world
+        - Fight against disease?
+        - Natives
+        - Weather / the elements
+            - Lightning, meteors, fire, alien invasion, pixie storms, acid fog
+        - Research
+
+Win condition?
+    - Don't want it to have to do with the natives
+    - Could just be a time limit
+        - Can keep score; goal could be to maximize score
+        - Seems unsatisfying for an RTS
+    - Should have points, but want them to be more or less incidental, not the
+      main mechanic
+    - Trying to reach some destination?
+        - Need to make sure it's collaborative
+        - Could start at the same place but want to get to two different
+          locations?
+
+Probably not have perfect symmetry between the players
+    - Different goals?
+    - Different abilities?
+    - Different win conditions??
+        - Probably not; not so collaborative
+
+Want to break apart the party somehow, make trading more interesting
+    - Have two different destinations, need different players to reach each
+      one?
+        - Seems a bit arbitrary/contrived; rather find a different way
+    - Various relics you need to retrieve?
+        - Make the difficulty ramp up (natives tech up? elements get worse?)
+          and have enough relics that realistically you can't just stay
+          together and get one at a time.
+
+Have each player control one race?
+    - Would give each one their own specialties and weaknesses
+
+Maybe the natives are humans?
+    - Not a post-apocalyptic Earth, though -- too serious
+    - Just make them humans, don't explain it
+    - Makes sense that they're building up technology to destroy you
+    - Also they should occasionally (or often?) fight each other
+
+Do we want games to be long-running (like civ) or short (like SC)? How long
+does it take to explore the tech tree?
+    - Probably make it so there isn't enough time to explore the whole tech
+      tree, need to pick a direction to go in
+    - Which means we probably want to tend toward shorter games
+
+What makes one game different from another?
+    - Randomize (within limits) starting locations?
+    - Randomize (within limits) distribution of resources?
+    - Bunch of tribes of humans, each independently exploring the human tech
+      tree
+        - As they fight each other and one comes out on top, they could use
+          the other conquered tribes as cheap slave labor / conscripted
+          soldiers, send them at you like the zerg
+        - Also, humans can use diplomacy on each other
+
+Need appropriately silly resources?
+    - Everything's made of ochre jelly?
+    - Go the DF route and only drink booze?
+        - Maybe only the dwarves?
+
+Maybe want a lot of resources?
+    - Don't want them all generally used
+    - A bunch of specific resources used for a bunch of specific purposes?
+    - Would mean that you're basically guaranteed to have a bunch of things you
+      just can't build for lack of resources
+        - Could be interesting, will probably be annoying
+    - Probably want almost everything to be built with just a few resources
+    - What about if the special resources control "addon upgrades"?
+        - Find pool of acid, create acid-tipped weapons or whatever
+        - Can still make all the types of units/buildings/whatever without them
+        - Basically they just unlock stuff that's nice to have, but you can
+          live without.
+
+Want to distinguish the gameplay from SC/WC. Also more focus on macro
+(strategy) than micro ("clicking fast").
+    - Maybe not have individual control over all units?
+        - Give them tasks, they do them
+        - Just say "hey you, elves, you're going on this quest"
+        - Need to make sure the units are fungible
+        - Control of army units could be annoying, but maybe have an army
+          allocation interface where you choose what sort of units you want?
+          "Get me a few ranged units, a bunch of melee units, and something
+          good against fortifications"
+
