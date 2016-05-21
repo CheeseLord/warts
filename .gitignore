@@ -1,8 +1,9 @@
 # Python auxiliary files
-.pyc
+*.py[co]
+__pycache__
 
 # virtualenv directory
 /venv
 
 # vim .swp files, so I can just "git add ." without catching them.
-.*.swp
+*.sw[nop]
