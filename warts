@@ -1,0 +1,5 @@
+#!/bin/bash
+
+my_dir="$(dirname "$0")"
+
+"$my_dir/venv/bin/python" -m src.main
