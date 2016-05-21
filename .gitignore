@@ -3,7 +3,7 @@
 __pycache__
 
 # virtualenv directory
-/venv
+/venv/
 
 # vim .swp files, so I can just "git add ." without catching them.
 *.sw[nop]
