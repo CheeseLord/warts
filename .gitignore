@@ -1,0 +1,5 @@
+# Python auxiliary files
+.pyc
+
+# vim .swp files, so I can just "git add ." without catching them.
+.*.swp
