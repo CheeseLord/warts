@@ -6,7 +6,7 @@ all: warts
 
 warts:
 	virtualenv -ppython2.7 $(VIRTUALENV)
-	./$(VIRTUALENV)/bin/pip install -r requirements.txt
+	bash -c 'source ./$(VIRTUALENV)/bin/activate; pip install -r requirements.txt'
 
 clean:
 	rm -r $(VIRTUALENV)
