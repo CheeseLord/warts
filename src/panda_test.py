@@ -1,10 +1,16 @@
 from math import pi, sin, cos
+import sys
+import os
 
 from direct.showbase.ShowBase import ShowBase
 from direct.task import Task
 from direct.actor.Actor import Actor
 from direct.interval.IntervalGlobal import Sequence
-from panda3d.core import Point3
+from panda3d.core import Point3, Filename
+
+def runPandaTest():
+    app = MyApp()
+    app.run()
  
 class MyApp(ShowBase):
  
@@ -15,6 +21,12 @@ class MyApp(ShowBase):
         self.scene.reparentTo(self.render)
         self.scene.setScale(0.25, 0.25, 0.25)
         self.scene.setPos(-8, 42, 0)
+
+        # Add a test model of our own creation, to check that we can use our
+        # own models.
+        self.testModel = self.loader.loadModel(getModelPath("test-model.egg"))
+        self.testModel.reparentTo(self.render)
+        self.testModel.setPos(-4, 0, 2.5)
 
         self.taskMgr.add(self.spinCameraTask, "SpinCameraTask")
 
@@ -50,7 +62,18 @@ class MyApp(ShowBase):
         self.camera.setPos(20 * sin(angleRadians), -20 * cos(angleRadians), 3)
         self.camera.setHpr(angleDegrees, 0, 0)
         return Task.cont
- 
-app = MyApp()
-app.run()
+
+def getModelPath(modelname):
+    """
+    Return the Panda3D path for a model.
+    """
+
+    # https://www.panda3d.org/manual/index.php/Loading_Models
+    mydir = os.path.abspath(sys.path[0])
+    mydir = Filename.fromOsSpecific(mydir).getFullpath()
+
+    # Can't use os.path.join here because mydir isn't an OS-specific path.
+    if not mydir.endswith("/"):
+        mydir += "/"
+    return mydir + "assets/models/" + modelname
 

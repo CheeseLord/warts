@@ -1,2 +1,4 @@
 import hello
-import panda_test
+from panda_test import runPandaTest
+
+runPandaTest()
