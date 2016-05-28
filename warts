@@ -1,5 +1,18 @@
 #!/bin/bash
 
+VIRTUALENV=venv
 my_dir="$(dirname "$0")"
 
-"$my_dir/venv/bin/python" -m src.main
+"$my_dir/$VIRTUALENV/bin/python" -m src.main
+
+
+
+# Alternate version, in case we need to actually invoke python from within the
+# virtualenv rather than just using venv/bin/python. I don't think this is
+# necessary.
+#
+# VIRTUALENV=venv
+# my_dir="$(dirname "$0")"
+#
+# source "$my_dir/$VIRTUALENV/bin/activate"
+# python -m src.main
