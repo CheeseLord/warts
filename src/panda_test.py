@@ -11,7 +11,8 @@ from panda3d.core import Point3, Filename
 def runPandaTest():
     app = MyApp()
     app.run()
- 
+
+
 class MyApp(ShowBase):
  
     def __init__(self):
@@ -27,8 +28,6 @@ class MyApp(ShowBase):
         self.testModel = self.loader.loadModel(getModelPath("test-model.egg"))
         self.testModel.reparentTo(self.render)
         self.testModel.setPos(-4, 0, 2.5)
-
-        self.taskMgr.add(self.spinCameraTask, "SpinCameraTask")
 
         self.pandaActor = Actor("panda-model",
                                 {"walk": "panda-walk4"})
@@ -56,12 +55,45 @@ class MyApp(ShowBase):
                                   name="pandaPace")
         self.pandaPace.loop()
 
+        self.keys = {}
+        self.setupKeyHandler()
+
+        self.taskMgr.add(self.updateCameraTask, "UpdateCameraTask")
+
     def spinCameraTask(self, task):
+        """
+        Spin the camera in a circle.
+        """
+
         angleDegrees = task.time * 6.0
         angleRadians = angleDegrees * (pi / 180.0)
         self.camera.setPos(20 * sin(angleRadians), -20 * cos(angleRadians), 3)
         self.camera.setHpr(angleDegrees, 0, 0)
         return Task.cont
+
+    def updateCameraTask(self, task):
+        """
+        Move the camera sensibly.
+        """
+        if self.keys["arrow_up"]:
+            angleDegrees = task.time * 6.0
+            angleRadians = angleDegrees * (pi / 180.0)
+            self.camera.setPos(20 * sin(angleRadians), -20 * cos(angleRadians), 3)
+            self.camera.setHpr(angleDegrees, 0, 0)
+
+        return Task.cont
+
+    def setupKeyHandler(self):
+        def pushKey(key, value):
+            self.keys[key] = value
+
+        for key in ["arrow_up", "arrow_left", "arrow_right", "arrow_down",
+                    "w", "a", "d", "s"]:
+            self.keys[key] = False
+            self.accept(key, pushKey, [key, True])
+            self.accept("shift-%s" % key, pushKey, [key, True])
+            self.accept("%s-up" % key, pushKey, [key, False])
+
 
 def getModelPath(modelname):
     """
@@ -76,4 +108,3 @@ def getModelPath(modelname):
     if not mydir.endswith("/"):
         mydir += "/"
     return mydir + "assets/models/" + modelname
-
