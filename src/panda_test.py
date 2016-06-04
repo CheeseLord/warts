@@ -58,6 +58,11 @@ class MyApp(ShowBase):
         self.keys = {}
         self.setupKeyHandler()
 
+        # Disable the default mouse-based camera control task, so we don't have
+        # to fight with it for control of the camera.
+        self.disableMouse()
+
+        # Substitute our own camera control task.
         self.taskMgr.add(self.updateCameraTask, "UpdateCameraTask")
 
     def spinCameraTask(self, task):
