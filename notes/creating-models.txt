@@ -27,6 +27,8 @@ Steps so far:
 Note: YABEE seems to only export the things you have selected, so you might
 want to hit "a" (select all) before you export.
 
+You can preview a Panda egg using the 'pview' command (from a terminal).
+
 In principle, once you've created a model, you can add the model to the world
 by just calling
     model = loader.loadModel("path goes here")
