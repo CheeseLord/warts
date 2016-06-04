@@ -24,6 +24,9 @@ Steps so far:
     You should now be able to export models from Blender using
         File > Export > Panda3D (.egg)
 
+Note: YABEE seems to only export the things you have selected, so you might
+want to hit "a" (select all) before you export.
+
 In principle, once you've created a model, you can add the model to the world
 by just calling
     model = loader.loadModel("path goes here")
