@@ -63,6 +63,8 @@ class MyApp(ShowBase):
         self.disableMouse()
 
         # Substitute our own camera control task.
+        self.camera.setPos(0, 0, 100)
+        self.camera.setHpr(0, -80, 0)
         self.taskMgr.add(self.updateCameraTask, "UpdateCameraTask")
 
     def spinCameraTask(self, task):
@@ -80,11 +82,16 @@ class MyApp(ShowBase):
         """
         Move the camera sensibly.
         """
-        if self.keys["arrow_up"]:
-            angleDegrees = task.time * 6.0
-            angleRadians = angleDegrees * (pi / 180.0)
-            self.camera.setPos(20 * sin(angleRadians), -20 * cos(angleRadians), 3)
-            self.camera.setHpr(angleDegrees, 0, 0)
+
+        # TODO: Find the right way to do this.
+        self.camera.setHpr(0, 0, 0)
+
+        speed = 1
+        forward = speed * (self.keys["arrow_up"] - self.keys["arrow_down"])
+        sideways = speed * (self.keys["arrow_right"] - self.keys["arrow_left"])
+        self.camera.setPos(self.camera, sideways, forward, 0)
+
+        self.camera.setHpr(0, -80, 0)
 
         return Task.cont
 
