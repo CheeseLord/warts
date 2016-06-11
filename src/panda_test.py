@@ -6,7 +6,7 @@ from direct.showbase.ShowBase import ShowBase
 from direct.task import Task
 from direct.actor.Actor import Actor
 from direct.interval.IntervalGlobal import Sequence
-from panda3d.core import Point3, Filename
+from panda3d.core import Point3, Filename, NodePath
 
 def runPandaTest():
     app = MyApp()
@@ -63,8 +63,10 @@ class MyApp(ShowBase):
         self.disableMouse()
 
         # Substitute our own camera control task.
-        self.camera.setPos(0, 0, 100)
+        self.cameraHolder = self.render.attachNewNode('CameraHolder')
+        self.cameraHolder.setPos(0, 0, 100)
         self.camera.setHpr(0, -80, 0)
+        self.camera.reparentTo(self.cameraHolder)
         self.taskMgr.add(self.updateCameraTask, "UpdateCameraTask")
 
     def spinCameraTask(self, task):
@@ -83,15 +85,10 @@ class MyApp(ShowBase):
         Move the camera sensibly.
         """
 
-        # TODO: Find the right way to do this.
-        self.camera.setHpr(0, 0, 0)
-
-        speed = 1
+        speed = 30 * globalClock.getDt()
         forward = speed * (self.keys["arrow_up"] - self.keys["arrow_down"])
         sideways = speed * (self.keys["arrow_right"] - self.keys["arrow_left"])
-        self.camera.setPos(self.camera, sideways, forward, 0)
-
-        self.camera.setHpr(0, -80, 0)
+        self.cameraHolder.setPos(self.cameraHolder, sideways, forward, 0)
 
         return Task.cont
 
