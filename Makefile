@@ -12,4 +12,5 @@ warts: Makefile
 	cp $(BUILDFILES)/panda3d.pth $(VIRTUALENV)/lib/python2.7/site-packages/
 
 clean:
+	rm -f src/*.pyc
 	rm -r $(VIRTUALENV)
