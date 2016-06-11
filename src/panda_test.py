@@ -134,10 +134,16 @@ class MyApp(ShowBase):
         Move the camera sensibly.
         """
 
-        speed = 30 * globalClock.getDt()
-        forward = speed * (self.keys["arrow_up"] - self.keys["arrow_down"])
-        sideways = speed * (self.keys["arrow_right"] - self.keys["arrow_left"])
+        dt = globalClock.getDt()
+        translateSpeed = 30 * dt
+        rotateSpeed = 50 * dt
+
+        forward = translateSpeed * (self.keys["arrow_up"] - self.keys["arrow_down"])
+        sideways = translateSpeed * (self.keys["arrow_right"] - self.keys["arrow_left"])
         self.cameraHolder.setPos(self.cameraHolder, sideways, forward, 0)
+
+        rotate = rotateSpeed * (self.keys["a"] - self.keys["d"])
+        self.cameraHolder.setHpr(self.cameraHolder, rotate, 0, 0)
 
         return Task.cont
 
