@@ -56,7 +56,7 @@ class MyApp(ShowBase):
         self.pandaPace.loop()
 
         self.keys = {}
-        self.setupKeyHandler()
+        self.setupEventHandlers()
 
         # Initialize camera control
         self.cameraHolder = self.render.attachNewNode('CameraHolder')
@@ -147,7 +147,18 @@ class MyApp(ShowBase):
 
         return Task.cont
 
-    def setupKeyHandler(self):
+    def zoomCamera(self, inward):
+        """
+        Zoom in or out.
+        """
+
+        dt = globalClock.getDt()
+        zoomSpeed = 100 * dt
+
+        zoom = -zoomSpeed if inward else zoomSpeed
+        self.cameraHolder.setPos(self.cameraHolder, 0, 0, zoom)
+
+    def setupEventHandlers(self):
         def pushKey(key, value):
             self.keys[key] = value
 
@@ -161,6 +172,10 @@ class MyApp(ShowBase):
         # Camera toggle
         self.accept("f3",       self.toggleCameraStyle, [])
         self.accept("shift-f3", self.toggleCameraStyle, [])
+
+        # Handle mouse wheel
+        self.accept("wheel_up", self.zoomCamera, [True])
+        self.accept("wheel_down", self.zoomCamera, [False])
 
 
 def getModelPath(modelname):
