@@ -6,7 +6,7 @@ from direct.showbase.ShowBase import ShowBase
 from direct.task import Task
 from direct.actor.Actor import Actor
 from direct.interval.IntervalGlobal import Sequence
-from panda3d.core import Point3, Filename
+from panda3d.core import Point3, Mat4, Filename
 
 def runPandaTest():
     app = MyApp()
@@ -58,14 +58,52 @@ class MyApp(ShowBase):
         self.keys = {}
         self.setupKeyHandler()
 
+        # Initialize camera control
+        self.setCameraCustom()
+
+    def setCameraCustom(self):
+        """
+        Change to using our custom task to control the camera.
+        """
+
         # Disable the default mouse-based camera control task, so we don't have
         # to fight with it for control of the camera.
         self.disableMouse()
 
         # Substitute our own camera control task.
+        # TODO: Track position from the last time this was used?
         self.camera.setPos(0, 0, 100)
         self.camera.setHpr(0, -80, 0)
         self.taskMgr.add(self.updateCameraTask, "UpdateCameraTask")
+
+        self.usingCustomCamera = True
+
+    def setCameraDefault(self):
+        """
+        Change to using the default mouse-based camera controls.
+        """
+
+        self.taskMgr.remove("UpdateCameraTask")
+
+        # Use the existing camera location, rather than jumping back to the one
+        # from last time the default camera controller was active.
+        # Copied from https://www.panda3d.org/manual/index.php/Mouse_Support
+        mat = Mat4(camera.getMat())
+        mat.invertInPlace()
+        self.mouseInterfaceNode.setMat(mat)
+        self.enableMouse()
+
+        self.usingCustomCamera = False
+
+    def toggleCameraStyle(self):
+        """
+        Switch to whichever style of camera control isn't currently active.
+        """
+
+        if self.usingCustomCamera:
+            self.setCameraDefault()
+        else:
+            self.setCameraCustom()
 
     def spinCameraTask(self, task):
         """
@@ -105,6 +143,10 @@ class MyApp(ShowBase):
             self.accept(key, pushKey, [key, True])
             self.accept("shift-%s" % key, pushKey, [key, True])
             self.accept("%s-up" % key, pushKey, [key, False])
+
+        # Camera toggle
+        self.accept("c",       self.toggleCameraStyle, [])
+        self.accept("shift-c", self.toggleCameraStyle, [])
 
 
 def getModelPath(modelname):
