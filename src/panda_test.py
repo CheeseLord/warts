@@ -153,8 +153,8 @@ class MyApp(ShowBase):
             self.accept("%s-up" % key, pushKey, [key, False])
 
         # Camera toggle
-        self.accept("c",       self.toggleCameraStyle, [])
-        self.accept("shift-c", self.toggleCameraStyle, [])
+        self.accept("f3",       self.toggleCameraStyle, [])
+        self.accept("shift-f3", self.toggleCameraStyle, [])
 
 
 def getModelPath(modelname):
