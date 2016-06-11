@@ -59,6 +59,8 @@ class MyApp(ShowBase):
         self.setupKeyHandler()
 
         # Initialize camera control
+        self.prevCameraPos = (0, 0, 100)
+        self.prevCameraHpr = (0, -80, 0)
         self.setCameraCustom()
 
     def setCameraCustom(self):
@@ -71,9 +73,8 @@ class MyApp(ShowBase):
         self.disableMouse()
 
         # Substitute our own camera control task.
-        # TODO: Track position from the last time this was used?
-        self.camera.setPos(0, 0, 100)
-        self.camera.setHpr(0, -80, 0)
+        self.camera.setPos(self.prevCameraPos)
+        self.camera.setHpr(self.prevCameraHpr)
         self.taskMgr.add(self.updateCameraTask, "UpdateCameraTask")
 
         self.usingCustomCamera = True
@@ -84,6 +85,10 @@ class MyApp(ShowBase):
         """
 
         self.taskMgr.remove("UpdateCameraTask")
+
+        # Save current location for when this control style is restored.
+        self.prevCameraPos = self.camera.getPos()
+        self.prevCameraHpr = self.camera.getHpr()
 
         # Use the existing camera location, rather than jumping back to the one
         # from last time the default camera controller was active.
