@@ -6,7 +6,13 @@ from direct.showbase.ShowBase import ShowBase
 from direct.task import Task
 from direct.actor.Actor import Actor
 from direct.interval.IntervalGlobal import Sequence
-from panda3d.core import Point3, Mat4, Filename, NodePath
+
+import panda3d.core as core
+# Backward compatibility; please switch to using core.*
+Point3   = core.Point3
+Mat4     = core.Mat4
+Filename = core.Filename
+NodePath = core.NodePath
 
 def runPandaTest():
     app = MyApp()
@@ -22,6 +28,28 @@ class MyApp(ShowBase):
         self.scene.reparentTo(self.render)
         self.scene.setScale(0.25, 0.25, 0.25)
         self.scene.setPos(-8, 42, 0)
+
+        # Used for collision checking.
+        groundCollisionPlane = core.CollisionPlane(core.LPlanef(
+            core.Vec3(0, 0, 1), core.Point3(0, 0, 0)))
+
+        # I don't actually know what sort of object this is...
+        self.groundPlaneNP = self.render.attachNewNode(
+            core.CollisionNode("groundCollisionNode"))
+        self.groundPlaneNP.node().addSolid(groundCollisionPlane)
+
+        # For detecting clicks
+        mouseClickNode = core.CollisionNode("mouseRay")
+        self.mouseClickNP = self.camera.attachNewNode(mouseClickNode)
+        # TODO: Do we need to mouseClickNode.setFromCollideMask() here?
+        self.mouseClickRay = core.CollisionRay()
+        mouseClickNode.addSolid(self.mouseClickRay)
+
+        # Bunch of objects that I don't entirely understand
+        self.mouseClickHandler = core.CollisionHandlerQueue()
+        self.mouseClickTraverser = core.CollisionTraverser("mouse click")
+        self.mouseClickTraverser.addCollider(self.mouseClickNP,
+            self.mouseClickHandler)
 
         # Add a test model of our own creation, to check that we can use our
         # own models.
@@ -168,6 +196,24 @@ class MyApp(ShowBase):
         zoom = -zoomSpeed if inward else zoomSpeed
         self.cameraHolder.setPos(self.cameraHolder, 0, 0, zoom)
 
+    def handleMouseClick(self):
+        # Make sure the mouse is inside the screen
+        if self.mouseWatcherNode.hasMouse():
+            # Get the screen coordinates of the mouse, normalized to [-1, 1].
+            mousePos = self.mouseWatcherNode.getMouse()
+
+            # Make the ray extend from the camera, in the direction of the
+            # mouse.
+            self.mouseClickRay.setFromLens(self.camNode, mousePos)
+
+            self.mouseClickTraverser.traverse(self.render)
+            for entry in self.mouseClickHandler.getEntries():
+                if entry.hasInto():
+                    if entry.getIntoNodePath() == self.groundPlaneNP:
+                        print "You clicked the ground at {}.".format(
+                            entry.getSurfacePoint(self.render))
+                        # TODO: Move monolith
+
     def setupEventHandlers(self):
         def pushKey(key, value):
             self.keys[key] = value
@@ -186,6 +232,9 @@ class MyApp(ShowBase):
         # Handle mouse wheel
         self.accept("wheel_up", self.zoomCamera, [True])
         self.accept("wheel_down", self.zoomCamera, [False])
+
+        # Handle clicking
+        self.accept("mouse1", self.handleMouseClick, [])
 
 
 def getModelPath(modelname):
