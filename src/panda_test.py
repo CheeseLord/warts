@@ -53,9 +53,11 @@ class MyApp(ShowBase):
 
         # Add a test model of our own creation, to check that we can use our
         # own models.
+        self.testModelNode = self.render.attachNewNode("testModelNode")
+        self.testModelNode.setPos(-4, 0, 0)
         self.testModel = self.loader.loadModel(getModelPath("test-model.egg"))
-        self.testModel.reparentTo(self.render)
-        self.testModel.setPos(-4, 0, 2.5)
+        self.testModel.reparentTo(self.testModelNode)
+        self.testModel.setPos(0, 0, 2.5)
 
         self.pandaActor = Actor("panda-model",
                                 {"walk": "panda-walk4"})
@@ -210,9 +212,9 @@ class MyApp(ShowBase):
             for entry in self.mouseClickHandler.getEntries():
                 if entry.hasInto():
                     if entry.getIntoNodePath() == self.groundPlaneNP:
-                        print "You clicked the ground at {}.".format(
-                            entry.getSurfacePoint(self.render))
-                        # TODO: Move monolith
+                        if self.usingCustomCamera:
+                            clickedPoint = entry.getSurfacePoint(self.render)
+                            self.testModelNode.setPos(clickedPoint)
 
     def setupEventHandlers(self):
         def pushKey(key, value):
