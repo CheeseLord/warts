@@ -140,6 +140,16 @@ class MyApp(ShowBase):
 
         forward = translateSpeed * (self.keys["arrow_up"] - self.keys["arrow_down"])
         sideways = translateSpeed * (self.keys["arrow_right"] - self.keys["arrow_left"])
+        # Check if the mouse is over the window.
+        if base.mouseWatcherNode.hasMouse():
+            # Get the position. Each coordinate is normalized to the interval [-1, 1].
+            mousePos = base.mouseWatcherNode.getMouse()
+            xPos, yPos = mousePos.getX(), mousePos.getY()
+            # Only move if the mouse is close to the edge.
+            if abs(xPos) > 0.4:
+                sideways += 2 * translateSpeed * xPos
+            if abs(yPos) > 0.4:
+                forward += 2 * translateSpeed * yPos
         self.cameraHolder.setPos(self.cameraHolder, sideways, forward, 0)
 
         rotate = rotateSpeed * (self.keys["a"] - self.keys["d"])
