@@ -3,7 +3,7 @@
 VIRTUALENV=venv
 my_dir="$(dirname "$0")"
 
-"$my_dir/$VIRTUALENV/bin/python" -m src.main
+"$my_dir/$VIRTUALENV/bin/python" -m src.main "$@"
 
 
 

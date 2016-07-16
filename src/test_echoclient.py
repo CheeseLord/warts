@@ -45,17 +45,11 @@ class EchoClientFactory(ClientFactory):
         self.done.callback(None)
 
 
-
-def main(reactor):
-    parser = argparse.ArgumentParser(description='Process some integers.')
-    parser.add_argument('--host', type=str, nargs='?', default="127.0.0.1")
-    parser.add_argument('--port', type=int, nargs='?', default=50000)
-    args = parser.parse_args()
+def runEchoClientHelper(reactor, host, port):
     factory = EchoClientFactory()
-    reactor.connectTCP(args.host, args.port, factory)
+    reactor.connectTCP(host, port, factory)
     return factory.done
 
+def runEchoClient(host, port):
+    task.react(runEchoClientHelper, (host, port))
 
-
-if __name__ == '__main__':
-    task.react(main)

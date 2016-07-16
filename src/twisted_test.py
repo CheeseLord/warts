@@ -1,20 +1,30 @@
-from twisted.internet import protocol, reactor, endpoints
+import argparse
+import sys
 
-
-class Echo(protocol.Protocol):
-    def dataReceived(self, data):
-        peer = self.transport.getPeer()
-        print "[{ip}:{port}] '{msg}'".format(ip=peer.host, port=peer.port,
-                                             msg=data)
-        self.transport.write(data)
-        self.transport.loseConnection()
-
-
-class EchoFactory(protocol.Factory):
-    def buildProtocol(self, addr):
-        return Echo()
-
+from test_echoserver import runEchoServer
+from test_echoclient import runEchoClient
 
 def runTwistedTest():
-    endpoints.serverFromString(reactor, 'tcp:50000').listen(EchoFactory())
-    reactor.run()
+    args = parseArguments()
+
+    if args.isServer:
+        print "Running echo server..."
+        runEchoServer()
+    else:
+        print "Connecting to server..."
+        runEchoClient(args.host, args.port)
+
+
+def parseArguments():
+    parser = argparse.ArgumentParser()
+
+    # Are we the server or the client?
+    parser.add_argument('--server', dest='isServer', action='store_true',
+                        default=False)
+    parser.add_argument('--client', dest='isServer', action='store_false')
+
+    # Server parameters, if we're the client.
+    parser.add_argument('--host', type=str, nargs='?', default="127.0.0.1")
+    parser.add_argument('--port', type=int, nargs='?', default=50000)
+
+    return parser.parse_args()
