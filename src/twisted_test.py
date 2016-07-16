@@ -3,7 +3,9 @@ from twisted.internet import protocol, reactor, endpoints
 
 class Echo(protocol.Protocol):
     def dataReceived(self, data):
-        print data
+        peer = self.transport.getPeer()
+        print "[{ip}:{port}] '{msg}'".format(ip=peer.host, port=peer.port,
+                                             msg=data)
         self.transport.write(data)
         self.transport.loseConnection()
 
