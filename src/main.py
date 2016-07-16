@@ -1,3 +1,3 @@
-from panda_test import runPandaTest
+from twisted_test import runTwistedTest
 
-runPandaTest()
+runTwistedTest()
