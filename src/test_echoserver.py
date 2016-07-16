@@ -1,12 +1,13 @@
 from twisted.internet import protocol, reactor, endpoints
+from twisted.protocols.basic import Int16StringReceiver
 
 
-class Echo(protocol.Protocol):
-    def dataReceived(self, data):
+class Echo(Int16StringReceiver):
+    def stringReceived(self, data):
         peer = self.transport.getPeer()
         print "[{ip}:{port}] '{msg}'".format(ip=peer.host, port=peer.port,
                                              msg=data)
-        self.transport.write(data)
+        self.sendString(data)
         self.transport.loseConnection()
 
 

@@ -7,21 +7,21 @@ from __future__ import print_function
 from twisted.internet import task
 from twisted.internet.defer import Deferred
 from twisted.internet.protocol import ClientFactory
-from twisted.protocols.basic import LineReceiver
+from twisted.protocols.basic import Int16StringReceiver
 import argparse
 
 
 
-class EchoClient(LineReceiver):
+class EchoClient(Int16StringReceiver):
     end = "Bye-bye!"
 
     def connectionMade(self):
-        self.sendLine("Hello, world!")
-        self.sendLine("What a fine day it is.")
-        self.sendLine(self.end)
+        self.sendString("Hello, world!\n")
+        self.sendString("What a fine day it is.\n")
+        self.sendString("\n")
 
 
-    def lineReceived(self, line):
+    def stringReceived(self, line):
         print("receive:", line)
         if line == self.end:
             self.transport.loseConnection()
