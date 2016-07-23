@@ -21,10 +21,13 @@ class Echo(Int16StringReceiver):
 
         oldX, oldY = self.position
         updateX, updateY = {
-            'u':       [    0,     1],
-            'd':       [    0,    -1],
-            'l':       [   -1,     0],
-            'r':       [    1,     0],
+            'n':       [    0,     1],
+            'north':   [    0,     1],
+            's':       [    0,    -1],
+            'south':   [    0,    -1],
+            'e':       [    1,     0],
+            'east':    [    1,     0],
+            'west':    [   -1,     0],
             'start9':  [-oldX, -oldY],
         }.get(command, [    0,     0])
         
