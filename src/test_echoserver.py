@@ -23,11 +23,16 @@ class Echo(Int16StringReceiver):
         updateX, updateY = {
             'n':       [    0,     1],
             'north':   [    0,     1],
+            'up':      [    0,     1],
             's':       [    0,    -1],
             'south':   [    0,    -1],
+            'down':    [    0,    -1],
             'e':       [    1,     0],
             'east':    [    1,     0],
+            'right':   [    1,     0],
+            'w':       [   -1,     0],
             'west':    [   -1,     0],
+            'left':    [   -1,     0],
             'start9':  [-oldX, -oldY],
         }.get(command, [    0,     0])
         
