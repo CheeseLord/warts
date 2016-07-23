@@ -14,7 +14,7 @@ class Echo(Int16StringReceiver):
                                              msg=data)
         self.sendString(data)
         self.sendString('Player position is now {0}'.format(self.position))
-        self.transport.loseConnection()
+        # self.transport.loseConnection()
 
     def updatePosition(self, data):
         command = data.lower().strip()
