@@ -8,7 +8,7 @@ class Echo(Int16StringReceiver):
         print "[{ip}:{port}] '{msg}'".format(ip=peer.host, port=peer.port,
                                              msg=data)
         self.sendString(data)
-        self.transport.loseConnection()
+        # self.transport.loseConnection()
 
 
 class EchoFactory(protocol.Factory):

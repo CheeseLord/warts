@@ -4,11 +4,12 @@
 
 from __future__ import print_function
 
-from twisted.internet import task
+import os
+
+from twisted.internet import task, stdio, reactor
 from twisted.internet.defer import Deferred
 from twisted.internet.protocol import ClientFactory
-from twisted.protocols.basic import Int16StringReceiver
-import argparse
+from twisted.protocols.basic import Int16StringReceiver, LineReceiver
 
 
 
@@ -18,13 +19,13 @@ class EchoClient(Int16StringReceiver):
     def connectionMade(self):
         self.sendString("Hello, world!\n")
         self.sendString("What a fine day it is.\n")
-        self.sendString("\n")
+        self.sendString(self.end + "\n")
 
 
     def stringReceived(self, line):
-        print("receive:", line)
-        if line == self.end:
-            self.transport.loseConnection()
+        print("receive:", line[:-1])
+        # if line == self.end:
+        #     self.transport.loseConnection()
 
 
 
@@ -45,9 +46,20 @@ class EchoClientFactory(ClientFactory):
         self.done.callback(None)
 
 
+class StdioHandler(LineReceiver):
+    delimiter = os.linesep
+
+    def connectionMade(self):
+        self.sendLine("Connected, yay!")
+
+    def lineReceived(self, line):
+        self.sendLine("You typed: '{}'".format(line))
+
+
 def runEchoClientHelper(reactor, host, port):
     factory = EchoClientFactory()
     reactor.connectTCP(host, port, factory)
+    stdio.StandardIO(StdioHandler())
     return factory.done
 
 def runEchoClient(host, port):
