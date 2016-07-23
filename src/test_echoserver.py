@@ -48,6 +48,8 @@ class EchoFactory(protocol.Factory):
         return Echo(self.position)
 
 
-def runEchoServer():
-    endpoints.serverFromString(reactor, 'tcp:50000').listen(EchoFactory())
+def runEchoServer(port):
+    serverString = "tcp:{}".format(port)
+    server = endpoints.serverFromString(reactor, serverString)
+    server.listen(EchoFactory())
     reactor.run()

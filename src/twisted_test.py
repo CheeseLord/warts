@@ -16,7 +16,7 @@ def runTwistedTest():
 
     if isServer(args):
         print "Running echo server..."
-        runEchoServer()
+        runEchoServer(args.port)
     else:
         print "Connecting to server..."
         runEchoClient(args.host, args.port)
@@ -30,14 +30,19 @@ class WartsParser(argparse.ArgumentParser):
 
 def parseArguments():
     parser = WartsParser()
-    subparsers = parser.add_subparsers(title="commands", metavar="List of commands")
+    subparsers = parser.add_subparsers(title="commands",
+        metavar="List of commands")
 
     # Server command
     server_parser = subparsers.add_parser("server", help="Run a WaRTS server")
     server_parser.set_defaults(command="server")
+    server_parser.add_argument(
+        '--port', type=int, nargs='?', default=PORT_DEFAULT,
+        help="server port [Default: %(default)s]")
 
     # Server command
-    client_parser = subparsers.add_parser("client", help="connect to a WaRTS server")
+    client_parser = subparsers.add_parser("client",
+        help="connect to a WaRTS server")
     client_parser.set_defaults(command="client")
     client_parser.add_argument(
         '--host', type=str, nargs='?', default=HOST_DEFAULT,
