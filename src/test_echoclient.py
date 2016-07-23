@@ -16,8 +16,6 @@ theClient = None
 
 
 class EchoClient(Int16StringReceiver):
-    end = "Bye-bye!"
-
     def __init__(self):
         # Apparently Int16StringReceiver doesn't have an __init__.
         # Int16StringReceiver.__init__(self)
@@ -36,17 +34,13 @@ class EchoClient(Int16StringReceiver):
         theClient = self
 
     def connectionMade(self):
-        self.sendString("Hello, world!")
-        self.sendString("What a fine day it is.")
-        self.sendString(self.end)
-
+        pass
+        # self.sendString("Hello, world!")
 
     def stringReceived(self, line):
         # TODO: Probably this should go through the StdioHandler rather than
         # calling print directly....
         print("[receive]", line)
-        # if line == self.end:
-        #     self.transport.loseConnection()
 
 
 
