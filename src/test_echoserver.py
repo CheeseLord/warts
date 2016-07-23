@@ -2,6 +2,21 @@ from twisted.internet import protocol, reactor, endpoints
 from twisted.protocols.basic import Int16StringReceiver
 
 
+def runEchoServer(port):
+    serverString = "tcp:{}".format(port)
+    server = endpoints.serverFromString(reactor, serverString)
+    server.listen(EchoFactory())
+    reactor.run()
+
+
+class EchoFactory(protocol.Factory):
+    def __init__(self, *args, **kwargs):
+        # TODO: Use a real object with real methods here.
+        self.position = [0, 0]
+
+    def buildProtocol(self, addr):
+        return Echo(self.position)
+
 class Echo(Int16StringReceiver):
     def __init__(self, position):
         self.position = position
@@ -38,18 +53,3 @@ class Echo(Int16StringReceiver):
         
         self.position[0] += updateX
         self.position[1] += updateY
-
-class EchoFactory(protocol.Factory):
-    def __init__(self, *args, **kwargs):
-        # TODO: Use a real object with real methods here.
-        self.position = [0, 0]
-
-    def buildProtocol(self, addr):
-        return Echo(self.position)
-
-
-def runEchoServer(port):
-    serverString = "tcp:{}".format(port)
-    server = endpoints.serverFromString(reactor, serverString)
-    server.listen(EchoFactory())
-    reactor.run()

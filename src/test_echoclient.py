@@ -6,45 +6,16 @@ from twisted.internet.protocol import ClientFactory
 from twisted.protocols.basic import Int16StringReceiver, LineReceiver
 
 
-theClient = None
+def runEchoClient(host, port):
+    task.react(runEchoClientHelper, (host, port))
 
+def runEchoClientHelper(reactor, host, port):
+    onClientConnect = Deferred()
 
-class EchoClient(Int16StringReceiver):
-    def __init__(self, onClientConnect):
-        # Apparently Int16StringReceiver doesn't have an __init__.
-        # Int16StringReceiver.__init__(self)
-
-        self.onClientConnect = onClientConnect
-
-    def connectionMade(self):
-        self.onClientConnect.callback(self)
-        # self.sendString("Hello, world!")
-
-    def stringReceived(self, line):
-        # TODO: Probably this should go through the StdioHandler rather than
-        # calling print directly....
-        print "[receive]", line
-
-
-
-class EchoClientFactory(ClientFactory):
-    protocol = EchoClient
-
-    def __init__(self, onClientConnect):
-        self.done = Deferred()
-        self.onClientConnect = onClientConnect
-
-    def clientConnectionFailed(self, connector, reason):
-        print "connection failed:", reason.getErrorMessage()
-        self.done.errback(reason)
-
-    def clientConnectionLost(self, connector, reason):
-        print "connection lost:", reason.getErrorMessage()
-        self.done.callback(None)
-
-    def buildProtocol(self, addr):
-        # TODO Add more logic to prevent this from happening twice??
-        return self.protocol(self.onClientConnect)
+    stdio.StandardIO(StdioHandler(onClientConnect))
+    factory = EchoClientFactory(onClientConnect)
+    reactor.connectTCP(host, port, factory)
+    return factory.done
 
 
 class StdioHandler(LineReceiver):
@@ -71,14 +42,38 @@ class StdioHandler(LineReceiver):
             self.sendLine("[warning] message '{}' ignored; not connected to " \
                           "server.".format(line))
 
-def runEchoClientHelper(reactor, host, port):
-    onClientConnect = Deferred()
 
-    stdio.StandardIO(StdioHandler(onClientConnect))
-    factory = EchoClientFactory(onClientConnect)
-    reactor.connectTCP(host, port, factory)
-    return factory.done
+class EchoClientFactory(ClientFactory):
+    def __init__(self, onClientConnect):
+        self.done = Deferred()
+        self.onClientConnect = onClientConnect
 
-def runEchoClient(host, port):
-    task.react(runEchoClientHelper, (host, port))
+    def clientConnectionFailed(self, connector, reason):
+        print "connection failed:", reason.getErrorMessage()
+        self.done.errback(reason)
 
+    def clientConnectionLost(self, connector, reason):
+        print "connection lost:", reason.getErrorMessage()
+        self.done.callback(None)
+
+    def buildProtocol(self, addr):
+        # TODO Add more logic to prevent this from happening twice??
+        client = EchoClient(self.onClientConnect)
+        client.factory = self
+        return client
+
+class EchoClient(Int16StringReceiver):
+    def __init__(self, onClientConnect):
+        # Apparently Int16StringReceiver doesn't have an __init__.
+        # Int16StringReceiver.__init__(self)
+
+        self.onClientConnect = onClientConnect
+
+    def connectionMade(self):
+        self.onClientConnect.callback(self)
+        # self.sendString("Hello, world!")
+
+    def stringReceived(self, line):
+        # TODO: Probably this should go through the StdioHandler rather than
+        # calling print directly....
+        print "[receive]", line

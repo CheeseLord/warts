@@ -7,9 +7,6 @@ from test_echoclient import runEchoClient
 HOST_DEFAULT = "127.0.0.1"
 PORT_DEFAULT = "50000"
 
-def isServer(args):
-    return args.command == "server"
-
 
 def runTwistedTest():
     args = parseArguments()
@@ -21,12 +18,6 @@ def runTwistedTest():
         print "Connecting to server..."
         runEchoClient(args.host, args.port)
 
-
-class WartsParser(argparse.ArgumentParser):
-    def error(self, message):
-        sys.stderr.write("error: {message}\n".format(message=message))
-        self.print_help()
-        sys.exit(2)
 
 def parseArguments():
     parser = WartsParser()
@@ -52,3 +43,13 @@ def parseArguments():
         help="server port [Default: %(default)s]")
 
     return parser.parse_args()
+
+class WartsParser(argparse.ArgumentParser):
+    def error(self, message):
+        sys.stderr.write("error: {message}\n".format(message=message))
+        self.print_help()
+        sys.exit(2)
+
+
+def isServer(args):
+    return args.command == "server"
