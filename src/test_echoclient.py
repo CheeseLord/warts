@@ -5,8 +5,18 @@ from twisted.internet.defer import Deferred
 from twisted.internet.protocol import ClientFactory
 from twisted.protocols.basic import Int16StringReceiver, LineReceiver
 
+from twisted.internet.task import LoopingCall
+
+import panda_test
+
+
+DESIRED_FPS = 60
+
 
 def runEchoClient(host, port):
+    app = panda_test.MyApp()
+    LoopingCall(taskMgr.step).start(1.0 / DESIRED_FPS)
+
     task.react(runEchoClientHelper, (host, port))
 
 def runEchoClientHelper(reactor, host, port):
