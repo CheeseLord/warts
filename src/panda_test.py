@@ -7,6 +7,8 @@ from direct.task import Task
 from direct.actor.Actor import Actor
 from direct.interval.IntervalGlobal import Sequence
 
+from twisted.internet import reactor
+
 import panda3d.core as core
 # Backward compatibility; please switch to using core.*
 Point3   = core.Point3
@@ -216,6 +218,10 @@ class MyApp(ShowBase):
                             clickedPoint = entry.getSurfacePoint(self.render)
                             self.testModelNode.setPos(clickedPoint)
 
+    def handleWindowClose(self):
+        print "Window close requested -- shutting down Twisted."
+        reactor.stop()
+
     def setupEventHandlers(self):
         def pushKey(key, value):
             self.keys[key] = value
@@ -237,6 +243,10 @@ class MyApp(ShowBase):
 
         # Handle clicking
         self.accept("mouse1", self.handleMouseClick, [])
+
+        # Handle window close request (clicking the X, Alt-F4, etc.)
+        self.win.set_close_request_event("window-close")
+        self.accept("window-close", self.handleWindowClose)
 
 
 def getModelPath(modelname):
