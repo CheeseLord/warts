@@ -20,7 +20,6 @@ class EchoFactory(protocol.Factory):
     def buildProtocol(self, addr):
         newConnection = Echo(self, self.position)
         self.connections.append(newConnection)
-        print "There are now", len(self.connections), "connections."
         return newConnection
 
     def removeConnection(self, connection):
@@ -34,7 +33,9 @@ class EchoFactory(protocol.Factory):
         if not foundOne:
             print "Warning: failed to remove connection."
 
-        print "There are now", len(self.connections), "connections."
+    def broadcastString(self, data):
+        for connection in self.connections:
+            connection.sendString(data)
 
 
 class Echo(Int16StringReceiver):
@@ -67,9 +68,10 @@ class Echo(Int16StringReceiver):
         self.updatePosition(data)
         print "[{ip}:{port}] '{msg}'".format(ip=peer.host, port=peer.port,
                                              msg=data)
-        self.sendString(data)
-        self.sendString('Player position is now {0}'.format(self.position))
-        # self.transport.loseConnection()
+        # self.sendString(data)
+        # self.sendString('Player position is now {0}'.format(self.position))
+        x, y = self.position
+        self.broadcastString("{x} {y}".format(x=x, y=y))
 
     def updatePosition(self, data):
         command = data.lower().strip()
@@ -93,6 +95,10 @@ class Echo(Int16StringReceiver):
                 if isfinite(updateX) and isfinite(updateY):
                     self.position[0] = updateX
                     self.position[1] = updateY
+
+    def broadcastString(self, data):
+        self.factory.broadcastString(data)
+
 
 def isfinite(x):
     return not math.isinf(x) and not math.isnan(x)
