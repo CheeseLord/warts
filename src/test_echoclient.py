@@ -4,6 +4,7 @@ from twisted.internet import task, stdio, reactor
 from twisted.internet.defer import Deferred
 from twisted.internet.protocol import ClientFactory
 from twisted.protocols.basic import Int16StringReceiver, LineReceiver
+from twisted.python import log
 
 from twisted.internet.task import LoopingCall
 
@@ -30,6 +31,12 @@ def runEchoClientHelper(reactor, host, port):
     factory = EchoClientFactory(onClientConnect)
     reactor.connectTCP(host, port, factory)
 
+    # Setup an errback in case any of the callbacks we set above fail.
+    # This needs to be done after all the callbacks; if you add callbacks after
+    # you've added an errback, it looks like that errback doesn't actually get
+    # called to handle errors in those later callbacks.
+    onClientConnect.addErrback(log.err)
+
     return factory.done
 
 
@@ -47,7 +54,6 @@ class StdioHandler(LineReceiver):
 
     def __init__(self, onClientConnect):
         onClientConnect.addCallback(self.connectedToServer)
-        # TODO: Should maybe have an errback as well?
 
         self.client = None
 
