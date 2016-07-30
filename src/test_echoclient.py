@@ -8,6 +8,7 @@ from twisted.protocols.basic import Int16StringReceiver, LineReceiver
 from twisted.internet.task import LoopingCall
 
 import panda_test
+from src.parsing_utils import parseFloatTuple
 
 
 DESIRED_FPS = 60
@@ -34,7 +35,8 @@ def runEchoClientHelper(reactor, host, port):
 
 def startPanda(client):
     app = panda_test.WartsApp(client)
-    
+    client.setApp(app)
+
     LoopingCall(taskMgr.step).start(1.0 / DESIRED_FPS)
 
     return client
@@ -92,6 +94,10 @@ class EchoClient(Int16StringReceiver):
         # Int16StringReceiver.__init__(self)
 
         self.onClientConnect = onClientConnect
+        self.app = None
+
+    def setApp(self, app):
+        self.app = app
 
     def connectionMade(self):
         self.onClientConnect.callback(self)
@@ -100,4 +106,7 @@ class EchoClient(Int16StringReceiver):
     def stringReceived(self, line):
         # TODO: Probably this should go through the StdioHandler rather than
         # calling print directly....
+        position = parseFloatTuple(line, 2)
+        if position:
+            self.app.setTestModelPos(position[0], position[1])
         print "[receive]", line

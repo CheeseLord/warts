@@ -222,6 +222,9 @@ class WartsApp(ShowBase):
             x, y, z = self.testModelNode.getPos()
             self.client.sendString('{0} {1}'.format(x, y))
 
+    def setTestModelPos(self, x, y):
+        self.testModelNode.setPos(x, y, 0)
+
     def handleWindowClose(self):
         print "Window close requested -- shutting down Twisted."
         reactor.stop()
