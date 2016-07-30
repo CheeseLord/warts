@@ -1,3 +1,5 @@
+import math
+
 from twisted.internet import protocol, reactor, endpoints
 from twisted.protocols.basic import Int16StringReceiver
 
@@ -18,6 +20,22 @@ class EchoFactory(protocol.Factory):
         return Echo(self.position)
 
 class Echo(Int16StringReceiver):
+    STEP_SIZE = 1.0
+    RELATIVE_MOVES = {
+        'n':       ( 0.0,        STEP_SIZE),
+        'north':   ( 0.0,        STEP_SIZE),
+      # 'up':      ( 0.0,        STEP_SIZE),
+        's':       ( 0.0,       -STEP_SIZE),
+        'south':   ( 0.0,       -STEP_SIZE),
+      # 'down':    ( 0.0,       -STEP_SIZE),
+        'e':       ( STEP_SIZE,        0.0),
+        'east':    ( STEP_SIZE,        0.0),
+      # 'right':   ( STEP_SIZE,        0.0),
+        'w':       (-STEP_SIZE,        0.0),
+        'west':    (-STEP_SIZE,        0.0),
+      # 'left':    (-STEP_SIZE,        0.0),
+    }
+
     def __init__(self, position):
         self.position = position
 
@@ -34,22 +52,25 @@ class Echo(Int16StringReceiver):
     def updatePosition(self, data):
         command = data.lower().strip()
 
-        oldX, oldY = self.position
-        updateX, updateY = {
-            'n':       [    0,     1],
-            'north':   [    0,     1],
-            'up':      [    0,     1],
-            's':       [    0,    -1],
-            'south':   [    0,    -1],
-            'down':    [    0,    -1],
-            'e':       [    1,     0],
-            'east':    [    1,     0],
-            'right':   [    1,     0],
-            'w':       [   -1,     0],
-            'west':    [   -1,     0],
-            'left':    [   -1,     0],
-            'start9':  [-oldX, -oldY],
-        }.get(command, [    0,     0])
-        
-        self.position[0] += updateX
-        self.position[1] += updateY
+        if command == 'start9':
+            self.position[0] = 0.0
+            self.position[1] = 0.0
+
+        elif command in self.RELATIVE_MOVES:
+            updateX, updateY = self.RELATIVE_MOVES[command]
+            self.position[0] += updateX
+            self.position[1] += updateY
+
+        else:
+            try:
+                updateX, updateY = map(float, command.split())
+            except:
+                # FIXME: Don't just do except: pass
+                pass
+            else:
+                if isfinite(updateX) and isfinite(updateY):
+                    self.position[0] = updateX
+                    self.position[1] = updateY
+
+def isfinite(x):
+    return not math.isinf(x) and not math.isnan(x)
