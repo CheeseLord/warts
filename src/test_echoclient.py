@@ -37,6 +37,8 @@ def startPanda(client):
 
     LoopingCall(taskMgr.step).start(1.0 / DESIRED_FPS)
 
+    return client
+
 
 class StdioHandler(LineReceiver):
     delimiter = os.linesep
@@ -50,6 +52,7 @@ class StdioHandler(LineReceiver):
     def connectedToServer(self, client):
         self.client = client
         print "Successfully connected to server; you may now type messages."
+        return client
 
     def connectionMade(self):
         self.sendLine("Stdio handler created, yay!")
