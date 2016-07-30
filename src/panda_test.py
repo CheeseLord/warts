@@ -16,17 +16,15 @@ Mat4     = core.Mat4
 Filename = core.Filename
 NodePath = core.NodePath
 
-def runPandaTest():
-    app = MyApp()
-    app.run()
 
-
-class MyApp(ShowBase):
+class WartsApp(ShowBase):
  
-    def __init__(self):
+    def __init__(self, client):
         ShowBase.__init__(self)
 
         print "Initializing Panda application..."
+
+        self.client = client
 
         self.scene = self.loader.loadModel("environment")
         self.scene.reparentTo(self.render)
@@ -219,6 +217,10 @@ class MyApp(ShowBase):
                         if self.usingCustomCamera:
                             clickedPoint = entry.getSurfacePoint(self.render)
                             self.testModelNode.setPos(clickedPoint)
+
+            # Let the server know where the monolith is.
+            x, y, z = self.testModelNode.getPos()
+            self.client.sendString('{0} {1}'.format(x, y))
 
     def handleWindowClose(self):
         print "Window close requested -- shutting down Twisted."

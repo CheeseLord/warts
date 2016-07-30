@@ -44,6 +44,7 @@ def parseArguments():
 
     return parser.parse_args()
 
+
 class WartsParser(argparse.ArgumentParser):
     def error(self, message):
         sys.stderr.write("error: {message}\n".format(message=message))

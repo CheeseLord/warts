@@ -17,6 +17,7 @@ class EchoFactory(protocol.Factory):
     def buildProtocol(self, addr):
         return Echo(self.position)
 
+
 class Echo(Int16StringReceiver):
     def __init__(self, position):
         self.position = position

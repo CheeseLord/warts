@@ -16,6 +16,7 @@ DESIRED_FPS = 60
 def runEchoClient(host, port):
     task.react(runEchoClientHelper, (host, port))
 
+
 def runEchoClientHelper(reactor, host, port):
     onClientConnect = Deferred()
 
@@ -30,11 +31,10 @@ def runEchoClientHelper(reactor, host, port):
 
     return factory.done
 
+
 def startPanda(client):
-    app = panda_test.MyApp()
-
-    # TODO: Pass client to app.
-
+    app = panda_test.WartsApp(client)
+    
     LoopingCall(taskMgr.step).start(1.0 / DESIRED_FPS)
 
     return client
@@ -84,6 +84,7 @@ class EchoClientFactory(ClientFactory):
         client = EchoClient(self.onClientConnect)
         client.factory = self
         return client
+
 
 class EchoClient(Int16StringReceiver):
     def __init__(self, onClientConnect):
