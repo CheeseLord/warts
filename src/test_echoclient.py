@@ -14,18 +14,28 @@ DESIRED_FPS = 60
 
 
 def runEchoClient(host, port):
-    app = panda_test.MyApp()
-    LoopingCall(taskMgr.step).start(1.0 / DESIRED_FPS)
-
     task.react(runEchoClientHelper, (host, port))
 
 def runEchoClientHelper(reactor, host, port):
     onClientConnect = Deferred()
 
+    # Setup callbacks for when we finish connecting to the server.
     stdio.StandardIO(StdioHandler(onClientConnect))
+    onClientConnect.addCallback(startPanda)
+
+    # Setup the EchoClientFactory to connect to the server and create an
+    # EchoClient.
     factory = EchoClientFactory(onClientConnect)
     reactor.connectTCP(host, port, factory)
+
     return factory.done
+
+def startPanda(client):
+    app = panda_test.MyApp()
+
+    # TODO: Pass client to app.
+
+    LoopingCall(taskMgr.step).start(1.0 / DESIRED_FPS)
 
 
 class StdioHandler(LineReceiver):

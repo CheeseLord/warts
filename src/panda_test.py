@@ -26,6 +26,8 @@ class MyApp(ShowBase):
     def __init__(self):
         ShowBase.__init__(self)
 
+        print "Initializing Panda application..."
+
         self.scene = self.loader.loadModel("environment")
         self.scene.reparentTo(self.render)
         self.scene.setScale(0.25, 0.25, 0.25)
