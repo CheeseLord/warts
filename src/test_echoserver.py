@@ -59,8 +59,20 @@ class Echo(Int16StringReceiver):
         self.factory = factory
         self.position = position
 
+    def connectionMade(self):
+        peer = self.transport.getPeer()
+        print "[{ip}:{port}] <new connection>".format(
+            ip=peer.host, port=peer.port)
+        print "    {} connections in total.".format(
+            len(self.factory.connections))
+
     def connectionLost(self, reason):
+        peer = self.transport.getPeer()
+        print "[{ip}:{port}] <connection lost: {reason}>".format(
+            ip=peer.host, port=peer.port, reason=reason.getErrorMessage())
         self.factory.removeConnection(self)
+        print "    {} connections remain.".format(
+            len(self.factory.connections))
 
     def stringReceived(self, data):
         peer = self.transport.getPeer()
