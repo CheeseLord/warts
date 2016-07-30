@@ -1,4 +1,4 @@
-import math
+from src.parsing_utils import parseFloatTuple
 
 from twisted.internet import protocol, reactor, endpoints
 from twisted.protocols.basic import Int16StringReceiver
@@ -63,15 +63,8 @@ class Echo(Int16StringReceiver):
             self.position[1] += updateY
 
         else:
-            try:
-                updateX, updateY = map(float, command.split())
-            except:
-                # FIXME: Don't just do except: pass
-                pass
-            else:
-                if isfinite(updateX) and isfinite(updateY):
-                    self.position[0] = updateX
-                    self.position[1] = updateY
+            updates = parseFloatTuple(command, 2)
+            if updates:
+                self.position[0] = updates[0]
+                self.position[1] = updates[1]
 
-def isfinite(x):
-    return not math.isinf(x) and not math.isnan(x)
