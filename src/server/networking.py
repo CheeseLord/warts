@@ -25,7 +25,7 @@ class ChatFactory(protocol.Factory):
 
     def removeConnection(self, connection):
         try:
-            self.exceptions.remove(connection)
+            self.connections.remove(connection)
         except:
             log.warning("Failed to remove connection.")
 
@@ -38,13 +38,10 @@ class Chat(Int16StringReceiver):
     def __init__(self, factory):
         self.factory = factory
 
-    def __eq__(self, other):
-        return self is other
-
     def connectionMade(self):
         peer = self.transport.getPeer()
 
-    def connectectionLost(self, reason):
+    def connectionLost(self, reason):
         peer = self.transport.getPeer()
         log.info(
             "[{ip}:{port}] <connection lost: {reason}>".format(
@@ -55,9 +52,7 @@ class Chat(Int16StringReceiver):
         )
         self.factory.removeConnection(self)
         log.info(
-            "{} connections remain".format(
-                remaining=len(self.factory.connections)
-            )
+            "{} connections remain".format(len(self.factory.connections))
         )
 
     def stringReceived(self, data):
