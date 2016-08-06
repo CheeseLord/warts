@@ -5,7 +5,7 @@ from server.main import main as serverMain
 from client.main import main as clientMain
 
 HOST_DEFAULT = "127.0.0.1"
-PORT_DEFAULT = "50000"
+PORT_DEFAULT = "16097"
 
 
 def main():
