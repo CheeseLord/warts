@@ -1,17 +1,10 @@
-from twisted.internet.defer import Deferred
 from twisted.internet.protocol import ClientFactory
 from twisted.protocols.basic import Int16StringReceiver
 
 
-def setupNetworking(reactor, host, port):
+def setupNetworking(reactor, done, host, port):
     factory = FactoryForConnectionsToServer()
     reactor.connectTCP(host, port, factory)
-
-    # TODO: Actually use this deferred. The call to task.react which kicks off
-    # the event loop will log any failures from this Deferred, so it's a good
-    # candidate to use for reporting errors. We might also be able to add
-    # callbacks to it to handle cleanup.
-    return Deferred()
 
 
 class FactoryForConnectionsToServer(ClientFactory):
