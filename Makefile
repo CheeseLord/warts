@@ -1,4 +1,4 @@
-.PHONY: all docs warts clean activate
+.PHONY: all docs warts clean simplify activate
 
 VIRTUALENV = venv
 BUILDFILES = build-resources
@@ -11,6 +11,9 @@ warts: Makefile
 # Need this so that you can import some panda3d modules.
 	cp $(BUILDFILES)/panda3d.pth $(VIRTUALENV)/lib/python2.7/site-packages/
 
-clean:
-	rm -f src/*.pyc
+simplify:
+	find src -name '*.pyc' -exec echo removing '{}' ';' \
+	                       -exec rm -f '{}' ';'
+
+clean: simplify
 	rm -r $(VIRTUALENV)
