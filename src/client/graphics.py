@@ -2,7 +2,7 @@ from math import pi, sin, cos
 import os
 import sys
 
-from direct.task import Task  # This must be imported before Actor and Sequence.
+from direct.task import Task  # This must be imported first.
 from direct.actor.Actor import Actor
 from direct.interval.IntervalGlobal import Sequence
 from direct.showbase.ShowBase import ShowBase
@@ -47,26 +47,26 @@ class WartsApp(ShowBase):
         Handle mouse clicks.
         """
 
-        # Used for collision checking.
+        # Define the ground plane by a normal and a point.
         groundCollisionPlane = core.CollisionPlane(core.LPlanef(
             core.Vec3(0, 0, 1), core.Point3(0, 0, 0)))
 
-        # I don't actually know what sort of object this is...
-        self.groundPlaneNP = self.render.attachNewNode(
+        # Create a node path for the ground.
+        self.groundPlaneNodePath = self.render.attachNewNode(
             core.CollisionNode("groundCollisionNode"))
-        self.groundPlaneNP.node().addSolid(groundCollisionPlane)
+        self.groundPlaneNodePath.node().addSolid(groundCollisionPlane)
 
-        # For detecting clicks
+        # Find the ray defined by the mouse click.
         mouseClickNode = core.CollisionNode("mouseRay")
-        self.mouseClickNP = self.camera.attachNewNode(mouseClickNode)
+        self.mouseClickNodePath = self.camera.attachNewNode(mouseClickNode)
         # TODO: Do we need to mouseClickNode.setFromCollideMask() here?
         self.mouseClickRay = core.CollisionRay()
         mouseClickNode.addSolid(self.mouseClickRay)
 
-        # Bunch of objects that I don't entirely understand
+        # Create objects to traverse the node tree to find collisions.
         self.mouseClickHandler = core.CollisionHandlerQueue()
         self.mouseClickTraverser = core.CollisionTraverser("mouse click")
-        self.mouseClickTraverser.addCollider(self.mouseClickNP,
+        self.mouseClickTraverser.addCollider(self.mouseClickNodePath,
                                              self.mouseClickHandler)
 
     def setupEventHandlers(self):
@@ -154,11 +154,14 @@ class WartsApp(ShowBase):
         translateSpeed = 30 * dt
         rotateSpeed = 50 * dt
 
-        forward = translateSpeed * (self.keys["arrow_up"] - self.keys["arrow_down"])
-        sideways = translateSpeed * (self.keys["arrow_right"] - self.keys["arrow_left"])
+        forward = translateSpeed * (self.keys["arrow_up"] -
+                                    self.keys["arrow_down"])
+        sideways = translateSpeed * (self.keys["arrow_right"] -
+                                     self.keys["arrow_left"])
         # Check if the mouse is over the window.
         if base.mouseWatcherNode.hasMouse():
-            # Get the position. Each coordinate is normalized to the interval [-1, 1].
+            # Get the position.
+            # Each coordinate is normalized to the interval [-1, 1].
             mousePos = base.mouseWatcherNode.getMouse()
             xPos, yPos = mousePos.getX(), mousePos.getY()
             # Only move if the mouse is close to the edge.
@@ -194,16 +197,15 @@ class WartsApp(ShowBase):
             # mouse.
             self.mouseClickRay.setFromLens(self.camNode, mousePos)
 
+            # Check each object in the node tree for collision with the mouse.
             self.mouseClickTraverser.traverse(self.render)
             for entry in self.mouseClickHandler.getEntries():
                 if entry.hasInto():
-                    if entry.getIntoNodePath() == self.groundPlaneNP:
+                    # Check if each intersection is with the ground.
+                    if entry.getIntoNodePath() == self.groundPlaneNodePath:
                         if self.usingCustomCamera:
                             clickedPoint = entry.getSurfacePoint(self.render)
                             self.obeliskNode.setPos(clickedPoint)
-
-            # Let the server know where the monolith is.
-            x, y, z = self.obeliskNode.getPos()
 
     def setTestModelPos(self, x, y):
         self.obeliskNode.setPos(x, y, 0)
@@ -224,9 +226,3 @@ def getModelPath(modelName):
     modelsDir = repository + 'assets/models/'
 
     return modelsDir + modelName
-
-
-if __name__ == '__main__':
-    sys.path[0] = '/home/spike/code/games/warts'
-    app = WartsApp()
-    app.run()
