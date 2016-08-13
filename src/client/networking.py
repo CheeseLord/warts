@@ -37,8 +37,10 @@ class ConnectionToServer(Int16StringReceiver):
         self.address = serverAddress
 
     def onAllReady(self):
-        # TODO
         pass
+
+    def onClientQuit(self):
+        self.transport.loseConnection()
 
     def connectionMade(self):
         print "Connected to server."
