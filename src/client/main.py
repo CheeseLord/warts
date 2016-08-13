@@ -25,15 +25,15 @@ def twistedMain(reactor, args):
     # able to use it for reporting errors.
     done = Deferred()
 
-    hub = MessageHub()
+    hub = MessageHub(reactor)
     setupStdio(hub)
     setupNetworking(reactor, hub, args.host, args.port)
-    setupGraphics()
+    setupGraphics(hub)
 
     return done
 
-def setupGraphics():
-    app = WartsApp()
+def setupGraphics(hub):
+    app = WartsApp(hub)
 
     LoopingCall(app.taskMgr.step).start(1.0 / DESIRED_FPS)
 

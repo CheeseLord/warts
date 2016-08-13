@@ -19,8 +19,10 @@ class WartsApp(ShowBase):
     The application running all the graphics.
     """
 
-    def __init__(self):
+    def __init__(self, messageHub):
         ShowBase.__init__(self)
+
+        self.hub = messageHub
 
         # Set up event handling.
         self.keys = {}
@@ -45,6 +47,12 @@ class WartsApp(ShowBase):
         self.cameraHolder.setPos(0, 0, 100)
         self.prevCameraHpr = (0, -80, 0)
         self.setCameraCustom()
+
+        self.hub.onGraphicsReady(self)
+
+    def onAllReady(self):
+        # TODO
+        pass
 
     def setupMouseHandler(self):
         """
@@ -94,6 +102,10 @@ class WartsApp(ShowBase):
 
         # Handle clicking.
         self.accept("mouse1", self.handleMouseClick, [])
+
+        # Handle window close request (clicking the X, Alt-F4, etc.)
+        self.win.set_close_request_event("window-close")
+        self.accept("window-close", self.handleWindowClose)
 
     def setCameraCustom(self):
         """
@@ -210,6 +222,10 @@ class WartsApp(ShowBase):
                         if self.usingCustomCamera:
                             clickedPoint = entry.getSurfacePoint(self.render)
                             self.obeliskNode.setPos(clickedPoint)
+
+    def handleWindowClose(self):
+        print "Window close requested -- shutting down client."
+        self.hub.quitClient()
 
     def setTestModelPos(self, x, y):
         self.obeliskNode.setPos(x, y, 0)
