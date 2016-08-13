@@ -3,6 +3,7 @@ from twisted.internet.defer import Deferred
 
 from src.shared.dummy import sharedFunctionality
 
+from src.client.message    import MessageHub
 from src.client.networking import setupNetworking
 from src.client.stdio      import setupStdio
 
@@ -21,8 +22,9 @@ def twistedMain(reactor, args):
     # able to use it for reporting errors.
     done = Deferred()
 
-    setupNetworking(reactor, done, args.host, args.port)
-    setupStdio(reactor)
+    hub = MessageHub()
+    setupStdio(hub)
+    setupNetworking(reactor, hub, args.host, args.port)
 
     return done
 
