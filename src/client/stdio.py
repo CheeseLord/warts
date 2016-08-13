@@ -22,7 +22,9 @@ class StdioHandler(LineReceiver):
         self.hub.onStdioReady(self)
 
     def onAllReady(self):
-        # TODO
+        pass
+
+    def onClientQuit(self):
         pass
 
     def lineReceived(self, line):

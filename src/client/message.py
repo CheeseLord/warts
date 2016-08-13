@@ -73,6 +73,8 @@ class MessageHub:
                 "initialized yet.".format(message)
 
     def quitClient(self):
+        for component in self.allComponents:
+            component.onClientQuit()
         self.done.callback(None)
 
 

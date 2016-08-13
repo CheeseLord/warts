@@ -51,7 +51,9 @@ class WartsApp(ShowBase):
         self.hub.onGraphicsReady(self)
 
     def onAllReady(self):
-        # TODO
+        pass
+
+    def onClientQuit(self):
         pass
 
     def setupMouseHandler(self):
