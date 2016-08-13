@@ -10,6 +10,10 @@ from panda3d import core
 from panda3d.core import Point3, Mat4, Filename, NodePath
 
 
+# TODO: Read from a config file.
+DESIRED_FPS = 60
+
+
 class WartsApp(ShowBase):
     """
     The application running all the graphics.

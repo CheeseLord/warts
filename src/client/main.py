@@ -1,11 +1,14 @@
 from twisted.internet import task
 from twisted.internet.defer import Deferred
+from twisted.internet.task import LoopingCall
 
 from src.shared.dummy import sharedFunctionality
 
 from src.client.message    import MessageHub
 from src.client.networking import setupNetworking
 from src.client.stdio      import setupStdio
+from src.client.graphics   import WartsApp, DESIRED_FPS
+
 
 def main(args):
     print "Hi, I'm a client!"
@@ -25,6 +28,12 @@ def twistedMain(reactor, args):
     hub = MessageHub()
     setupStdio(hub)
     setupNetworking(reactor, hub, args.host, args.port)
+    setupGraphics()
 
     return done
+
+def setupGraphics():
+    app = WartsApp()
+
+    LoopingCall(app.taskMgr.step).start(1.0 / DESIRED_FPS)
 
