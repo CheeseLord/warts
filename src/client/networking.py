@@ -48,5 +48,10 @@ class ConnectionToServer(Int16StringReceiver):
         self.hub.onNetworkReady(self)
 
     def stringReceived(self, message):
-        print "[receive] {}".format(message)
+        self.hub.recvNetwork(message)
+
+    def messageFromStdio(self, message):
+        # TODO: Eww... mixing log, print, *and* stdio.sendLine?
+        print "[send]    {}".format(message)
+        self.sendString(message)
 
