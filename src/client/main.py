@@ -20,12 +20,12 @@ def main(args):
 
 def twistedMain(reactor, args):
     # Fire this deferred's callback to exit cleanly.
-    # TODO: Actually use this deferred. The call to task.react which kicks off
-    # the event loop will log any failures from this Deferred, so we may be
-    # able to use it for reporting errors.
+    # Note: The call to task.react which kicks off the event loop will log any
+    # failures from this Deferred, so we may also be able to use it for
+    # reporting errors.
     done = Deferred()
 
-    hub = MessageHub(reactor)
+    hub = MessageHub(done)
     setupStdio(hub)
     setupNetworking(reactor, hub, args.host, args.port)
     setupGraphics(hub)

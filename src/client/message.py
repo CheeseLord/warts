@@ -1,6 +1,8 @@
 class MessageHub:
-    def __init__(self, reactor):
-        self.reactor = reactor
+    def __init__(self, done):
+        # Done is a Twisted Deferred object whose callback can be fired to
+        # close down the client cleanly (in theory...).
+        self.done = done
 
         self.stdio    = None
         self.network  = None
@@ -71,7 +73,7 @@ class MessageHub:
                 "initialized yet.".format(message)
 
     def quitClient(self):
-        self.reactor.stop()
+        self.done.callback(None)
 
 
     ########################################################################
