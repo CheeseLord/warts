@@ -1,7 +1,9 @@
+import logging
+
 from twisted.internet import protocol, reactor, endpoints
 from twisted.protocols.basic import Int16StringReceiver
 
-import logging
+from src.shared.encode import decodePosition, encodePosition
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
@@ -76,17 +78,27 @@ class Chat(Int16StringReceiver):
         self.factory.broadcastString(data)
 
     def updatePosition(self, data):
-        processed = data.strip().lower()
+        command = data.strip().lower()
 
-        step = {
-            'n': [ 0,  1],
-            's': [ 0, -1],
-            'e': [ 1,  0],
-            'w': [-1,  0],
-        }.get(processed, [0, 0])
+        STEP_SIZE = 1.0
+        RELATIVE_MOVES = {
+            'n': [ 0.0,        STEP_SIZE],
+            's': [ 0.0,       -STEP_SIZE],
+            'e': [ STEP_SIZE,        0.0],
+            'w': [-STEP_SIZE,        0.0],
+        }
 
-        self.playerPosition[0] += step[0]
-        self.playerPosition[1] += step[1]
+        if command in RELATIVE_MOVES:
+            dx, dy = RELATIVE_MOVES[command]
+            self.playerPosition[0] += dx
+            self.playerPosition[1] += dy
 
-        self.broadcastString('Player position is now {}'
-                             .format(self.playerPosition))
+        else:
+            newPos = decodePosition(command)
+            if newPos is not None:
+                self.playerPosition[0] = newPos[0]
+                self.playerPosition[1] = newPos[1]
+
+        # TODO: Maybe only broadcast the new position if we handled a valid
+        # command? Else the position isn't changed....
+        self.broadcastString(encodePosition(self.playerPosition))
