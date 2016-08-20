@@ -223,6 +223,9 @@ class WartsApp(ShowBase):
                     if entry.getIntoNodePath() == self.groundPlaneNodePath:
                         if self.usingCustomCamera:
                             clickedPoint = entry.getSurfacePoint(self.render)
+                            x, y, z = clickedPoint
+                            self.hub.onClick(x, y)
+                            # TODO: Remove?
                             self.obeliskNode.setPos(clickedPoint)
 
     def handleWindowClose(self):

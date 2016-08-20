@@ -1,3 +1,5 @@
+from src.shared.encode import encodePosition
+
 class MessageHub:
     def __init__(self, done):
         # Done is a Twisted Deferred object whose callback can be fired to
@@ -71,6 +73,9 @@ class MessageHub:
         else:
             print "Warning: server message '{}' ignored; client not " \
                 "initialized yet.".format(message)
+
+    def onClick(self, x, y):
+        self.sendNetwork(encodePosition((x, y)))
 
     def quitClient(self):
         for component in self.allComponents:
