@@ -225,8 +225,9 @@ class WartsApp(ShowBase):
                             clickedPoint = entry.getSurfacePoint(self.render)
                             x, y, z = clickedPoint
                             self.hub.onClick(x, y)
-                            # TODO: Remove?
-                            self.obeliskNode.setPos(clickedPoint)
+
+    def setPlayerPos(self, x, y):
+        self.obeliskNode.setPos(x, y, 0)
 
     def handleWindowClose(self):
         print "Window close requested -- shutting down client."

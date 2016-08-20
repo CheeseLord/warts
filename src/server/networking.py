@@ -65,7 +65,7 @@ class Chat(Int16StringReceiver):
 
     def stringReceived(self, data):
         peer = self.transport.getPeer()
-        self.broadcastString(data)
+        # self.broadcastString(data)
         log.info("[{ip}:{port}] {msg!r}".format(
             ip=peer.host,
             port=peer.port,

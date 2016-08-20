@@ -1,4 +1,4 @@
-from src.shared.encode import encodePosition
+from src.shared.encode import encodePosition, decodePosition
 
 class MessageHub:
     def __init__(self, done):
@@ -64,17 +64,25 @@ class MessageHub:
         if self.allReady:
             self.sendNetwork(message)
         else:
+            # TODO: Buffer messages until ready? Don't just drop them....
             print "Warning: input '{}' ignored; client not initialized yet." \
                 .format(message)
 
     def recvNetwork(self, message):
         if self.allReady:
             self.sendStdio(message)
+            newPos = decodePosition(message)
+            if newPos is not None:
+                self.setGraphicsPos(newPos)
+            else:
+                print "Warning: failed to parse position {!r}".format(message)
         else:
+            # TODO: Buffer messages until ready? Don't just drop them....
             print "Warning: server message '{}' ignored; client not " \
                 "initialized yet.".format(message)
 
     def onClick(self, x, y):
+        self.setGraphicsPos((x, y))
         self.sendNetwork(encodePosition((x, y)))
 
     def quitClient(self):
@@ -86,6 +94,10 @@ class MessageHub:
     ########################################################################
     # Outgoing messages
 
+    # TODO: These are all trivial wrapper functions, which are probably going
+    # to cost us w/r/t efficiency. And I think they make the code harder to
+    # follow as well. We really need to reorganize this part of the code.
+
     def sendStdio(self, message):
         # TODO: These checks are redundant.
         if self.allReady:
@@ -94,4 +106,8 @@ class MessageHub:
     def sendNetwork(self, message):
         if self.allReady:
             self.network.messageFromStdio(message)
+
+    def setGraphicsPos(self, newPos):
+        x, y = newPos
+        self.graphics.setPlayerPos(x, y)
 
