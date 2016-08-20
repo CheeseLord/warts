@@ -1,6 +1,7 @@
 from twisted.internet import task
 from twisted.internet.defer import Deferred
 from twisted.internet.task import LoopingCall
+from twisted.python import log
 
 from src.shared.dummy import sharedFunctionality
 
@@ -28,12 +29,24 @@ def twistedMain(reactor, args):
     hub = MessageHub(done)
     setupStdio(hub)
     setupNetworking(reactor, hub, args.host, args.port)
-    setupGraphics(hub)
+    setupGraphics(reactor, hub)
 
     return done
 
-def setupGraphics(hub):
+def setupGraphics(reactor, hub):
     app = WartsApp(hub)
 
-    LoopingCall(app.taskMgr.step).start(1.0 / DESIRED_FPS)
+    def onGraphicsException(failure):
+        print
+        print "Shutting down client due to unhandled exception in graphics " \
+            "code:"
+        print
+        # Supposedly I think we ought to be able to call
+        # failure.printTraceback() here, but for some reason that doesn't print
+        # anything.
+        log.err(failure)
+        reactor.stop()
+
+    foo = LoopingCall(app.taskMgr.step).start(1.0 / DESIRED_FPS)
+    foo.addErrback(onGraphicsException)
 
