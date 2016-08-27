@@ -4,11 +4,11 @@ from twisted.protocols.basic import Int16StringReceiver
 
 
 def setupNetworking(reactor, backend, host, port):
-    factory = FactoryForConnectionsToServer(backend)
+    factory = NetworkConnectionFactory(backend)
     reactor.connectTCP(host, port, factory)
 
 
-class FactoryForConnectionsToServer(ClientFactory):
+class NetworkConnectionFactory(ClientFactory):
     def __init__(self, backend):
         self.backend = backend
         self.alreadyConnected = False
@@ -24,12 +24,11 @@ class FactoryForConnectionsToServer(ClientFactory):
     def buildProtocol(self, serverAddress):
         assert not self.alreadyConnected
         self.alreadyConnected = True
-        serverConnection = ConnectionToServer(self.backend, self,
-                                              serverAddress)
+        serverConnection = NetworkConnection(self.backend, self, serverAddress)
         return serverConnection
 
 
-class ConnectionToServer(Int16StringReceiver):
+class NetworkConnection(Int16StringReceiver):
     def __init__(self, backend, factory, serverAddress):
         # For some reason calling Int16StringReceiver.__init__ doesn't work??
 
