@@ -50,9 +50,9 @@ class ConnectionToServer(Int16StringReceiver):
         self.hub.onNetworkReady(self)
 
     def stringReceived(self, message):
-        self.hub.recvNetwork(message)
+        self.hub.networkMessage(message)
 
-    def messageFromStdio(self, message):
+    def backendMessage(self, message):
         # TODO: Eww... mixing log, print, *and* stdio.sendLine?
         print "[send]    {}".format(message)
         self.sendString(message)

@@ -28,9 +28,9 @@ class StdioHandler(LineReceiver):
         pass
 
     def lineReceived(self, line):
-        self.hub.recvStdio(line)
+        self.hub.stdioMessage(line)
 
-    def messageFromNetwork(self, message):
+    def backendMessage(self, message):
         # TODO: Eww... mixing log, print, *and* stdio.sendLine?
         self.sendLine("[receive] {}".format(message))
 

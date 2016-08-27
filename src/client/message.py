@@ -1,6 +1,6 @@
 from src.shared.encode import encodePosition, decodePosition
 
-class MessageHub:
+class Backend:
     def __init__(self, done):
         # Done is a Twisted Deferred object whose callback can be fired to
         # close down the client cleanly (in theory...).
@@ -60,20 +60,21 @@ class MessageHub:
     ########################################################################
     # Incoming messages
 
-    def recvStdio(self, message):
+    def stdioMessage(self, message):
         if self.allReady:
-            self.sendNetwork(message)
+            self.network.backendMessage(message)
         else:
             # TODO: Buffer messages until ready? Don't just drop them....
             print "Warning: input '{}' ignored; client not initialized yet." \
                 .format(message)
 
-    def recvNetwork(self, message):
+    def networkMessage(self, message):
         if self.allReady:
-            self.sendStdio(message)
+            self.stdio.backendMessage(message)
             newPos = decodePosition(message)
             if newPos is not None:
-                self.setGraphicsPos(newPos)
+                x, y = newPos
+                self.graphics.backendMessage(x, y)
             else:
                 print "Warning: failed to parse position {!r}".format(message)
         else:
@@ -81,33 +82,14 @@ class MessageHub:
             print "Warning: server message '{}' ignored; client not " \
                 "initialized yet.".format(message)
 
-    def onClick(self, x, y):
-        self.setGraphicsPos((x, y))
-        self.sendNetwork(encodePosition((x, y)))
+    # FIXME: Change to use strings.
+    def graphicsMessage(self, x, y):
+        self.graphics.backendMessage(x, y)
+        self.network.backendMessage(encodePosition((x, y)))
 
+    # FIXME: Should be a graphicsMessage
     def quitClient(self):
         for component in self.allComponents:
             component.onClientQuit()
         self.done.callback(None)
-
-
-    ########################################################################
-    # Outgoing messages
-
-    # TODO: These are all trivial wrapper functions, which are probably going
-    # to cost us w/r/t efficiency. And I think they make the code harder to
-    # follow as well. We really need to reorganize this part of the code.
-
-    def sendStdio(self, message):
-        # TODO: These checks are redundant.
-        if self.allReady:
-            self.stdio.messageFromNetwork(message)
-
-    def sendNetwork(self, message):
-        if self.allReady:
-            self.network.messageFromStdio(message)
-
-    def setGraphicsPos(self, newPos):
-        x, y = newPos
-        self.graphics.setPlayerPos(x, y)
 

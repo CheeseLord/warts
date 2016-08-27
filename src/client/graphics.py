@@ -224,9 +224,10 @@ class WartsApp(ShowBase):
                         if self.usingCustomCamera:
                             clickedPoint = entry.getSurfacePoint(self.render)
                             x, y, z = clickedPoint
-                            self.hub.onClick(x, y)
+                            self.hub.graphicsMessage(x, y)
 
-    def setPlayerPos(self, x, y):
+    # FIXME: Use strings
+    def backendMessage(self, x, y):
         self.obeliskNode.setPos(x, y, 0)
 
     def handleWindowClose(self):
