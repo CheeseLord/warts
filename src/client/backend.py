@@ -1,4 +1,5 @@
 from src.shared.encode import encodePosition, decodePosition
+from src.shared.message import tokenize, InvalidMessageError, parsePos
 
 class Backend:
     def __init__(self, done):
@@ -86,9 +87,9 @@ class Backend:
                 "initialized yet.".format(message)
 
     def graphicsMessage(self, message):
-        command, _, rest = message.partition(" ")
+        command, rest = tokenize(message)
         if command == "click":
-            pos = decodePosition(rest)
+            pos = parsePos(rest)
             if pos is not None:
                 x, y = pos
                 self.network.backendMessage(encodePosition(pos))
@@ -96,17 +97,15 @@ class Backend:
                 self.graphics.backendMessage("set_pos {x} {y}".format(x=x,
                                                                       y=y))
             else:
-                print "Warning: graphics message '{}' ignored: could not " \
-                    "parse coordinates.".format(message)
+                raise InvalidMessageError(message,
+                                          "Could not parse coordinates.")
         elif command == "request_quit":
-            if rest.strip():
-                print "Warning: graphics message '{}' ignored: trailing " \
-                    "characters.".format(message)
+            if rest:
+                raise InvalidMessageError(message, "Trailing arguments.")
             else:
                 for component in self.allComponents:
                     component.cleanup()
                 self.done.callback(None)
         else:
-            print "Warning: graphics message '{}' ignored: unrecognized " \
-                "command.".format(message)
+            raise InvalidMessageError(message, "Unrecognized command.")
 
