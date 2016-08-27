@@ -48,12 +48,9 @@ class WartsApp(ShowBase):
         self.prevCameraHpr = (0, -80, 0)
         self.setCameraCustom()
 
-        self.hub.onGraphicsReady(self)
+        self.hub.graphicsReady(self)
 
-    def onAllReady(self):
-        pass
-
-    def onClientQuit(self):
+    def cleanup(self):
         pass
 
     def setupMouseHandler(self):

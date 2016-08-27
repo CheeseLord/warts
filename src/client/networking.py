@@ -36,10 +36,7 @@ class ConnectionToServer(Int16StringReceiver):
         self.factory = factory
         self.address = serverAddress
 
-    def onAllReady(self):
-        pass
-
-    def onClientQuit(self):
+    def cleanup(self):
         self.transport.loseConnection()
 
     def connectionMade(self):
@@ -47,7 +44,7 @@ class ConnectionToServer(Int16StringReceiver):
 
         self.sendString("Hello, server!")
 
-        self.hub.onNetworkReady(self)
+        self.hub.networkReady(self)
 
     def stringReceived(self, message):
         self.hub.networkMessage(message)

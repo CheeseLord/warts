@@ -19,12 +19,9 @@ class StdioHandler(LineReceiver):
         # For some reason calling LineReceiver.__init__ doesn't work??
 
         self.hub = messageHub
-        self.hub.onStdioReady(self)
+        self.hub.stdioReady(self)
 
-    def onAllReady(self):
-        pass
-
-    def onClientQuit(self):
+    def cleanup(self):
         pass
 
     def lineReceived(self, line):

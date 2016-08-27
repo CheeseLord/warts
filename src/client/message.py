@@ -23,21 +23,21 @@ class Backend:
     # All wings, report in.
 
     # Red 2, standing by.
-    def onStdioReady(self, stdioComponent):
+    def stdioReady(self, stdioComponent):
         assert self.stdio is None
         self.stdio = stdioComponent
         assert self.stdio is not None
         self.checkIfAllReady()
 
     # Red 11, standing by.
-    def onNetworkReady(self, networkComponent):
+    def networkReady(self, networkComponent):
         assert self.network is None
         self.network = networkComponent
         assert self.network is not None
         self.checkIfAllReady()
 
     # Red 5, standing by.
-    def onGraphicsReady(self, graphicsComponent):
+    def graphicsReady(self, graphicsComponent):
         assert self.graphics is None
         self.graphics = graphicsComponent
         assert self.graphics is not None
@@ -48,13 +48,15 @@ class Backend:
             if component is None:
                 # Not ready
                 return
-        # All ready
-        self.signalAllReady()
+        self.allComponentsReady()
 
-    def signalAllReady(self):
+    def allComponentsReady(self):
+        # I'm keeping this method around, even though all it does is set a
+        # flag, because it seems like we might want to put some final
+        # initialization code in here.
+        # ... or change the implementation somehow so that we don't have to
+        # constantly check self.allReady for the entire lifetime of the client.
         self.allReady = True
-        for component in self.allComponents:
-            component.onAllReady()
 
 
     ########################################################################
@@ -90,6 +92,6 @@ class Backend:
     # FIXME: Should be a graphicsMessage
     def quitClient(self):
         for component in self.allComponents:
-            component.onClientQuit()
+            component.cleanup()
         self.done.callback(None)
 
