@@ -12,11 +12,11 @@ log.setLevel(logging.INFO)
 def runServer(port):
     serverString = "tcp:{}".format(port)
     server = endpoints.serverFromString(reactor, serverString)
-    server.listen(ChatFactory())
+    server.listen(NetworkConnectionFactory())
     reactor.run()
 
 
-class ChatFactory(protocol.Factory):
+class NetworkConnectionFactory(protocol.Factory):
     def __init__(self, *args, **kwargs):
         self.connections = []
 
@@ -24,7 +24,7 @@ class ChatFactory(protocol.Factory):
         self.playerPosition = [0, 0]
 
     def buildProtocol(self, addr):
-        newConnection = Chat(self, self.playerPosition)
+        newConnection = NetworkConnection(self, self.playerPosition)
         self.connections.append(newConnection)
         log.info("New Connection from {}".format(addr))
         return newConnection
@@ -40,7 +40,7 @@ class ChatFactory(protocol.Factory):
             connection.sendString(data)
 
 
-class Chat(Int16StringReceiver):
+class NetworkConnection(Int16StringReceiver):
     def __init__(self, factory, playerPosition):
         self.factory = factory
 
