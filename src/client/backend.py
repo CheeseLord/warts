@@ -76,7 +76,8 @@ class Backend:
             newPos = decodePosition(message)
             if newPos is not None:
                 x, y = newPos
-                self.graphics.backendMessage(x, y)
+                self.graphics.backendMessage("set_pos {x} {y}".format(x=x,
+                                                                      y=y))
             else:
                 print "Warning: failed to parse position {!r}".format(message)
         else:
@@ -84,14 +85,28 @@ class Backend:
             print "Warning: server message '{}' ignored; client not " \
                 "initialized yet.".format(message)
 
-    # FIXME: Change to use strings.
-    def graphicsMessage(self, x, y):
-        self.graphics.backendMessage(x, y)
-        self.network.backendMessage(encodePosition((x, y)))
-
-    # FIXME: Should be a graphicsMessage
-    def quitClient(self):
-        for component in self.allComponents:
-            component.cleanup()
-        self.done.callback(None)
+    def graphicsMessage(self, message):
+        command, _, rest = message.partition(" ")
+        if command == "click":
+            pos = decodePosition(rest)
+            if pos is not None:
+                x, y = pos
+                self.network.backendMessage(encodePosition(pos))
+                # TODO: This is probably unnecessary...
+                self.graphics.backendMessage("set_pos {x} {y}".format(x=x,
+                                                                      y=y))
+            else:
+                print "Warning: graphics message '{}' ignored: could not " \
+                    "parse coordinates.".format(message)
+        elif command == "request_quit":
+            if rest.strip():
+                print "Warning: graphics message '{}' ignored: trailing " \
+                    "characters.".format(message)
+            else:
+                for component in self.allComponents:
+                    component.cleanup()
+                self.done.callback(None)
+        else:
+            print "Warning: graphics message '{}' ignored: unrecognized " \
+                "command.".format(message)
 

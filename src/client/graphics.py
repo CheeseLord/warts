@@ -9,6 +9,8 @@ from direct.showbase.ShowBase import ShowBase
 from panda3d import core
 from panda3d.core import Point3, Mat4, Filename, NodePath
 
+from src.shared.encode import encodePosition, decodePosition
+
 
 # TODO: Read from a config file.
 DESIRED_FPS = 60
@@ -221,15 +223,26 @@ class WartsApp(ShowBase):
                         if self.usingCustomCamera:
                             clickedPoint = entry.getSurfacePoint(self.render)
                             x, y, z = clickedPoint
-                            self.backend.graphicsMessage(x, y)
+                            message = "click {x} {y}".format(x=x, y=y)
+                            self.backend.graphicsMessage(message)
 
-    # FIXME: Use strings
-    def backendMessage(self, x, y):
-        self.obeliskNode.setPos(x, y, 0)
+    def backendMessage(self, message):
+        command, _, rest = message.partition(" ")
+        if command == "set_pos":
+            pos = decodePosition(rest)
+            if pos is not None:
+                x, y = pos
+                self.obeliskNode.setPos(x, y, 0)
+            else:
+                print "Warning: backend message '{}' ignored: could not " \
+                    "parse coordinates.".format(message)
+        else:
+            print "Warning: backend message '{}' ignored: unrecognized " \
+                "command.".format(message)
 
     def handleWindowClose(self):
         print "Window close requested -- shutting down client."
-        self.backend.quitClient()
+        self.backend.graphicsMessage("request_quit")
 
     def setTestModelPos(self, x, y):
         self.obeliskNode.setPos(x, y, 0)
