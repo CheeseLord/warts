@@ -1,5 +1,6 @@
 from src.shared.encode import encodePosition, decodePosition
-from src.shared.message import tokenize, InvalidMessageError, parsePos
+from src.shared.message import tokenize, buildMessage, InvalidMessageError, \
+                               parsePos
 
 class Backend:
     def __init__(self, done):
@@ -77,8 +78,7 @@ class Backend:
             newPos = decodePosition(message)
             if newPos is not None:
                 x, y = newPos
-                self.graphics.backendMessage("set_pos {x} {y}".format(x=x,
-                                                                      y=y))
+                self.graphics.backendMessage(buildMessage("set_pos", [x, y]))
             else:
                 print "Warning: failed to parse position {!r}".format(message)
         else:
@@ -94,8 +94,7 @@ class Backend:
                 x, y = pos
                 self.network.backendMessage(encodePosition(pos))
                 # TODO: This is probably unnecessary...
-                self.graphics.backendMessage("set_pos {x} {y}".format(x=x,
-                                                                      y=y))
+                self.graphics.backendMessage(buildMessage("set_pos", [x, y]))
             else:
                 raise InvalidMessageError(message,
                                           "Could not parse coordinates.")
