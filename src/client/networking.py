@@ -3,14 +3,14 @@ from twisted.internet.protocol import ClientFactory
 from twisted.protocols.basic import Int16StringReceiver
 
 
-def setupNetworking(reactor, hub, host, port):
-    factory = FactoryForConnectionsToServer(hub)
+def setupNetworking(reactor, backend, host, port):
+    factory = FactoryForConnectionsToServer(backend)
     reactor.connectTCP(host, port, factory)
 
 
 class FactoryForConnectionsToServer(ClientFactory):
-    def __init__(self, messageHub):
-        self.hub = messageHub
+    def __init__(self, backend):
+        self.backend = backend
         self.alreadyConnected = False
 
     def clientConnectionFailed(self, connector, reason):
@@ -24,15 +24,16 @@ class FactoryForConnectionsToServer(ClientFactory):
     def buildProtocol(self, serverAddress):
         assert not self.alreadyConnected
         self.alreadyConnected = True
-        serverConnection = ConnectionToServer(self.hub, self, serverAddress)
+        serverConnection = ConnectionToServer(self.backend, self,
+                                              serverAddress)
         return serverConnection
 
 
 class ConnectionToServer(Int16StringReceiver):
-    def __init__(self, messageHub, factory, serverAddress):
+    def __init__(self, backend, factory, serverAddress):
         # For some reason calling Int16StringReceiver.__init__ doesn't work??
 
-        self.hub     = messageHub
+        self.backend = backend
         self.factory = factory
         self.address = serverAddress
 
@@ -44,10 +45,10 @@ class ConnectionToServer(Int16StringReceiver):
 
         self.sendString("Hello, server!")
 
-        self.hub.networkReady(self)
+        self.backend.networkReady(self)
 
     def stringReceived(self, message):
-        self.hub.networkMessage(message)
+        self.backend.networkMessage(message)
 
     def backendMessage(self, message):
         # TODO: Eww... mixing log, print, *and* stdio.sendLine?

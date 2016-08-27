@@ -19,10 +19,10 @@ class WartsApp(ShowBase):
     The application running all the graphics.
     """
 
-    def __init__(self, messageHub):
+    def __init__(self, backend):
         ShowBase.__init__(self)
 
-        self.hub = messageHub
+        self.backend = backend
 
         # Set up event handling.
         self.keys = {}
@@ -48,7 +48,7 @@ class WartsApp(ShowBase):
         self.prevCameraHpr = (0, -80, 0)
         self.setCameraCustom()
 
-        self.hub.graphicsReady(self)
+        self.backend.graphicsReady(self)
 
     def cleanup(self):
         pass
@@ -221,7 +221,7 @@ class WartsApp(ShowBase):
                         if self.usingCustomCamera:
                             clickedPoint = entry.getSurfacePoint(self.render)
                             x, y, z = clickedPoint
-                            self.hub.graphicsMessage(x, y)
+                            self.backend.graphicsMessage(x, y)
 
     # FIXME: Use strings
     def backendMessage(self, x, y):
@@ -229,7 +229,7 @@ class WartsApp(ShowBase):
 
     def handleWindowClose(self):
         print "Window close requested -- shutting down client."
-        self.hub.quitClient()
+        self.backend.quitClient()
 
     def setTestModelPos(self, x, y):
         self.obeliskNode.setPos(x, y, 0)

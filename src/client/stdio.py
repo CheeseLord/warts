@@ -3,8 +3,8 @@ import os
 from twisted.internet import stdio as twistedStdio
 from twisted.protocols.basic import LineReceiver
 
-def setupStdio(messageHub):
-    twistedStdio.StandardIO(StdioHandler(messageHub))
+def setupStdio(backend):
+    twistedStdio.StandardIO(StdioHandler(backend))
 
 class StdioHandler(LineReceiver):
     # The default delimiter for a LineReceiver is '\r\n', which doesn't work
@@ -15,17 +15,17 @@ class StdioHandler(LineReceiver):
     # change this to '\n'.
     delimiter = os.linesep
 
-    def __init__(self, messageHub):
+    def __init__(self, backend):
         # For some reason calling LineReceiver.__init__ doesn't work??
 
-        self.hub = messageHub
-        self.hub.stdioReady(self)
+        self.backend = backend
+        self.backend.stdioReady(self)
 
     def cleanup(self):
         pass
 
     def lineReceived(self, line):
-        self.hub.stdioMessage(line)
+        self.backend.stdioMessage(line)
 
     def backendMessage(self, message):
         # TODO: Eww... mixing log, print, *and* stdio.sendLine?

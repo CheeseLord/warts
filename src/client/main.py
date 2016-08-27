@@ -5,7 +5,7 @@ from twisted.python import log
 
 from src.shared.dummy import sharedFunctionality
 
-from src.client.message    import Backend
+from src.client.backend    import Backend
 from src.client.networking import setupNetworking
 from src.client.stdio      import setupStdio
 from src.client.graphics   import WartsApp, DESIRED_FPS
@@ -26,15 +26,15 @@ def twistedMain(reactor, args):
     # reporting errors.
     done = Deferred()
 
-    hub = Backend(done)
-    setupStdio(hub)
-    setupNetworking(reactor, hub, args.host, args.port)
-    setupGraphics(reactor, hub)
+    backend = Backend(done)
+    setupStdio(backend)
+    setupNetworking(reactor, backend, args.host, args.port)
+    setupGraphics(reactor, backend)
 
     return done
 
-def setupGraphics(reactor, hub):
-    app = WartsApp(hub)
+def setupGraphics(reactor, backend):
+    app = WartsApp(backend)
 
     def onGraphicsException(failure):
         print
