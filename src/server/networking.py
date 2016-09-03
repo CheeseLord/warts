@@ -20,11 +20,14 @@ class NetworkConnectionFactory(protocol.Factory):
     def __init__(self, *args, **kwargs):
         self.connections = []
 
-        # TODO: Do this sanely.
-        self.playerPosition = [0, 0]
+        # TODO: Don't let the index grow forever.
+        self.playerIndex = 0
+        self.playerPositions = {}
 
     def buildProtocol(self, addr):
-        newConnection = NetworkConnection(self, self.playerPosition)
+        newConnection = NetworkConnection(self, self.playerIndex,
+                                          self.playerPositions)
+        self.playerIndex += 1
         self.connections.append(newConnection)
         log.info("New Connection from {}".format(addr))
         return newConnection
@@ -35,16 +38,19 @@ class NetworkConnectionFactory(protocol.Factory):
         else:
             log.warning("Failed to remove connection.")
 
-    def broadcastString(self, data):
+    def broadcastString(self, playerIndex, data):
+        # FIXME: Use playerIndex.
         for connection in self.connections:
             connection.sendString(data)
 
 
 class NetworkConnection(Int16StringReceiver):
-    def __init__(self, factory, playerPosition):
+    def __init__(self, factory, playerIndex, playerPositions):
         self.factory = factory
 
-        self.playerPosition = playerPosition
+        self.playerIndex = playerIndex
+        self.playerPositions = playerPositions
+        self.playerPositions[self.playerIndex] = (0, 0)
 
     def connectionMade(self):
         peer = self.transport.getPeer()
@@ -75,7 +81,7 @@ class NetworkConnection(Int16StringReceiver):
         self.updatePosition(data)
 
     def broadcastString(self, data):
-        self.factory.broadcastString(data)
+        self.factory.broadcastString(self.playerIndex, data)
 
     def updatePosition(self, data):
         command = data.strip().lower()
@@ -89,16 +95,16 @@ class NetworkConnection(Int16StringReceiver):
         }
 
         if command in RELATIVE_MOVES:
+            x, y = self.playerPositions[self.playerIndex]
             dx, dy = RELATIVE_MOVES[command]
-            self.playerPosition[0] += dx
-            self.playerPosition[1] += dy
+            self.playerPositions[self.playerIndex] = (x + dx, y + dy)
 
         else:
             newPos = decodePosition(command)
             if newPos is not None:
-                self.playerPosition[0] = newPos[0]
-                self.playerPosition[1] = newPos[1]
+                self.playerPositions[self.playerIndex] = newPos
 
         # TODO: Maybe only broadcast the new position if we handled a valid
         # command? Else the position isn't changed....
-        self.broadcastString(encodePosition(self.playerPosition))
+        self.broadcastString(encodePosition(
+            self.playerPositions[self.playerIndex]))
