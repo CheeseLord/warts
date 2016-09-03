@@ -10,6 +10,8 @@ from panda3d import core
 from panda3d.core import Point3, Mat4, Filename, NodePath
 
 from src.shared.encode import encodePosition, decodePosition
+from src.shared.message import tokenize, buildMessage, checkArity, \
+                               invalidCommand, parsePos
 
 
 # TODO: Read from a config file.
@@ -26,23 +28,22 @@ class WartsApp(ShowBase):
 
         self.backend = backend
 
+        # Our playerId.
+        self.myId = -1
+
         # Set up event handling.
         self.keys = {}
         self.setupEventHandlers()
         self.setupMouseHandler()
+
+        # Mapping from playerIds to obelisk nodes.
+        self.obelisks = {}
 
         # Set up the background.
         self.scene = self.loader.loadModel("environment")
         self.scene.reparentTo(self.render)
         self.scene.setScale(0.25, 0.25, 0.25)
         self.scene.setPos(-8, 42, 0)
-
-        # Set up the obelisk.
-        self.obeliskNode = self.render.attachNewNode("testModelNode")
-        self.obeliskNode.setPos(-4, 0, 0)
-        self.obelisk = self.loader.loadModel(getModelPath("test-model.egg"))
-        self.obelisk.reparentTo(self.obeliskNode)
-        self.obelisk.setPos(0, 0, 2.5)
 
         # Set up camera control.
         self.cameraHolder = self.render.attachNewNode('CameraHolder')
@@ -107,6 +108,40 @@ class WartsApp(ShowBase):
         # Handle window close request (clicking the X, Alt-F4, etc.)
         self.win.set_close_request_event("window-close")
         self.accept("window-close", self.handleWindowClose)
+
+    def addObelisk(self, playerId, pos):
+        if self.myId < 0:
+            raise RuntimeError("Must set ID before adding obelisks.")
+        if playerId in self.obelisks:
+            raise RuntimeError("Already have obelisk with id {id}."
+                               .format(id=playerId))
+
+        nodeName = "obeliskNode-{}".format(playerId)
+        x, y = pos
+
+        obeliskNode = self.render.attachNewNode(nodeName)
+        obeliskNode.setPos(x, y, 0)
+
+        if playerId == self.myId:
+            modelName = "test-model.egg"
+        else:
+            modelName = "other-obelisk.egg"
+        obelisk = self.loader.loadModel(getModelPath(modelName))
+        obelisk.reparentTo(obeliskNode)
+        obelisk.setPos(0, 0, 2.5)
+
+        self.obelisks[playerId] = obeliskNode
+
+    def removeObelisk(self, playerId):
+        obeliskNode = self.obelisks.pop(playerId)
+        obeliskNode.removeNode()
+
+    def moveObelisk(self, playerId, pos):
+        if playerId not in self.obelisks:
+            raise RuntimeError("There is no obelisk with id {id}."
+                               .format(id=playerId))
+        x, y = pos
+        self.obelisks[playerId].setPos(x, y, 0)
 
     def setCameraCustom(self):
         """
@@ -230,22 +265,31 @@ class WartsApp(ShowBase):
         print "Window close requested -- shutting down client."
         self.backend.graphicsMessage("request_quit")
 
-    def setTestModelPos(self, x, y):
-        self.obeliskNode.setPos(x, y, 0)
-
-    def backendMessage(self, message):
-        command, _, rest = message.partition(" ")
-        if command == "set_pos":
-            pos = decodePosition(rest)
-            if pos is not None:
-                x, y = pos
-                self.obeliskNode.setPos(x, y, 0)
-            else:
-                print "Warning: backend message '{}' ignored: could not " \
-                    "parse coordinates.".format(message)
+    def backendMessage(self, data):
+        command, args = tokenize(data)
+        if command == "your_id_is":
+            checkArity(command, args, 1)
+            if self.myId >= 0:
+                raise RuntimeError("ID already set; can't change it now.")
+            self.myId = int(args[0])
+        elif command == "new_obelisk":
+            checkArity(command, args, 3)
+            playerId, x, y = args
+            playerId = int(playerId)
+            pos = parsePos((x, y))
+            self.addObelisk(playerId, pos)
+        elif command == "delete_obelisk":
+            checkArity(command, args, 1)
+            playerId = int(args[0])
+            self.removeObelisk(playerId)
+        elif command == "set_pos":
+            checkArity(command, args, 3)
+            playerId, x, y = args
+            playerId = int(playerId)
+            pos = parsePos((x, y))
+            self.moveObelisk(playerId, pos)
         else:
-            print "Warning: backend message '{}' ignored: unrecognized " \
-                "command.".format(message)
+            invalidCommand(command, args)
 
 
 def getModelPath(modelName):

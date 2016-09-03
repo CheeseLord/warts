@@ -88,7 +88,7 @@ class Backend:
                 x, y = pos
                 self.network.backendMessage(encodePosition(pos))
                 # TODO: This is probably unnecessary...
-                self.graphics.backendMessage(buildMessage("set_pos", [x, y]))
+                # self.graphics.backendMessage(buildMessage("set_pos", [x, y]))
             else:
                 raise InvalidMessageError(message,
                                           "Could not parse coordinates.")

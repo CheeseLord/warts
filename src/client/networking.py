@@ -47,6 +47,7 @@ class NetworkConnection(Int16StringReceiver):
         self.backend.networkReady(self)
 
     def stringReceived(self, message):
+        print "[receive] {}".format(message)
         self.backend.networkMessage(message)
 
     def backendMessage(self, message):
