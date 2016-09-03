@@ -85,6 +85,7 @@ class NetworkConnection(Int16StringReceiver):
             "{} connections remain".format(len(self.factory.connections))
         )
         self.broadcastCommand("delete_obelisk", [self.playerIndex])
+        del self.playerPositions[self.playerIndex]
 
     def stringReceived(self, data):
         peer = self.transport.getPeer()
