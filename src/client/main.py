@@ -10,8 +10,6 @@ from src.client.graphics   import WartsApp, DESIRED_FPS
 
 
 def main(args):
-    print "Hi, I'm a client!"
-
     # TODO: Where do we put this call, which starts the Twisted event loop?
     task.react(twistedMain, (args,))
 
