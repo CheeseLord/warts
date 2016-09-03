@@ -1,4 +1,5 @@
 import logging
+from src.shared.message import buildMessage
 
 from twisted.internet import protocol, reactor, endpoints
 from twisted.protocols.basic import Int16StringReceiver
@@ -60,7 +61,15 @@ class NetworkConnection(Int16StringReceiver):
         # TODO: This line has no effect...
         peer = self.transport.getPeer()
 
-        self.sendString("your_id_is {id}".format(id=self.playerIndex))
+        myId = self.playerIndex
+        myX, myY = self.playerPositions[self.playerIndex]
+
+        self.sendCommand("your_id_is", [myId])
+        self.broadcastCommand("new_obelisk", [myId, myX, myY])
+        for otherId, (otherX, otherY) in self.playerPositions.items():
+            if otherId == myId:
+                continue
+            self.sendCommand("new_obelisk", [otherId, otherX, otherY])
 
     def connectionLost(self, reason):
         peer = self.transport.getPeer()
@@ -75,6 +84,7 @@ class NetworkConnection(Int16StringReceiver):
         log.info(
             "{} connections remain".format(len(self.factory.connections))
         )
+        self.broadcastCommand("delete_obelisk", [self.playerIndex])
 
     def stringReceived(self, data):
         peer = self.transport.getPeer()
@@ -86,6 +96,14 @@ class NetworkConnection(Int16StringReceiver):
         )
 
         self.updatePosition(data)
+
+    def sendCommand(self, *args, **kwargs):
+        message = buildMessage(*args, **kwargs)
+        self.sendString(message)
+
+    def broadcastCommand(self, *args, **kwargs):
+        message = buildMessage(*args, **kwargs)
+        self.factory.broadcastString(message)
 
     def updatePosition(self, data):
         command = data.strip().lower()
@@ -110,5 +128,6 @@ class NetworkConnection(Int16StringReceiver):
 
         # TODO: Maybe only broadcast the new position if we handled a valid
         # command? Else the position isn't changed....
-        self.factory.broadcastString(encodePosition(
-            self.playerPositions[self.playerIndex]))
+        myId = self.playerIndex
+        myX, myY = self.playerPositions[self.playerIndex]
+        self.broadcastCommand("set_pos", [myId, myX, myY])
