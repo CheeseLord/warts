@@ -123,6 +123,8 @@ class WartsApp(ShowBase):
         nodeName = "obeliskNode-{}".format(playerId)
         x, y = pos
 
+        log.info("Adding obelisk {} at ({}, {})".format(playerId, x, y))
+
         obeliskNode = self.render.attachNewNode(nodeName)
         obeliskNode.setPos(x, y, 0)
 
@@ -137,6 +139,7 @@ class WartsApp(ShowBase):
         self.obelisks[playerId] = obeliskNode
 
     def removeObelisk(self, playerId):
+        log.info("Removing obelisk {}".format(playerId))
         obeliskNode = self.obelisks.pop(playerId)
         obeliskNode.removeNode()
 
@@ -145,6 +148,7 @@ class WartsApp(ShowBase):
             raise RuntimeError("There is no obelisk with id {id}."
                                .format(id=playerId))
         x, y = pos
+        log.info("Moving obelisk {} to ({}, {})".format(playerId, x, y))
         self.obelisks[playerId].setPos(x, y, 0)
 
     def setCameraCustom(self):
