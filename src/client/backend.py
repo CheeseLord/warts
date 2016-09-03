@@ -74,13 +74,7 @@ class Backend:
 
     def networkMessage(self, message):
         if self.allReady:
-            self.stdio.backendMessage(message)
-            newPos = decodePosition(message)
-            if newPos is not None:
-                x, y = newPos
-                self.graphics.backendMessage(buildMessage("set_pos", [x, y]))
-            else:
-                print "Warning: failed to parse position {!r}".format(message)
+            self.graphics.backendMessage(message)
         else:
             # TODO: Buffer messages until ready? Don't just drop them....
             print "Warning: server message '{}' ignored; client not " \
