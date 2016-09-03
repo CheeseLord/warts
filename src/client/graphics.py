@@ -226,6 +226,13 @@ class WartsApp(ShowBase):
                             message = "click {x} {y}".format(x=x, y=y)
                             self.backend.graphicsMessage(message)
 
+    def handleWindowClose(self):
+        print "Window close requested -- shutting down client."
+        self.backend.graphicsMessage("request_quit")
+
+    def setTestModelPos(self, x, y):
+        self.obeliskNode.setPos(x, y, 0)
+
     def backendMessage(self, message):
         command, _, rest = message.partition(" ")
         if command == "set_pos":
@@ -239,13 +246,6 @@ class WartsApp(ShowBase):
         else:
             print "Warning: backend message '{}' ignored: unrecognized " \
                 "command.".format(message)
-
-    def handleWindowClose(self):
-        print "Window close requested -- shutting down client."
-        self.backend.graphicsMessage("request_quit")
-
-    def setTestModelPos(self, x, y):
-        self.obeliskNode.setPos(x, y, 0)
 
 
 def getModelPath(modelName):
