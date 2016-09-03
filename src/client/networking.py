@@ -4,7 +4,10 @@ from twisted.internet.defer import Deferred
 from twisted.internet.protocol import ClientFactory
 from twisted.protocols.basic import Int16StringReceiver
 
+from src.shared.logconfig import handler
+
 log = logging.getLogger(__name__)
+log.addHandler(handler)
 log.setLevel(logging.INFO)
 
 

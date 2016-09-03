@@ -1,10 +1,12 @@
 import logging
 
 from src.shared.encode import encodePosition, decodePosition
+from src.shared.logconfig import handler
 from src.shared.message import tokenize, buildMessage, InvalidMessageError, \
                                parsePos
 
 log = logging.getLogger(__name__)
+log.addHandler(handler)
 log.setLevel(logging.INFO)
 
 

@@ -11,10 +11,12 @@ from panda3d import core
 from panda3d.core import Point3, Mat4, Filename, NodePath
 
 from src.shared.encode import encodePosition, decodePosition
+from src.shared.logconfig import handler
 from src.shared.message import tokenize, buildMessage, checkArity, \
                                invalidCommand, parsePos
 
 log = logging.getLogger(__name__)
+log.addHandler(handler)
 log.setLevel(logging.INFO)
 
 
