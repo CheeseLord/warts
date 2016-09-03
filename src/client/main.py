@@ -3,8 +3,6 @@ from twisted.internet.defer import Deferred
 from twisted.internet.task import LoopingCall
 from twisted.python import log
 
-from src.shared.dummy import sharedFunctionality
-
 from src.client.backend    import Backend
 from src.client.networking import setupNetworking
 from src.client.stdio      import setupStdio
@@ -13,7 +11,6 @@ from src.client.graphics   import WartsApp, DESIRED_FPS
 
 def main(args):
     print "Hi, I'm a client!"
-    sharedFunctionality()
 
     # TODO: Where do we put this call, which starts the Twisted event loop?
     task.react(twistedMain, (args,))

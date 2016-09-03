@@ -42,8 +42,6 @@ class NetworkConnection(Int16StringReceiver):
     def connectionMade(self):
         print "Connected to server."
 
-        self.sendString("Hello, server!")
-
         self.backend.networkReady(self)
 
     def stringReceived(self, message):
