@@ -38,8 +38,7 @@ class NetworkConnectionFactory(protocol.Factory):
         else:
             log.warning("Failed to remove connection.")
 
-    def broadcastString(self, playerIndex, data):
-        # FIXME: Use playerIndex.
+    def broadcastString(self, data):
         for connection in self.connections:
             connection.sendString(data)
 
@@ -51,6 +50,8 @@ class NetworkConnection(Int16StringReceiver):
         self.playerIndex = playerIndex
         self.playerPositions = playerPositions
         self.playerPositions[self.playerIndex] = (0, 0)
+
+        self.broadcastString('your_id_is {id}'.format(self.playerIndex))
 
     def connectionMade(self):
         peer = self.transport.getPeer()
@@ -81,7 +82,7 @@ class NetworkConnection(Int16StringReceiver):
         self.updatePosition(data)
 
     def broadcastString(self, data):
-        self.factory.broadcastString(self.playerIndex, data)
+        self.factory.broadcastString(data)
 
     def updatePosition(self, data):
         command = data.strip().lower()
