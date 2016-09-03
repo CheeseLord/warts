@@ -51,7 +51,7 @@ class NetworkConnection(Int16StringReceiver):
         self.playerPositions = playerPositions
         self.playerPositions[self.playerIndex] = (0, 0)
 
-        self.broadcastString('your_id_is {id}'.format(self.playerIndex))
+        self.broadcastString('your_id_is {id}'.format(id=self.playerIndex))
 
     def connectionMade(self):
         peer = self.transport.getPeer()
