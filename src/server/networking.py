@@ -18,7 +18,9 @@ def runServer(port):
 
 class NetworkConnectionFactory(protocol.Factory):
     def __init__(self, *args, **kwargs):
-        self.connections = []
+        # Mapping from player indices to connection objects.
+        self.connections = {}
+        # self.connections = []
 
         # TODO: Don't let the index grow forever.
         self.playerIndex = 0
@@ -27,19 +29,22 @@ class NetworkConnectionFactory(protocol.Factory):
     def buildProtocol(self, addr):
         newConnection = NetworkConnection(self, self.playerIndex,
                                           self.playerPositions)
+        self.connections[self.playerIndex] = newConnection
         self.playerIndex += 1
-        self.connections.append(newConnection)
         log.info("New Connection from {}".format(addr))
         return newConnection
 
     def removeConnection(self, connection):
-        if connection in self.connections:
-            self.connections.remove(connection)
+        if connection.playerIndex in self.connections:
+            del self.connections[connection.playerIndex]
         else:
             log.warning("Failed to remove connection.")
 
+    def sendString(self, index, data):
+        self.connections[index].sendString(data)
+
     def broadcastString(self, data):
-        for connection in self.connections:
+        for connection in self.connections.values():
             connection.sendString(data)
 
 
@@ -51,10 +56,11 @@ class NetworkConnection(Int16StringReceiver):
         self.playerPositions = playerPositions
         self.playerPositions[self.playerIndex] = (0, 0)
 
-        self.broadcastString('your_id_is {id}'.format(id=self.playerIndex))
-
     def connectionMade(self):
+        # TODO: This line has no effect...
         peer = self.transport.getPeer()
+
+        self.sendString("your_id_is {id}".format(id=self.playerIndex))
 
     def connectionLost(self, reason):
         peer = self.transport.getPeer()
@@ -72,7 +78,7 @@ class NetworkConnection(Int16StringReceiver):
 
     def stringReceived(self, data):
         peer = self.transport.getPeer()
-        # self.broadcastString(data)
+        # self.factory.broadcastString(data)
         log.info("[{ip}:{port}] {msg!r}".format(
             ip=peer.host,
             port=peer.port,
@@ -80,9 +86,6 @@ class NetworkConnection(Int16StringReceiver):
         )
 
         self.updatePosition(data)
-
-    def broadcastString(self, data):
-        self.factory.broadcastString(data)
 
     def updatePosition(self, data):
         command = data.strip().lower()
@@ -107,5 +110,5 @@ class NetworkConnection(Int16StringReceiver):
 
         # TODO: Maybe only broadcast the new position if we handled a valid
         # command? Else the position isn't changed....
-        self.broadcastString(encodePosition(
+        self.factory.broadcastString(encodePosition(
             self.playerPositions[self.playerIndex]))
