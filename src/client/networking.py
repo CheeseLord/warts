@@ -1,6 +1,11 @@
+import logging
+
 from twisted.internet.defer import Deferred
 from twisted.internet.protocol import ClientFactory
 from twisted.protocols.basic import Int16StringReceiver
+
+log = logging.getLogger(__name__)
+log.setLevel(logging.INFO)
 
 
 def setupNetworking(reactor, backend, host, port):
@@ -14,12 +19,12 @@ class NetworkConnectionFactory(ClientFactory):
         self.alreadyConnected = False
 
     def clientConnectionFailed(self, connector, reason):
-        print "Failed to connect to server: {}" . \
-            format(reason.getErrorMessage())
+        log.error("Failed to connect to server: {}" . \
+            format(reason.getErrorMessage()))
 
     def clientConnectionLost(self, connector, reason):
-        print "Disconnected from server: {}" . \
-            format(reason.getErrorMessage())
+        log.info("Disconnected from server: {}" . \
+            format(reason.getErrorMessage()))
 
     def buildProtocol(self, serverAddress):
         assert not self.alreadyConnected
@@ -40,16 +45,15 @@ class NetworkConnection(Int16StringReceiver):
         self.transport.loseConnection()
 
     def connectionMade(self):
-        print "Connected to server."
+        log.info("Connected to server.")
 
         self.backend.networkReady(self)
 
     def stringReceived(self, message):
-        print "[receive] {}".format(message)
+        log.info("[receive] {}".format(message))
         self.backend.networkMessage(message)
 
     def backendMessage(self, message):
-        # TODO: Eww... mixing log, print, *and* stdio.sendLine?
-        print "[send]    {}".format(message)
+        log.info("[send]    {}".format(message))
         self.sendString(message)
 

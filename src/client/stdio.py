@@ -1,7 +1,12 @@
 import os
+import logging
 
 from twisted.internet import stdio as twistedStdio
 from twisted.protocols.basic import LineReceiver
+
+log = logging.getLogger(__name__)
+log.setLevel(logging.INFO)
+
 
 def setupStdio(backend):
     twistedStdio.StandardIO(StdioHandler(backend))
@@ -28,6 +33,6 @@ class StdioHandler(LineReceiver):
         self.backend.stdioMessage(line)
 
     def backendMessage(self, message):
-        # TODO: Eww... mixing log, print, *and* stdio.sendLine?
-        self.sendLine("[receive] {}".format(message))
+        # Do we want to use this?
+        self.sendLine(message)
 

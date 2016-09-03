@@ -1,12 +1,17 @@
+import logging
+
 from twisted.internet import task
 from twisted.internet.defer import Deferred
 from twisted.internet.task import LoopingCall
-from twisted.python import log
+from twisted.python import log as twistedLog
 
 from src.client.backend    import Backend
 from src.client.networking import setupNetworking
 from src.client.stdio      import setupStdio
 from src.client.graphics   import WartsApp, DESIRED_FPS
+
+log = logging.getLogger(__name__)
+log.setLevel(logging.INFO)
 
 
 def main(args):
@@ -32,6 +37,7 @@ def setupGraphics(reactor, backend):
     app = WartsApp(backend)
 
     def onGraphicsException(failure):
+        # TODO: Change to logging
         print
         print "Shutting down client due to unhandled exception in graphics " \
             "code:"
@@ -39,7 +45,7 @@ def setupGraphics(reactor, backend):
         # Supposedly I think we ought to be able to call
         # failure.printTraceback() here, but for some reason that doesn't print
         # anything.
-        log.err(failure)
+        twistedLog.err(failure)
         reactor.stop()
 
     foo = LoopingCall(app.taskMgr.step).start(1.0 / DESIRED_FPS)

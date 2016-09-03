@@ -1,6 +1,12 @@
+import logging
+
 from src.shared.encode import encodePosition, decodePosition
 from src.shared.message import tokenize, buildMessage, InvalidMessageError, \
                                parsePos
+
+log = logging.getLogger(__name__)
+log.setLevel(logging.INFO)
+
 
 class Backend:
     def __init__(self, done):
@@ -69,16 +75,16 @@ class Backend:
             self.network.backendMessage(message)
         else:
             # TODO: Buffer messages until ready? Don't just drop them....
-            print "Warning: input '{}' ignored; client not initialized yet." \
-                .format(message)
+            log.warning("Input '{}' ignored; client not initialized yet." \
+                .format(message))
 
     def networkMessage(self, message):
         if self.allReady:
             self.graphics.backendMessage(message)
         else:
             # TODO: Buffer messages until ready? Don't just drop them....
-            print "Warning: server message '{}' ignored; client not " \
-                "initialized yet.".format(message)
+            log.warning("Server message '{}' ignored; client not " \
+                "initialized yet.".format(message))
 
     def graphicsMessage(self, message):
         command, rest = tokenize(message)

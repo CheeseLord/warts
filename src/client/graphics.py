@@ -1,6 +1,7 @@
 from math import pi, sin, cos
 import os
 import sys
+import logging
 
 from direct.task import Task  # This must be imported first.
 from direct.actor.Actor import Actor
@@ -12,6 +13,9 @@ from panda3d.core import Point3, Mat4, Filename, NodePath
 from src.shared.encode import encodePosition, decodePosition
 from src.shared.message import tokenize, buildMessage, checkArity, \
                                invalidCommand, parsePos
+
+log = logging.getLogger(__name__)
+log.setLevel(logging.INFO)
 
 
 # TODO: Read from a config file.
@@ -262,7 +266,7 @@ class WartsApp(ShowBase):
                             self.backend.graphicsMessage(message)
 
     def handleWindowClose(self):
-        print "Window close requested -- shutting down client."
+        log.info("Window close requested -- shutting down client.")
         self.backend.graphicsMessage("request_quit")
 
     def backendMessage(self, data):
