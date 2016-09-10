@@ -6,7 +6,6 @@ from src.shared.message import tokenize, buildMessage, InvalidMessageError, \
                                parsePos
 
 log = logging.getLogger(__name__)
-log.addHandler(handler)
 log.setLevel(logging.INFO)
 
 

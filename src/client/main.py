@@ -13,7 +13,6 @@ from src.client.stdio      import setupStdio
 from src.client.graphics   import WartsApp, DESIRED_FPS
 
 log = logging.getLogger(__name__)
-log.addHandler(handler)
 log.setLevel(logging.INFO)
 
 

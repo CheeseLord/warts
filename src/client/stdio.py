@@ -7,7 +7,6 @@ from twisted.protocols.basic import LineReceiver
 from src.shared.logconfig import handler
 
 log = logging.getLogger(__name__)
-log.addHandler(handler)
 log.setLevel(logging.INFO)
 
 

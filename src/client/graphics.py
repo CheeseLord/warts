@@ -16,7 +16,6 @@ from src.shared.message import tokenize, buildMessage, checkArity, \
                                invalidCommand, parsePos
 
 log = logging.getLogger(__name__)
-log.addHandler(handler)
 log.setLevel(logging.INFO)
 
 
