@@ -5,7 +5,7 @@ BUILDFILES = build-resources
 
 all: warts
 
-warts: Makefile
+warts: Makefile $(BUILDFILES)/requirements.txt
 	virtualenv -ppython2.7 $(VIRTUALENV)
 	bash -c 'source $(VIRTUALENV)/bin/activate; pip install -r $(BUILDFILES)/requirements.txt'
 # Need this so that you can import some panda3d modules.
