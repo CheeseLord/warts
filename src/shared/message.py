@@ -7,6 +7,41 @@ TOKEN_DELIM  = " "
 # after TOKEN_DELIM.
 START_STRING = "|"
 
+
+class Message(object):
+    def serialize(self):
+        return buildMessage(self.commandWord, self.getArgs())
+
+    @classmethod
+    def deserialize(cls, data):
+        cmd, args = tokenize(data)
+        assert cmd == self.commandWord
+        return cls.fromArgs(args)
+
+    def getArgs(self):
+        raise NotImplementedError
+
+    @classmethod
+    def fromArgs(cls, args):
+        raise NotImplementedError
+
+class NewObeliskMessage(Message):
+    commandWord = "new_obelisk"
+
+    def __init__(self, playerId, pos):
+        self.playerId = playerId
+        self.pos      = pos
+
+    def getArgs(self):
+        x, y = self.pos
+        return [self.playerId, x, y]
+
+    @classmethod
+    def fromArgs(cls, args):
+        playerId, x, y = args
+        return cls(playerId, (x, y))
+
+
 # TODO: We can and should unit-test tokenize and buildMessage.
 # For an arbitrary string command and an arbitrary list of strings args,
 #     tokenize(buildMessage(command, args, lastIsUnsafe=<whatever>))
@@ -127,24 +162,3 @@ def parseFloat(desc):
 
 def isfinite(x):
     return not math.isinf(x) and not math.isnan(x)
-
-class Message(object):
-    def __init__(self, *args):
-        self.args = args
-
-    @classmethod
-    def fromArgs(cls, args):
-        return Message(*args)
-
-    @classmethod
-    def fromString(cls, string):
-        args = cls.deserialize(string)
-        return Message(*args)
-
-    @classmethod
-    def serialize(cls, args):
-        pass
-
-    @classmethod
-    def deserialize(cls, args):
-        pass
