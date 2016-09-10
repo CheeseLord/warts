@@ -1,10 +1,9 @@
-# import logging
-#
-# handler = logging.StreamHandler()
-
 import colorlog
+import logging
 
-handler = colorlog.StreamHandler()
+# Code adapted from
+#   https://github.com/borntyping/python-colorlog
+handler = logging.getLogger().handlers[0]
 formatter = colorlog.ColoredFormatter(
     "%(log_color)s%(levelname)-8s%(reset)s %(blue)s%(message)s",
     datefmt=None,
