@@ -19,57 +19,88 @@ def runServer(port):
 
 class NetworkConnectionFactory(protocol.Factory):
     def __init__(self, *args, **kwargs):
-        # Mapping from player indices to connection objects.
-        self.connections = {}
-        # self.connections = []
+        self.connections = ConnectionManager()
 
-        # TODO: Don't let the index grow forever.
-        self.playerIndex = 0
+        # TODO: Create GameState object.
         self.playerPositions = {}
 
     def buildProtocol(self, addr):
-        newConnection = NetworkConnection(self, self.playerIndex,
-                                          self.playerPositions)
-        self.connections[self.playerIndex] = newConnection
-        self.playerIndex += 1
+        # Oddly, addr isn't actually used here, except for logging.
+        newConnection = self.connections.newConnection(self.connections,
+                                                       self.playerPositions)
+        # TODO: Can this log be moved into NetworkConnection?
         log.info("New Connection from {}".format(addr))
         return newConnection
+
+
+class ConnectionManager:
+    def __init__(self):
+        # Mapping from player indices to connection objects.
+        self.connections = {}
+
+        # TODO: Don't let the index grow forever.
+        self.nextIndex   = 0
+
+    def newConnection(self, *args):
+        connection = NetworkConnection(self.nextIndex, *args)
+        self.connections[self.nextIndex] = connection
+        self.nextIndex += 1
+        return connection
 
     def removeConnection(self, connection):
         if connection.playerIndex in self.connections:
             del self.connections[connection.playerIndex]
+            log.info(
+                "{} connections remain".format(len(self.connections))
+            )
+            self.broadcastMessage("delete_obelisk", [connection.playerIndex])
         else:
             log.warning("Failed to remove connection.")
 
-    def sendString(self, index, data):
+    def broadcastMessage(self, *args, **kwargs):
+        message = buildMessage(*args, **kwargs)
+        self._broadcastString(message)
+
+    def sendMessage(self, index, *args, **kwargs):
+        message = buildMessage(*args, **kwargs)
+        self._sendString(index, message)
+
+    # Low-level string sending methods; don't call these directly.
+    def _broadcastString(self, data):
+        for connection in self:
+            connection.sendString(data)
+
+    def _sendString(self, index, data):
         self.connections[index].sendString(data)
 
-    def broadcastString(self, data):
-        for connection in self.connections.values():
-            connection.sendString(data)
+    def __iter__(self):
+        # Iterate over all connections, in ascending order by index.
+        for index in sorted(self.connections.keys()):
+            yield self.connections[index]
 
 
 class NetworkConnection(Int16StringReceiver):
-    def __init__(self, factory, playerIndex, playerPositions):
-        self.factory = factory
-
+    def __init__(self, playerIndex, connections, playerPositions):
         self.playerIndex = playerIndex
+        self.connections = connections
         self.playerPositions = playerPositions
+
         self.playerPositions[self.playerIndex] = (0, 0)
 
     def connectionMade(self):
         # TODO: This line has no effect...
-        peer = self.transport.getPeer()
+        # peer = self.transport.getPeer()
 
         myId = self.playerIndex
         myX, myY = self.playerPositions[self.playerIndex]
 
-        self.sendCommand("your_id_is", [myId])
-        self.broadcastCommand("new_obelisk", [myId, myX, myY])
+        self.sendMessage("your_id_is", [myId])
+        self.connections.broadcastMessage("new_obelisk", [myId, myX, myY])
         for otherId, (otherX, otherY) in self.playerPositions.items():
             if otherId == myId:
+                # We already broadcast this one to everyone, including ourself.
                 continue
-            self.sendCommand("new_obelisk", [otherId, otherX, otherY])
+            self.sendMessage("new_obelisk", [otherId, otherX, otherY])
 
     def connectionLost(self, reason):
         peer = self.transport.getPeer()
@@ -80,16 +111,11 @@ class NetworkConnection(Int16StringReceiver):
                 reason=reason.getErrorMessage()
             )
         )
-        self.factory.removeConnection(self)
-        log.info(
-            "{} connections remain".format(len(self.factory.connections))
-        )
-        self.broadcastCommand("delete_obelisk", [self.playerIndex])
+        self.connections.removeConnection(self)
         del self.playerPositions[self.playerIndex]
 
     def stringReceived(self, data):
         peer = self.transport.getPeer()
-        # self.factory.broadcastString(data)
         log.info("[{ip}:{port}] {msg!r}".format(
             ip=peer.host,
             port=peer.port,
@@ -98,13 +124,9 @@ class NetworkConnection(Int16StringReceiver):
 
         self.updatePosition(data)
 
-    def sendCommand(self, *args, **kwargs):
+    def sendMessage(self, *args, **kwargs):
         message = buildMessage(*args, **kwargs)
         self.sendString(message)
-
-    def broadcastCommand(self, *args, **kwargs):
-        message = buildMessage(*args, **kwargs)
-        self.factory.broadcastString(message)
 
     def updatePosition(self, data):
         command = data.strip().lower()
@@ -131,4 +153,4 @@ class NetworkConnection(Int16StringReceiver):
         # command? Else the position isn't changed....
         myId = self.playerIndex
         myX, myY = self.playerPositions[self.playerIndex]
-        self.broadcastCommand("set_pos", [myId, myX, myY])
+        self.connections.broadcastMessage("set_pos", [myId, myX, myY])
