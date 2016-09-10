@@ -27,8 +27,6 @@ class NetworkConnectionFactory(protocol.Factory):
         # Oddly, addr isn't actually used here, except for logging.
         newConnection = self.connections.newConnection(self.connections,
                                                        self.gamestate)
-        # TODO: Can this log be moved into NetworkConnection?
-        log.info("New Connection from {}".format(addr))
         return newConnection
 
 
@@ -88,11 +86,19 @@ class NetworkConnection(Int16StringReceiver):
         self.gamestate.addPlayer(self.playerIndex, (0, 0))
 
     def connectionMade(self):
-        # TODO: This line has no effect...
-        # peer = self.transport.getPeer()
+        peer = self.transport.getPeer()
 
         myId = self.playerIndex
         myX, myY = self.gamestate.getPos(myId)
+
+        # TODO: Create a common method for doing all these prefixed logs?
+        log.info(
+            "[{ip}:{port}] <new connection with id {playerId}>".format(
+                ip       = peer.host,
+                port     = peer.port,
+                playerId = myId,
+            )
+        )
 
         self.sendMessage("your_id_is", [myId])
         self.connections.broadcastMessage("new_obelisk", [myId, myX, myY])
@@ -107,10 +113,11 @@ class NetworkConnection(Int16StringReceiver):
     def connectionLost(self, reason):
         peer = self.transport.getPeer()
         log.info(
-            "[{ip}:{port}] <connection lost: {reason}>".format(
-                ip=peer.host,
-                port=peer.port,
-                reason=reason.getErrorMessage()
+            "[{ip}:{port}] <connection {playerId} lost: {reason}>".format(
+                ip       = peer.host,
+                port     = peer.port,
+                playerId = self.playerIndex,
+                reason   = reason.getErrorMessage(),
             )
         )
         self.connections.removeConnection(self)
