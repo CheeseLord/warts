@@ -128,3 +128,23 @@ def parseFloat(desc):
 def isfinite(x):
     return not math.isinf(x) and not math.isnan(x)
 
+class Message(object):
+    def __init__(self, *args):
+        self.args = args
+
+    @classmethod
+    def fromArgs(cls, args):
+        return Message(*args)
+
+    @classmethod
+    def fromString(cls, string):
+        args = cls.deserialize(string)
+        return Message(*args)
+
+    @classmethod
+    def serialize(cls, args):
+        pass
+
+    @classmethod
+    def deserialize(cls, args):
+        pass
