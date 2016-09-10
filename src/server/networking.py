@@ -20,6 +20,7 @@ def runServer(port):
 
 class NetworkConnectionFactory(protocol.Factory):
     def __init__(self, *args, **kwargs):
+        # Parent class has no init so we cannot call it
         self.connections = ConnectionManager()
         self.gamestate   = GameState()
 
