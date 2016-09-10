@@ -5,10 +5,10 @@ from twisted.protocols.basic import Int16StringReceiver
 
 from src.shared.encode import decodePosition, encodePosition
 from src.shared.gamestate import GameState
+from src.shared.logconfig import newLogger
 from src.shared.message import buildMessage
 
-log = logging.getLogger(__name__)
-log.setLevel(logging.INFO)
+log = newLogger(__name__)
 
 
 def runServer(port):

@@ -5,15 +5,14 @@ from twisted.internet.defer import Deferred
 from twisted.internet.task import LoopingCall
 from twisted.python import log as twistedLog
 
-from src.shared.logconfig import handler
+from src.shared.logconfig import newLogger
 
 from src.client.backend    import Backend
 from src.client.networking import setupNetworking
 from src.client.stdio      import setupStdio
 from src.client.graphics   import WartsApp, DESIRED_FPS
 
-log = logging.getLogger(__name__)
-log.setLevel(logging.INFO)
+log = newLogger(__name__)
 
 
 def main(args):

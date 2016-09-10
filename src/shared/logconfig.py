@@ -19,3 +19,8 @@ formatter = colorlog.ColoredFormatter(
     style='%'
 )
 handler.setFormatter(formatter)
+
+def newLogger(name):
+    log = logging.getLogger(name)
+    log.setLevel(logging.INFO)
+    return log

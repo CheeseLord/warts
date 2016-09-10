@@ -4,10 +4,9 @@ import logging
 from twisted.internet import stdio as twistedStdio
 from twisted.protocols.basic import LineReceiver
 
-from src.shared.logconfig import handler
+from src.shared.logconfig import newLogger
 
-log = logging.getLogger(__name__)
-log.setLevel(logging.INFO)
+log = newLogger(__name__)
 
 
 def setupStdio(backend):
