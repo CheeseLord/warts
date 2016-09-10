@@ -1,10 +1,11 @@
 import logging
-from src.shared.message import buildMessage
 
 from twisted.internet import protocol, reactor, endpoints
 from twisted.protocols.basic import Int16StringReceiver
 
 from src.shared.encode import decodePosition, encodePosition
+from src.shared.gamestate import GameState
+from src.shared.message import buildMessage
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
@@ -20,14 +21,12 @@ def runServer(port):
 class NetworkConnectionFactory(protocol.Factory):
     def __init__(self, *args, **kwargs):
         self.connections = ConnectionManager()
-
-        # TODO: Create GameState object.
-        self.playerPositions = {}
+        self.gamestate   = GameState()
 
     def buildProtocol(self, addr):
         # Oddly, addr isn't actually used here, except for logging.
         newConnection = self.connections.newConnection(self.connections,
-                                                       self.playerPositions)
+                                                       self.gamestate)
         # TODO: Can this log be moved into NetworkConnection?
         log.info("New Connection from {}".format(addr))
         return newConnection
@@ -80,26 +79,29 @@ class ConnectionManager:
 
 
 class NetworkConnection(Int16StringReceiver):
-    def __init__(self, playerIndex, connections, playerPositions):
+    def __init__(self, playerIndex, connections, gamestate):
+        # TODO: Rename indices to ids.
         self.playerIndex = playerIndex
         self.connections = connections
-        self.playerPositions = playerPositions
+        self.gamestate = gamestate
 
-        self.playerPositions[self.playerIndex] = (0, 0)
+        self.gamestate.addPlayer(self.playerIndex, (0, 0))
 
     def connectionMade(self):
         # TODO: This line has no effect...
         # peer = self.transport.getPeer()
 
         myId = self.playerIndex
-        myX, myY = self.playerPositions[self.playerIndex]
+        myX, myY = self.gamestate.getPos(myId)
 
         self.sendMessage("your_id_is", [myId])
         self.connections.broadcastMessage("new_obelisk", [myId, myX, myY])
-        for otherId, (otherX, otherY) in self.playerPositions.items():
+        for otherConn in self.connections:
+            otherId = otherConn.playerIndex
             if otherId == myId:
                 # We already broadcast this one to everyone, including ourself.
                 continue
+            (otherX, otherY) = self.gamestate.getPos(otherId)
             self.sendMessage("new_obelisk", [otherId, otherX, otherY])
 
     def connectionLost(self, reason):
@@ -112,7 +114,7 @@ class NetworkConnection(Int16StringReceiver):
             )
         )
         self.connections.removeConnection(self)
-        del self.playerPositions[self.playerIndex]
+        self.gamestate.removePlayer(self.playerIndex)
 
     def stringReceived(self, data):
         peer = self.transport.getPeer()
@@ -140,17 +142,16 @@ class NetworkConnection(Int16StringReceiver):
         }
 
         if command in RELATIVE_MOVES:
-            x, y = self.playerPositions[self.playerIndex]
-            dx, dy = RELATIVE_MOVES[command]
-            self.playerPositions[self.playerIndex] = (x + dx, y + dy)
+            self.gamestate.movePlayerBy(self.playerIndex,
+                                        RELATIVE_MOVES[command])
 
         else:
             newPos = decodePosition(command)
             if newPos is not None:
-                self.playerPositions[self.playerIndex] = newPos
+                self.gamestate.movePlayerTo(self.playerIndex, newPos)
 
         # TODO: Maybe only broadcast the new position if we handled a valid
         # command? Else the position isn't changed....
         myId = self.playerIndex
-        myX, myY = self.playerPositions[self.playerIndex]
+        myX, myY = self.gamestate.getPos(self.playerIndex)
         self.connections.broadcastMessage("set_pos", [myId, myX, myY])
