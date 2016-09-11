@@ -5,8 +5,9 @@ import logging
 #   https://github.com/borntyping/python-colorlog
 handler = logging.getLogger().handlers[0]
 formatter = colorlog.ColoredFormatter(
-    "%(log_color)s%(levelname)-8s%(green)s"
-    "%(module)-10s%(reset)s %(blue)s%(message)s",
+    "%(log_color)s%(levelname)-8s%(reset)s "
+    "%(green)s%(module)-10s%(reset)s "
+    "%(blue)s%(message)s%(reset)s ",
     datefmt=None,
     reset=True,
     log_colors={
