@@ -1,3 +1,4 @@
+from collections import namedtuple
 import math
 
 # Normal delimiter; separates tokens in messages.
@@ -9,13 +10,30 @@ START_STRING = "|"
 
 
 class Message(object):
+    command = None
+
+    def __init__(self, *args):
+        # TODO: Is this the right magic line to put here? Or can we use
+        # self.__class__ instead of Message? (That seems to cause infinite
+        # recursion, so probably not....) Or can we just use super() with no
+        # args? How does multiple inheritance actually work with new-style
+        # classes?
+        super(Message, self).__init__(*args)
+
+    # @classmethod
+    # def setCommandWord(cls, word):
+    #     assert cls.command is None
+    #     cls.command = word
+    #     # TODO: Register command word in some global mapping, used when
+    #     # deserializing methods.
+
     def serialize(self):
-        return buildMessage(self.commandWord, self.getArgs())
+        return buildMessage(self.command, self.getArgs())
 
     @classmethod
     def deserialize(cls, data):
         cmd, args = tokenize(data)
-        assert cmd == self.commandWord
+        assert cmd == cls.command
         return cls.fromArgs(args)
 
     def getArgs(self):
@@ -25,21 +43,84 @@ class Message(object):
     def fromArgs(cls, args):
         raise NotImplementedError
 
-class NewObeliskMessage(Message):
-    commandWord = "new_obelisk"
+# TODO: Provide a way to specify a function to parse each argument. For
+# example, an id needs to be parsed using something like
+#     int
+# and a position using something like
+#     lambda desc: tuple(map(float, desc))
 
-    def __init__(self, playerId, pos):
-        self.playerId = playerId
-        self.pos      = pos
+def defineMessageType(commandWord, argSpec):
+    """
+    Define a new message type.
 
-    def getArgs(self):
-        x, y = self.pos
-        return [self.playerId, x, y]
+    argSpec should be a list of tuples (name, count), where name is the name
+    of that argument and count is the number of values used to encode it when
+    the message is serialized. Where count > 1, the attribute corresponding to
+    the argument will be a tuple.
+    """
 
-    @classmethod
-    def fromArgs(cls, args):
-        playerId, x, y = args
-        return cls(playerId, (x, y))
+    NamedTupleType = namedtuple(commandWord + "_message_tuple",
+                                [spec[0] for spec in argSpec])
+
+    # TODO: Which order should the superclasses be listed?
+    # I think we want Message to win where there's a conflict, so it goes
+    # first? Right? Is that how this works?
+    class NewMessageType(Message, NamedTupleType):
+        command = commandWord
+
+        def __init__(self, *args):
+            super(NewMessageType, self).__init__(*args)
+
+        def getArgs(self):
+            args = []
+            # Yay, closures!
+            assert len(self) == len(argSpec)
+            for val, (name, count) in zip(self, argSpec):
+                if count == 1:
+                    args.append(val)
+                elif count > 1:
+                    args.extend(list(val))
+                else:
+                    raise ValueError("Count must be at least 1")
+            return args
+
+        @classmethod
+        def fromArgs(cls, args):
+            # TODO: Error checking
+            initargs = []
+            i = 0
+            while i < len(argSpec):
+                count = argSpec[i][1]
+                if count == 1:
+                    initargs.append(args[0])
+                else:
+                    initargs.append(tuple(args[:count]))
+                args = args[count:]
+                i += 1
+            return cls(*initargs)
+
+    # TODO: Register command word
+
+    return NewMessageType
+
+NewObeliskMessage = defineMessageType("new_obelisk", [("playerId", 1),
+                                                      ("pos",      2)])
+
+# class NewObeliskMessage(Message):
+#     __class__.setCommandWord("new_obelisk")
+#
+#     def __init__(self, playerId, pos):
+#         self.playerId = playerId
+#         self.pos      = pos
+#
+#     def getArgs(self):
+#         x, y = self.pos
+#         return [self.playerId, x, y]
+#
+#     @classmethod
+#     def fromArgs(cls, args):
+#         playerId, x, y = args
+#         return cls(playerId, (x, y))
 
 
 # TODO: We can and should unit-test tokenize and buildMessage.
