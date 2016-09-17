@@ -2,8 +2,8 @@ import logging
 
 from src.shared.encode import encodePosition, decodePosition
 from src.shared.logconfig import newLogger
-from src.shared.message import tokenize, buildMessage, InvalidMessageError, \
-                               parsePos
+from src.shared.message_infrastructure import tokenize, buildMessage, \
+    InvalidMessageError, parsePos
 
 log = newLogger(__name__)
 

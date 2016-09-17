@@ -3,7 +3,7 @@ from twisted.internet import protocol, reactor, endpoints
 from twisted.protocols.basic import Int16StringReceiver
 
 from src.shared.logconfig import newLogger
-from src.shared.message import buildMessage
+from src.shared.message_infrastructure import buildMessage
 
 log = newLogger(__name__)
 

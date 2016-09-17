@@ -12,8 +12,8 @@ from panda3d.core import Point3, Mat4, Filename, NodePath
 
 from src.shared.encode import encodePosition, decodePosition
 from src.shared.logconfig import newLogger
-from src.shared.message import tokenize, buildMessage, checkArity, \
-                               invalidCommand, parsePos
+from src.shared.message_infrastructure import tokenize, buildMessage, \
+    checkArity, invalidCommand, parsePos
 
 log = newLogger(__name__)
 
