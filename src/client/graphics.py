@@ -10,10 +10,11 @@ from direct.showbase.ShowBase import ShowBase
 from panda3d import core
 from panda3d.core import Point3, Mat4, Filename, NodePath
 
+from src.shared import messages
 from src.shared.encode import encodePosition, decodePosition
 from src.shared.logconfig import newLogger
-from src.shared.message_infrastructure import tokenize, buildMessage, \
-    checkArity, invalidCommand, parsePos
+from src.shared.message_infrastructure import deserializeMessage, \
+    invalidCommand
 
 log = newLogger(__name__)
 
@@ -274,30 +275,19 @@ class WartsApp(ShowBase):
         self.backend.graphicsMessage("request_quit")
 
     def backendMessage(self, data):
-        command, args = tokenize(data)
-        if command == "your_id_is":
-            checkArity(command, args, 1)
+        message = deserializeMessage(data)
+        if isinstance(message, messages.YourIdIs):
             if self.myId >= 0:
                 raise RuntimeError("ID already set; can't change it now.")
-            self.myId = int(args[0])
-        elif command == "new_obelisk":
-            checkArity(command, args, 3)
-            playerId, x, y = args
-            playerId = int(playerId)
-            pos = parsePos((x, y))
-            self.addObelisk(playerId, pos)
-        elif command == "delete_obelisk":
-            checkArity(command, args, 1)
-            playerId = int(args[0])
-            self.removeObelisk(playerId)
-        elif command == "set_pos":
-            checkArity(command, args, 3)
-            playerId, x, y = args
-            playerId = int(playerId)
-            pos = parsePos((x, y))
-            self.moveObelisk(playerId, pos)
+            self.myId = message.playerId
+        elif isinstance(message, messages.NewObelisk):
+            self.addObelisk(message.playerId, message.pos)
+        elif isinstance(message, messages.DeleteObelisk):
+            self.removeObelisk(message.playerId)
+        elif isinstance(message, messages.SetPos):
+            self.moveObelisk(message.playerId, message.pos)
         else:
-            invalidCommand(command, args)
+            invalidCommand(message)
 
 
 def getModelPath(modelName):

@@ -1,9 +1,10 @@
 import logging
 
+from src.shared import messages
 from src.shared.encode import encodePosition, decodePosition
 from src.shared.logconfig import newLogger
-from src.shared.message_infrastructure import tokenize, buildMessage, \
-    InvalidMessageError, parsePos
+from src.shared.message_infrastructure import deserializeMessage, \
+    invalidCommand
 
 log = newLogger(__name__)
 
@@ -86,25 +87,14 @@ class Backend:
             log.warning("Server message '{}' ignored; client not " \
                 "initialized yet.".format(message))
 
-    def graphicsMessage(self, message):
-        command, rest = tokenize(message)
-        if command == "click":
-            pos = parsePos(rest)
-            if pos is not None:
-                x, y = pos
-                self.network.backendMessage(encodePosition(pos))
-                # TODO: This is probably unnecessary...
-                # self.graphics.backendMessage(buildMessage("set_pos", [x, y]))
-            else:
-                raise InvalidMessageError(message,
-                                          "Could not parse coordinates.")
-        elif command == "request_quit":
-            if rest:
-                raise InvalidMessageError(message, "Trailing arguments.")
-            else:
-                for component in self.allComponents:
-                    component.cleanup()
-                self.done.callback(None)
+    def graphicsMessage(self, messageStr):
+        message = deserializeMessage(messageStr)
+        if isinstance(message, messages.Click):
+            self.network.backendMessage(encodePosition(message.pos))
+        elif isinstance(message, messages.RequestQuit):
+            for component in self.allComponents:
+                component.cleanup()
+            self.done.callback(None)
         else:
-            raise InvalidMessageError(message, "Unrecognized command.")
+            invalidCommand(message)
 
