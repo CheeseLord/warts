@@ -267,12 +267,13 @@ class WartsApp(ShowBase):
                         if self.usingCustomCamera:
                             clickedPoint = entry.getSurfacePoint(self.render)
                             x, y, z = clickedPoint
-                            message = "click {x} {y}".format(x=x, y=y)
-                            self.backend.graphicsMessage(message)
+                            message = messages.Click((x, y))
+                            self.backend.graphicsMessage(message.serialize())
 
     def handleWindowClose(self):
         log.info("Window close requested -- shutting down client.")
-        self.backend.graphicsMessage("request_quit")
+        message = messages.RequestQuit()
+        self.backend.graphicsMessage(message.serialize())
 
     def backendMessage(self, data):
         message = deserializeMessage(data)
