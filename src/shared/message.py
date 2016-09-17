@@ -9,6 +9,10 @@ TOKEN_DELIM  = " "
 START_STRING = "|"
 
 
+# Mapping from command word to Message (sub)classes.
+messagesByCommand = {}
+
+
 class Message(object):
     command = None
 
@@ -27,6 +31,8 @@ class Message(object):
     def serialize(self):
         return buildMessage(self.command, self.encodeArgs())
 
+    # TODO: I don't think this is actually used; maybe remove it or comment it
+    # out?
     @classmethod
     def deserialize(cls, data):
         cmd, args = tokenize(data)
@@ -95,11 +101,19 @@ def defineMessageType(commandWord, argSpecs):
     deserialized.
     """
 
+    if commandWord in messagesByCommand:
+        raise ValueError("Message command {0!r} is already taken."
+                         .format(commandWord))
+
+    # TODO: snake_case to BigCamelCase?
+    # Ideally we'd choose this name so that it matches the actual message class
+    # name. Or just override __str__ in Message.
     NamedTupleType = namedtuple(commandWord + "_message_tuple",
                                 [spec[0] for spec in argSpecs])
 
     # Subclass from Message before NamedTupleType, so that we can override some
-    # methods of NamedTupleType in Message.
+    # methods of NamedTupleType in Message. (We may want to do this with
+    # __str__?)
     class NewMessageType(Message, NamedTupleType):
         command = commandWord
 
@@ -126,9 +140,21 @@ def defineMessageType(commandWord, argSpecs):
                 i += 1
             return cls(*initArgs)
 
-    # TODO: Register command word
-
+    messagesByCommand[commandWord] = NewMessageType
     return NewMessageType
+
+def deserializeMessage(data):
+    cmd, args = tokenize(data)
+    if cmd not in messagesByCommand:
+        raise InvalidMessageError(data, "Unrecognized message command.")
+
+    messageType = messagesByCommand[cmd]
+
+    # It would seem logical to call messageType.deserialize here, but that's
+    # somewhat wasteful since it takes the original string and therefore has to
+    # tokenize the message again. Instead, call decodeArgs (which does the real
+    # work) directly.
+    return messageType.decodeArgs(args)
 
 
 # TODO: We can and should unit-test tokenize and buildMessage.
