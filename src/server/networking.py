@@ -1,7 +1,7 @@
-from src.server.commandHandler import CommandHandler
 from twisted.internet import protocol, reactor, endpoints
 from twisted.protocols.basic import Int16StringReceiver
 
+from src.server.commandHandler import CommandHandler
 from src.shared.logconfig import newLogger
 from src.shared.message_infrastructure import buildMessage
 
