@@ -36,22 +36,22 @@ class ConnectionManager:
         # Mapping from player indices to connection objects.
         self.connections = {}
 
-        # TODO: Don't let the index grow forever.
-        self.nextIndex   = 0
+        # TODO: Don't let the id grow forever.
+        self.nextid   = 0
 
     def newConnection(self, *args):
-        connection = NetworkConnection(self.nextIndex, *args)
-        self.connections[self.nextIndex] = connection
-        self.nextIndex += 1
+        connection = NetworkConnection(self.nextid, *args)
+        self.connections[self.nextid] = connection
+        self.nextid += 1
         return connection
 
     def removeConnection(self, connection):
-        if connection.playerIndex in self.connections:
-            del self.connections[connection.playerIndex]
+        if connection.playerId in self.connections:
+            del self.connections[connection.playerId]
             log.info(
                 "{} connections remain".format(len(self.connections))
             )
-            self.broadcastMessage("delete_obelisk", [connection.playerIndex])
+            self.broadcastMessage("delete_obelisk", [connection.playerId])
         else:
             log.warning("Failed to remove connection.")
 
@@ -59,37 +59,37 @@ class ConnectionManager:
         message = buildMessage(*args, **kwargs)
         self._broadcastString(message)
 
-    def sendMessage(self, index, *args, **kwargs):
+    def sendMessage(self, playerId, *args, **kwargs):
         message = buildMessage(*args, **kwargs)
-        self._sendString(index, message)
+        self._sendString(playerId, message)
 
     # Low-level string sending methods; don't call these directly.
     def _broadcastString(self, data):
         for connection in self:
             connection.sendString(data)
 
-    def _sendString(self, index, data):
-        self.connections[index].sendString(data)
+    def _sendString(self, playerId, data):
+        self.connections[playerId].sendString(data)
 
     def __iter__(self):
-        # Iterate over all connections, in ascending order by index.
-        for index in sorted(self.connections.keys()):
-            yield self.connections[index]
+        # Iterate over all connections, in ascending order by id.
+        for playerId in sorted(self.connections.keys()):
+            yield self.connections[playerId]
 
 
 class NetworkConnection(Int16StringReceiver):
-    def __init__(self, playerIndex, connections, gamestate):
+    def __init__(self, playerId, connections, gamestate):
         # TODO: Rename indices to ids.
-        self.playerIndex = playerIndex
+        self.playerId = playerId
         self.connections = connections
         self.gamestate = gamestate
 
-        self.gamestate.addPlayer(self.playerIndex, (0, 0))
+        self.gamestate.addPlayer(self.playerId, (0, 0))
 
     def connectionMade(self):
         peer = self.transport.getPeer()
 
-        myId = self.playerIndex
+        myId = self.playerId
         myX, myY = self.gamestate.getPos(myId)
 
         # TODO: Create a common method for doing all these prefixed logs?
@@ -104,7 +104,7 @@ class NetworkConnection(Int16StringReceiver):
         self.sendMessage("your_id_is", [myId])
         self.connections.broadcastMessage("new_obelisk", [myId, myX, myY])
         for otherConn in self.connections:
-            otherId = otherConn.playerIndex
+            otherId = otherConn.playerId
             if otherId == myId:
                 # We already broadcast this one to everyone, including ourself.
                 continue
@@ -117,12 +117,12 @@ class NetworkConnection(Int16StringReceiver):
             "[{ip}:{port}] <connection {playerId} lost: {reason}>".format(
                 ip       = peer.host,
                 port     = peer.port,
-                playerId = self.playerIndex,
+                playerId = self.playerId,
                 reason   = reason.getErrorMessage(),
             )
         )
         self.connections.removeConnection(self)
-        self.gamestate.removePlayer(self.playerIndex)
+        self.gamestate.removePlayer(self.playerId)
 
     def stringReceived(self, data):
         peer = self.transport.getPeer()
@@ -150,16 +150,16 @@ class NetworkConnection(Int16StringReceiver):
         }
 
         if command in RELATIVE_MOVES:
-            self.gamestate.movePlayerBy(self.playerIndex,
+            self.gamestate.movePlayerBy(self.playerId,
                                         RELATIVE_MOVES[command])
 
         else:
             newPos = decodePosition(command)
             if newPos is not None:
-                self.gamestate.movePlayerTo(self.playerIndex, newPos)
+                self.gamestate.movePlayerTo(self.playerId, newPos)
 
         # TODO: Maybe only broadcast the new position if we handled a valid
         # command? Else the position isn't changed....
-        myId = self.playerIndex
-        myX, myY = self.gamestate.getPos(self.playerIndex)
+        myId = self.playerId
+        myX, myY = self.gamestate.getPos(self.playerId)
         self.connections.broadcastMessage("set_pos", [myId, myX, myY])
