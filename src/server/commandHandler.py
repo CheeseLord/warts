@@ -1,9 +1,10 @@
 from src.shared.encode import decodePosition
+from src.shared.gameState import GameState
 
 
 class CommandHandler(object):
-    def __init__(self, gameState, connectionManager):
-        self.gameState = gameState
+    def __init__(self, connectionManager):
+        self.gameState = GameState()
         self.connectionManager = connectionManager
 
     def broadcastMessage(self, *args, **kwargs):
@@ -13,10 +14,11 @@ class CommandHandler(object):
         self.connectionManager.sendMessage(*args, **kwargs)
 
     def createConnection(self, playerId):
+        self.gameState.addPlayer(playerId, (0, 0))
         playerX, playerY = self.gameState.getPos(playerId)
 
         self.sendMessage(playerId, "your_id_is", [playerId])
-        self.broadcastMessage("new_obelisk", [playerX, playerY])
+        self.broadcastMessage("new_obelisk", [playerId, playerX, playerY])
         for otherId in self.gameState.positions:
             # We already broadcast this one to everyone, including ourself.
             if otherId == playerId:
@@ -25,8 +27,8 @@ class CommandHandler(object):
             self.sendMessage("new_obelisk", [otherId, otherX, otherY])
 
     def removeConnection(self, playerId):
-        self.broadcastMessage("delete_obelisk", [playerId])
         self.gameState.removePlayer(playerId)
+        self.broadcastMessage("delete_obelisk", [playerId])
 
     def stringReceived(self, playerId, data):
         command = data.strip().lower()
@@ -51,4 +53,4 @@ class CommandHandler(object):
         # TODO: Maybe only broadcast the new position if we handled a valid
         # command? Else the position isn't changed....
         playerX, playerY = self.gameState.getPos(playerId)
-        self.broadcastMessage("set_pos", [playerId, playerX, myY])
+        self.broadcastMessage("set_pos", [playerId, playerX, playerY])
