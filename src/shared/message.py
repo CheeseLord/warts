@@ -12,13 +12,10 @@ START_STRING = "|"
 class Message(object):
     command = None
 
-    def __init__(self, *args):
-        # TODO: Is this the right magic line to put here? Or can we use
-        # self.__class__ instead of Message? (That seems to cause infinite
-        # recursion, so probably not....) Or can we just use super() with no
-        # args? How does multiple inheritance actually work with new-style
-        # classes?
-        super(Message, self).__init__(*args)
+    # Note: this doesn't seem to be necessary, but that might just be because
+    # (I think) namedtuple overrides __new__ instead of __init__.
+    # def __init__(self, *args):
+    #     super(Message, self).__init__(*args)
 
     # @classmethod
     # def setCommandWord(cls, word):
@@ -28,99 +25,110 @@ class Message(object):
     #     # deserializing methods.
 
     def serialize(self):
-        return buildMessage(self.command, self.getArgs())
+        return buildMessage(self.command, self.encodeArgs())
 
     @classmethod
     def deserialize(cls, data):
         cmd, args = tokenize(data)
         assert cmd == cls.command
-        return cls.fromArgs(args)
+        return cls.decodeArgs(args)
 
-    def getArgs(self):
+    def encodeArgs(self):
         raise NotImplementedError
 
     @classmethod
-    def fromArgs(cls, args):
+    def decodeArgs(cls, args):
         raise NotImplementedError
 
-# TODO: Provide a way to specify a function to parse each argument. For
-# example, an id needs to be parsed using something like
-#     int
-# and a position using something like
-#     lambda desc: tuple(map(float, desc))
+class ArgumentSpecification:
+    """
+    Class used to describe how one logical argument to a message is encoded and
+    decoded. Note that a single logical argument might be encoded as several
+    (space-separated) words in the actual message string -- for example, a
+    position is encoded as two words, one for each coordinate.
+    """
 
-def defineMessageType(commandWord, argSpec):
+    def __init__(self, numWords, decodeFunc, encodeFunc=None):
+        """
+        Initialize an ArgumentSpecification.
+          - numWords is the number of words used to encode this argument in a
+            message string.
+          - decodeFunc is a function to parse those words into a more useful
+            object. It takes in a tuple of strings if numWords > 1, else a
+            single string, and returns a parsed object.
+          - encodeFunc is similar, but operates in reverse. It returns a tuple
+            of strings if numWords > 1, else a single string. If numWords == 1,
+            then encodeFunc may be omitted, in which case the argument will
+            just be str()ed.
+        """
+
+        self.count      = numWords
+        self.decodeFunc = decodeFunc
+
+        if encodeFunc is None:
+            assert numWords == 1
+            # TODO: Should we use repr instead?
+            self.encodeFunc = str
+        else:
+            self.encodeFunc = encodeFunc
+
+    def encode(self, arg):
+        words = self.encodeFunc(arg)
+        assert len(words) == self.count
+        return words
+
+    def decode(self, words):
+        assert type(words) == list and len(words) == self.count
+        if self.count == 1:
+            (word,) = words
+            return self.decodeFunc(word)
+        else:
+            return self.decodeFunc(tuple(words))
+
+def defineMessageType(commandWord, argSpecs):
     """
     Define a new message type.
 
-    argSpec should be a list of tuples (name, count), where name is the name
-    of that argument and count is the number of values used to encode it when
-    the message is serialized. Where count > 1, the attribute corresponding to
-    the argument will be a tuple.
+    argSpecs should be a list of tuples (name, spec), where name is the name
+    of that argument and spec is an ArgumentSpecification object describing
+    how it is encoded and decoded when the message is serialized and
+    deserialized.
     """
 
     NamedTupleType = namedtuple(commandWord + "_message_tuple",
-                                [spec[0] for spec in argSpec])
+                                [spec[0] for spec in argSpecs])
 
-    # TODO: Which order should the superclasses be listed?
-    # I think we want Message to win where there's a conflict, so it goes
-    # first? Right? Is that how this works?
+    # Subclass from Message before NamedTupleType, so that we can override some
+    # methods of NamedTupleType in Message.
     class NewMessageType(Message, NamedTupleType):
         command = commandWord
 
         def __init__(self, *args):
             super(NewMessageType, self).__init__(*args)
 
-        def getArgs(self):
+        def encodeArgs(self):
             args = []
             # Yay, closures!
-            assert len(self) == len(argSpec)
-            for val, (name, count) in zip(self, argSpec):
-                if count == 1:
-                    args.append(val)
-                elif count > 1:
-                    args.extend(list(val))
-                else:
-                    raise ValueError("Count must be at least 1")
+            assert len(self) == len(argSpecs)
+            for val, (name, spec) in zip(self, argSpecs):
+                args.extend(spec.encode(val))
             return args
 
         @classmethod
-        def fromArgs(cls, args):
+        def decodeArgs(cls, args):
             # TODO: Error checking
-            initargs = []
+            initArgs = []
             i = 0
-            while i < len(argSpec):
-                count = argSpec[i][1]
-                if count == 1:
-                    initargs.append(args[0])
-                else:
-                    initargs.append(tuple(args[:count]))
-                args = args[count:]
+            while i < len(argSpecs):
+                spec = argSpecs[i][1]
+                initArgs.append(spec.decode(args[:spec.count]))
+                args = args[spec.count:]
                 i += 1
-            return cls(*initargs)
+            return cls(*initArgs)
 
     # TODO: Register command word
 
     return NewMessageType
-
-NewObeliskMessage = defineMessageType("new_obelisk", [("playerId", 1),
-                                                      ("pos",      2)])
-
-# class NewObeliskMessage(Message):
-#     __class__.setCommandWord("new_obelisk")
-#
-#     def __init__(self, playerId, pos):
-#         self.playerId = playerId
-#         self.pos      = pos
-#
-#     def getArgs(self):
-#         x, y = self.pos
-#         return [self.playerId, x, y]
-#
-#     @classmethod
-#     def fromArgs(cls, args):
-#         playerId, x, y = args
-#         return cls(playerId, (x, y))
 
 
 # TODO: We can and should unit-test tokenize and buildMessage.
@@ -228,11 +236,14 @@ class InvalidMessageError(StandardError):
                                                       msg  = self.badMessage)
 
 
+def encodePos(pos):
+    return map(str, pos)
+
 def parsePos(descs):
     if len(descs) != 2:
         raise ValueError("Position {0!r} has wrong length (expected 2)." \
             .format(descs))
-    return map(parseFloat, descs)
+    return tuple(map(parseFloat, descs))
 
 def parseFloat(desc):
     val = float(desc)
@@ -243,3 +254,15 @@ def parseFloat(desc):
 
 def isfinite(x):
     return not math.isinf(x) and not math.isnan(x)
+
+
+
+###############################################################################
+# Actually define the message types. These need to go at the bottom of this
+# file because Python.
+
+idArg  = ArgumentSpecification(1, int)
+posArg = ArgumentSpecification(2, parsePos, encodePos)
+
+NewObeliskMessage = defineMessageType("new_obelisk", [("playerId", idArg),
+                                                      ("pos",      posArg)])
