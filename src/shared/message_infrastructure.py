@@ -237,19 +237,23 @@ def buildMessage(command, args, lastIsUnsafe=False):
     # Checks passed; this is a valid message.
     return message
 
-def checkArity(command, args, expectedLen):
-    if len(args) != expectedLen:
-        # Yes, this is some redundant work, but it only happens when there's a
-        # bug.
-        message = buildMessage(command, args)
-        raise InvalidMessageError(message,
-            "Incorrect number of arguments for message; got {got}, expected "
-            "{expect}.".format(got=len(args), expect=expectedLen))
+def invalidCommand(message):
+    raise InvalidMessageError(message.serialize(),
+        "Unrecognized command '{command}'.".format(command=message.command))
 
-def invalidCommand(command, args):
-    message = buildMessage(command, args)
-    raise InvalidMessageError(message,
-        "Unrecognized command '{command}'.".format(command=command))
+# def checkArity(command, args, expectedLen):
+#     if len(args) != expectedLen:
+#         # Yes, this is some redundant work, but it only happens when there's a
+#         # bug.
+#         message = buildMessage(command, args)
+#         raise InvalidMessageError(message,
+#             "Incorrect number of arguments for message; got {got}, expected "
+#             "{expect}.".format(got=len(args), expect=expectedLen))
+
+# def invalidCommand(command, args):
+#     message = buildMessage(command, args)
+#     raise InvalidMessageError(message,
+#         "Unrecognized command '{command}'.".format(command=command))
 
 
 class InvalidMessageError(StandardError):
@@ -280,15 +284,3 @@ def parseFloat(desc):
 
 def isfinite(x):
     return not math.isinf(x) and not math.isnan(x)
-
-
-
-###############################################################################
-# Actually define the message types. These need to go at the bottom of this
-# file because Python.
-
-idArg  = ArgumentSpecification(1, int)
-posArg = ArgumentSpecification(2, parsePos, encodePos)
-
-NewObeliskMessage = defineMessageType("new_obelisk", [("playerId", idArg),
-                                                      ("pos",      posArg)])
