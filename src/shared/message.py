@@ -49,7 +49,6 @@ class ArgumentSpecification:
     """
 
     def __init__(self, numWords, decodeFunc, encodeFunc=None):
-        # FIXME FIXME FIXME: This comment is wrong.
         """
         Initialize an ArgumentSpecification.
           - numWords is the number of words used to encode this argument in a
@@ -57,26 +56,21 @@ class ArgumentSpecification:
           - decodeFunc is a function to parse those words into a more useful
             object. It takes in a tuple of strings if numWords > 1, else a
             single string, and returns a parsed object.
-          - encodeFunc is similar, but operates in reverse. If encodeFunc is
-            not specified, the object being encoded will be assumed to be a
-            tuple of length numWords (or a single value if numWords == 1), and
-            __str__ will be used on each value in the tuple (or on the single
-            value).
+          - encodeFunc is similar, but operates in reverse. It returns a tuple
+            of strings if numWords > 1, else a single string. If numWords == 1,
+            then encodeFunc may be omitted, in which case the argument will
+            just be str()ed.
         """
 
         self.count      = numWords
         self.decodeFunc = decodeFunc
 
         if encodeFunc is None:
-            self.encodeFunc = self.defaultEncodeFunc
+            assert numWords == 1
+            # TODO: Should we use repr instead?
+            self.encodeFunc = str
         else:
             self.encodeFunc = encodeFunc
-
-    def defaultEncodeFunc(self, arg):
-        if self.count == 1:
-            arg = (arg,)
-        assert type(arg) == tuple and len(arg) == self.count
-        return map(str, arg)
 
     def encode(self, arg):
         words = self.encodeFunc(arg)
@@ -135,12 +129,6 @@ def defineMessageType(commandWord, argSpecs):
     # TODO: Register command word
 
     return NewMessageType
-
-idArg    = ArgumentSpecification(1, int)
-posArg   = ArgumentSpecification(2, lambda desc: tuple(map(float, desc)))
-
-NewObeliskMessage = defineMessageType("new_obelisk", [("playerId", idArg),
-                                                      ("pos",      posArg)])
 
 
 # TODO: We can and should unit-test tokenize and buildMessage.
@@ -248,11 +236,14 @@ class InvalidMessageError(StandardError):
                                                       msg  = self.badMessage)
 
 
+def encodePos(pos):
+    return map(str, pos)
+
 def parsePos(descs):
     if len(descs) != 2:
         raise ValueError("Position {0!r} has wrong length (expected 2)." \
             .format(descs))
-    return map(parseFloat, descs)
+    return tuple(map(parseFloat, descs))
 
 def parseFloat(desc):
     val = float(desc)
@@ -263,3 +254,15 @@ def parseFloat(desc):
 
 def isfinite(x):
     return not math.isinf(x) and not math.isnan(x)
+
+
+
+###############################################################################
+# Actually define the message types. These need to go at the bottom of this
+# file because Python.
+
+idArg  = ArgumentSpecification(1, int)
+posArg = ArgumentSpecification(2, parsePos, encodePos)
+
+NewObeliskMessage = defineMessageType("new_obelisk", [("playerId", idArg),
+                                                      ("pos",      posArg)])
