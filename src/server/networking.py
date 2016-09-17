@@ -36,13 +36,13 @@ class ConnectionManager:
         # Mapping from player indices to connection objects.
         self.connections = {}
 
-        # TODO: Don't let the id grow forever.
-        self.nextid   = 0
+        # TODO: Don't let the ID grow forever.
+        self.nextId   = 0
 
     def newConnection(self, *args):
-        connection = NetworkConnection(self.nextid, *args)
-        self.connections[self.nextid] = connection
-        self.nextid += 1
+        connection = NetworkConnection(self.nextId, *args)
+        self.connections[self.nextId] = connection
+        self.nextId += 1
         return connection
 
     def removeConnection(self, connection):
@@ -72,14 +72,13 @@ class ConnectionManager:
         self.connections[playerId].sendString(data)
 
     def __iter__(self):
-        # Iterate over all connections, in ascending order by id.
+        # Iterate over all connections, in ascending order by ID.
         for playerId in sorted(self.connections.keys()):
             yield self.connections[playerId]
 
 
 class NetworkConnection(Int16StringReceiver):
     def __init__(self, playerId, connections, gamestate):
-        # TODO: Rename indices to ids.
         self.playerId = playerId
         self.connections = connections
         self.gamestate = gamestate
