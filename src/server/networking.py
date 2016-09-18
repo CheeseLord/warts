@@ -49,13 +49,11 @@ class ConnectionManager:
         else:
             log.warning("Failed to remove connection.")
 
-    def broadcastMessage(self, *args, **kwargs):
-        message = buildMessage(*args, **kwargs)
-        self._broadcastString(message)
+    def broadcastMessage(self, message):
+        self._broadcastString(message.serialize())
 
-    def sendMessage(self, playerId, *args, **kwargs):
-        message = buildMessage(*args, **kwargs)
-        self._sendString(playerId, message)
+    def sendMessage(self, playerId, message):
+        self._sendString(playerId, message.serialize())
 
     # Low-level string sending methods; don't call these directly.
     def _broadcastString(self, data):

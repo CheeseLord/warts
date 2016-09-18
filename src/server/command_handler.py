@@ -1,3 +1,4 @@
+from src.shared import messages
 from src.shared.encode import decodePosition
 from src.shared.gameState import GameState
 
@@ -7,28 +8,28 @@ class CommandHandler(object):
         self.gameState = GameState()
         self.connectionManager = connectionManager
 
-    def broadcastMessage(self, *args, **kwargs):
-        self.connectionManager.broadcastMessage(*args, **kwargs)
+    def broadcastMessage(self, message):
+        self.connectionManager.broadcastMessage(message)
 
-    def sendMessage(self, *args, **kwargs):
-        self.connectionManager.sendMessage(*args, **kwargs)
+    def sendMessage(self, playerId, message):
+        self.connectionManager.sendMessage(playerId, message)
 
     def createConnection(self, playerId):
         self.gameState.addPlayer(playerId, (0, 0))
-        playerX, playerY = self.gameState.getPos(playerId)
+        pos = self.gameState.getPos(playerId)
 
-        self.sendMessage(playerId, "your_id_is", [playerId])
-        self.broadcastMessage("new_obelisk", [playerId, playerX, playerY])
+        self.sendMessage(playerId, messages.YourIdIs(playerId))
+        self.broadcastMessage(messages.NewObelisk(playerId, pos))
         for otherId in self.gameState.positions:
             # We already broadcast this one to everyone, including ourself.
             if otherId == playerId:
                 continue
-            otherX, otherY = self.gameState.getPos(otherId)
-            self.sendMessage("new_obelisk", [otherId, otherX, otherY])
+            otherPos = self.gameState.getPos(otherId)
+            self.sendMessage(playerId, messages.NewObelisk(otherId, otherPos))
 
     def removeConnection(self, playerId):
         self.gameState.removePlayer(playerId)
-        self.broadcastMessage("delete_obelisk", [playerId])
+        self.broadcastMessage(messages.DeleteObelisk(playerId))
 
     def stringReceived(self, playerId, data):
         command = data.strip().lower()
@@ -52,5 +53,5 @@ class CommandHandler(object):
 
         # TODO: Maybe only broadcast the new position if we handled a valid
         # command? Else the position isn't changed....
-        playerX, playerY = self.gameState.getPos(playerId)
-        self.broadcastMessage("set_pos", [playerId, playerX, playerY])
+        pos = self.gameState.getPos(playerId)
+        self.broadcastMessage(messages.SetPos(playerId, pos))
