@@ -8,17 +8,17 @@ from src.shared.message_infrastructure import buildMessage
 log = newLogger(__name__)
 
 
-def runServer(port):
+def runServer(port, connections):
     serverString = "tcp:{}".format(port)
     server = endpoints.serverFromString(reactor, serverString)
-    server.listen(NetworkConnectionFactory())
+    server.listen(NetworkConnectionFactory(connections))
     reactor.run()
 
 
 class NetworkConnectionFactory(protocol.Factory):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, connections):
         # Parent class has no init so we cannot call it
-        self.connections = ConnectionManager()
+        self.connections = connections
 
     def buildProtocol(self, addr):
         # Oddly, addr isn't actually used here, except for logging.
@@ -33,7 +33,11 @@ class ConnectionManager:
         # TODO: Don't let the ID grow forever.
         self.nextId      = 0
 
-        self.commandHandler = CommandHandler(self)
+        self.commandHandler = None
+
+    # Must be called immediately after __init__, before any other methods.
+    def setCommandHandler(self, commandHandler):
+        self.commandHandler = commandHandler
 
     def newConnection(self, *args):
         connection = NetworkConnection(self.nextId, self.commandHandler, self)
