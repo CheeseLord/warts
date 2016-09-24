@@ -21,11 +21,9 @@ class CommandHandler(object):
 
     def createConnection(self, playerId):
         self.unitOrders.giveOrder(playerId, (0, 0))
-        self.applyOrders()
 
     def removeConnection(self, playerId):
         self.unitOrders.giveOrder(playerId, None)
-        self.applyOrders()
 
     def stringReceived(self, playerId, data):
         # command = data.strip().lower()
@@ -50,7 +48,6 @@ class CommandHandler(object):
         message = deserializeMessage(data, errorOnFail=False)
         if isinstance(message, messages.MoveTo):
             self.unitOrders.giveOrder(playerId, message.dest)
-            self.applyOrders()
         else:
             log.warning("Unrecognized message from client {id}: {data!r}."
                         .format(id=playerId, data=data))
