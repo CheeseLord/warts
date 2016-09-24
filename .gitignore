@@ -7,3 +7,6 @@ __pycache__
 
 # vim .swp files, so I can just "git add ." without catching them.
 .*.sw[nop]
+
+# tox files
+.tox

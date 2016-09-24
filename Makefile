@@ -1,4 +1,4 @@
-.PHONY: all docs warts clean simplify activate
+.PHONY: all docs warts clean simplify activate test
 
 VIRTUALENV = venv
 BUILDFILES = build-resources
@@ -17,3 +17,6 @@ simplify:
 
 clean: simplify
 	rm -r $(VIRTUALENV)
+
+test: 
+	tox -e py27
