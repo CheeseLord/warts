@@ -20,6 +20,14 @@ class CommandHandler(object):
         self.connectionManager.sendMessage(playerId, message)
 
     def createConnection(self, playerId):
+        self.sendMessage(playerId, messages.YourIdIs(playerId))
+        for otherId in self.gameState.positions:
+            # We will broadcast this one to everyone, including ourself.
+            if otherId == playerId:
+                continue
+            otherPos = self.gameState.getPos(otherId)
+            self.sendMessage(playerId, messages.NewObelisk(otherId, otherPos))
+
         self.unitOrders.giveOrder(playerId, (0, 0))
 
     def removeConnection(self, playerId):
@@ -47,16 +55,7 @@ class CommandHandler(object):
                 self.gameState.addPlayer(playerId, orders[playerId])
                 pos = self.gameState.getPos(playerId)
 
-                self.sendMessage(playerId, messages.YourIdIs(playerId))
                 self.broadcastMessage(messages.NewObelisk(playerId, pos))
-                for otherId in self.gameState.positions:
-                    # We already broadcast this one to everyone, including
-                    # ourself.
-                    if otherId == playerId:
-                        continue
-                    otherPos = self.gameState.getPos(otherId)
-                    self.sendMessage(playerId, messages.NewObelisk(otherId,
-                                                                   otherPos))
 
             # Move player.
             else:
