@@ -26,25 +26,6 @@ class CommandHandler(object):
         self.unitOrders.giveOrder(playerId, None)
 
     def stringReceived(self, playerId, data):
-        # command = data.strip().lower()
-
-        # STEP_SIZE = 1.0
-        # RELATIVE_MOVES = {
-        #     'n': [ 0.0,        STEP_SIZE],
-        #     's': [ 0.0,       -STEP_SIZE],
-        #     'e': [ STEP_SIZE,        0.0],
-        #     'w': [-STEP_SIZE,        0.0],
-        # }
-
-        # if command in RELATIVE_MOVES:
-        #     self.gameState.movePlayerBy(playerId,
-        #                                 RELATIVE_MOVES[command])
-
-        # else:
-        #     newPos = decodePosition(command)
-        #     if newPos is not None:
-        #         self.gameState.movePlayerTo(playerId, newPos)
-
         message = deserializeMessage(data, errorOnFail=False)
         if isinstance(message, messages.MoveTo):
             self.unitOrders.giveOrder(playerId, message.dest)
