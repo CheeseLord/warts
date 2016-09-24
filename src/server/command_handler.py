@@ -1,5 +1,4 @@
 from src.shared import messages
-from src.shared.encode import decodePosition
 from src.shared.gameState import GameState
 from src.shared.logconfig import newLogger
 from src.shared.message_infrastructure import deserializeMessage

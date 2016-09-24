@@ -1,7 +1,6 @@
 import logging
 
 from src.shared import messages
-from src.shared.encode import encodePosition, decodePosition
 from src.shared.logconfig import newLogger
 from src.shared.message_infrastructure import deserializeMessage, \
     invalidCommand

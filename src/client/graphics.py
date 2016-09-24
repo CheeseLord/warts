@@ -11,7 +11,6 @@ from panda3d import core
 from panda3d.core import Point3, Mat4, Filename, NodePath
 
 from src.shared import messages
-from src.shared.encode import encodePosition, decodePosition
 from src.shared.logconfig import newLogger
 from src.shared.message_infrastructure import deserializeMessage, \
     invalidCommand
