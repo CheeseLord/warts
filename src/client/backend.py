@@ -90,7 +90,8 @@ class Backend:
     def graphicsMessage(self, messageStr):
         message = deserializeMessage(messageStr)
         if isinstance(message, messages.Click):
-            self.network.backendMessage(encodePosition(message.pos))
+            newMsg = messages.MoveTo(message.pos)
+            self.network.backendMessage(newMsg.serialize())
         elif isinstance(message, messages.RequestQuit):
             for component in self.allComponents:
                 component.cleanup()

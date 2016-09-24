@@ -143,18 +143,24 @@ def defineMessageType(commandWord, argSpecs):
     messagesByCommand[commandWord] = NewMessageType
     return NewMessageType
 
-def deserializeMessage(data):
-    cmd, args = tokenize(data)
-    if cmd not in messagesByCommand:
-        raise InvalidMessageError(data, "Unrecognized message command.")
+def deserializeMessage(data, errorOnFail=True):
+    try:
+        cmd, args = tokenize(data)
+        if cmd not in messagesByCommand:
+            raise InvalidMessageError(data, "Unrecognized message command.")
 
-    messageType = messagesByCommand[cmd]
+        messageType = messagesByCommand[cmd]
 
-    # It would seem logical to call messageType.deserialize here, but that's
-    # somewhat wasteful since it takes the original string and therefore has to
-    # tokenize the message again. Instead, call decodeArgs (which does the real
-    # work) directly.
-    return messageType.decodeArgs(args)
+        # It would seem logical to call messageType.deserialize here, but
+        # that's somewhat wasteful since it takes the original string and
+        # therefore has to tokenize the message again. Instead, call decodeArgs
+        # (which does the real work) directly.
+        return messageType.decodeArgs(args)
+    except:
+        if errorOnFail:
+            raise
+        else:
+            return None
 
 
 # TODO: We can and should unit-test tokenize and buildMessage.

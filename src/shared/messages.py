@@ -13,6 +13,7 @@ posArg = ArgumentSpecification(2, parsePos, encodePos)
 # The messages themselves.
 Click         = defineMessageType("click", [("pos", posArg)])
 DeleteObelisk = defineMessageType("delete_obelisk", [("playerId", idArg)])
+MoveTo        = defineMessageType("move_to", [("dest", posArg)])
 NewObelisk    = defineMessageType("new_obelisk",
                                   [("playerId", idArg), ("pos", posArg)])
 RequestQuit   = defineMessageType("request_quit", [])

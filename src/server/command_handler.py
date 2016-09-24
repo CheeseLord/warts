@@ -1,6 +1,10 @@
 from src.shared import messages
 from src.shared.encode import decodePosition
 from src.shared.gameState import GameState
+from src.shared.logconfig import newLogger
+from src.shared.message_infrastructure import deserializeMessage
+
+log = newLogger(__name__)
 
 
 class CommandHandler(object):
@@ -32,26 +36,33 @@ class CommandHandler(object):
         self.broadcastMessage(messages.DeleteObelisk(playerId))
 
     def stringReceived(self, playerId, data):
-        command = data.strip().lower()
+        # command = data.strip().lower()
 
-        STEP_SIZE = 1.0
-        RELATIVE_MOVES = {
-            'n': [ 0.0,        STEP_SIZE],
-            's': [ 0.0,       -STEP_SIZE],
-            'e': [ STEP_SIZE,        0.0],
-            'w': [-STEP_SIZE,        0.0],
-        }
+        # STEP_SIZE = 1.0
+        # RELATIVE_MOVES = {
+        #     'n': [ 0.0,        STEP_SIZE],
+        #     's': [ 0.0,       -STEP_SIZE],
+        #     'e': [ STEP_SIZE,        0.0],
+        #     'w': [-STEP_SIZE,        0.0],
+        # }
 
-        if command in RELATIVE_MOVES:
-            self.gameState.movePlayerBy(playerId,
-                                        RELATIVE_MOVES[command])
+        # if command in RELATIVE_MOVES:
+        #     self.gameState.movePlayerBy(playerId,
+        #                                 RELATIVE_MOVES[command])
 
+        # else:
+        #     newPos = decodePosition(command)
+        #     if newPos is not None:
+        #         self.gameState.movePlayerTo(playerId, newPos)
+
+        message = deserializeMessage(data, errorOnFail=False)
+        if isinstance(message, messages.MoveTo):
+            self.gameState.movePlayerTo(playerId, message.dest)
+
+            # TODO: Maybe only broadcast the new position if we handled a valid
+            # command? Else the position isn't changed....
+            pos = self.gameState.getPos(playerId)
+            self.broadcastMessage(messages.SetPos(playerId, pos))
         else:
-            newPos = decodePosition(command)
-            if newPos is not None:
-                self.gameState.movePlayerTo(playerId, newPos)
-
-        # TODO: Maybe only broadcast the new position if we handled a valid
-        # command? Else the position isn't changed....
-        pos = self.gameState.getPos(playerId)
-        self.broadcastMessage(messages.SetPos(playerId, pos))
+            log.warning("Unrecognized message from client {id}: {data!r}."
+                        .format(id=playerId, data=data))
