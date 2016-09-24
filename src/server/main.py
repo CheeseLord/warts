@@ -9,9 +9,8 @@ def main(args):
     commandHandler = CommandHandler(connections)
     connections.setCommandHandler(commandHandler)
 
-    # For now, apply orders very infrequently so we can clearly see the lag.
     loop = LoopingCall(commandHandler.applyOrders)
-    deferred = loop.start(1.0)
+    deferred = loop.start(0.1)
     deferred.addErrback(twistedLog.err)
 
     runServer(args.port, connections)

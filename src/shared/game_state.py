@@ -1,3 +1,5 @@
+import math
+
 class GameState:
     def __init__(self):
         self.positions = {}
@@ -11,6 +13,28 @@ class GameState:
     def removePlayer(self, playerId):
         self.checkId(playerId)
         del self.positions[playerId]
+
+    def movePlayerToward(self, playerId, dest):
+        # TODO: Take in elapsed ticks; have an actual speed, rather than a
+        # constant "move amount per update".
+        MAX_SPEED = 1.0
+
+        self.checkId(playerId)
+
+        oldPos = self.getPos(playerId)
+        distance = math.hypot(dest[0] - oldPos[0], dest[1] - oldPos[1])
+        if distance <= MAX_SPEED:
+            # We have enough speed to reach our destination this tick.
+            newPos = dest
+        else:
+            # MAX_SPEED is nonzero, and distance > MAX_SPEED, so we are not
+            # dividing by zero. (Or distance is NaN, in which case
+            # distance !> MAX_SPEED, but we're still not dividing by zero.)
+            fraction = MAX_SPEED / distance
+            newPos = (oldPos[0] + fraction * (dest[0] - oldPos[0]),
+                      oldPos[1] + fraction * (dest[1] - oldPos[1]))
+
+        self.movePlayerTo(playerId, newPos)
 
     def movePlayerBy(self, playerId, deltaPos):
         self.checkId(playerId)

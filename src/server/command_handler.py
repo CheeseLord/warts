@@ -59,9 +59,16 @@ class CommandHandler(object):
 
             # Move player.
             else:
-                self.gameState.movePlayerTo(playerId, orders[playerId])
+                dest = orders[playerId]
+                self.gameState.movePlayerToward(playerId, dest)
+
+                pos = self.gameState.getPos(playerId)
+                if pos != dest:
+                    # Need to keep moving on the next turn.
+                    # TODO: Probably shouldn't've removed the order in the
+                    # first place....
+                    self.unitOrders.giveOrder(playerId, dest)
 
                 # TODO: Maybe only broadcast the new position if we handled a
                 # valid command? Else the position isn't changed....
-                pos = self.gameState.getPos(playerId)
                 self.broadcastMessage(messages.SetPos(playerId, pos))
