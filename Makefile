@@ -11,12 +11,13 @@ warts: Makefile $(BUILDFILES)/requirements.txt
 # Need this so that you can import some panda3d modules.
 	cp $(BUILDFILES)/panda3d.pth $(VIRTUALENV)/lib/python2.7/site-packages/
 
+test:
+	./$(VIRTUALENV)/bin/tox -e py27
+
 simplify:
 	find src -name '*.pyc' -exec echo removing '{}' ';' \
 	                       -exec rm -f '{}' ';'
 
 clean: simplify
 	rm -r $(VIRTUALENV)
-
-test: 
-	tox -e py27
+	rm -r .tox .cache
