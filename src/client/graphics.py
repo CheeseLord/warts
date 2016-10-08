@@ -279,6 +279,7 @@ class WartsApp(ShowBase):
                 if self.myId >= 0:
                     raise RuntimeError("ID already set; can't change it now.")
                 self.myId = message.playerId
+                log.info("Your id is {id}.".format(id=self.myId))
             elif isinstance(message, messages.NewObelisk):
                 self.addObelisk(message.playerId, message.pos)
             elif isinstance(message, messages.DeleteObelisk):
