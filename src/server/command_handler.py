@@ -2,7 +2,8 @@ from src.shared import messages
 from src.shared.game_state import GameState
 from src.shared.unit_orders import UnitOrders
 from src.shared.logconfig import newLogger
-from src.shared.message_infrastructure import deserializeMessage
+from src.shared.message_infrastructure import deserializeMessage, \
+    InvalidMessageError
 
 log = newLogger(__name__)
 
