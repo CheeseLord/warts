@@ -3,7 +3,7 @@ import logging
 from src.shared import messages
 from src.shared.logconfig import newLogger
 from src.shared.message_infrastructure import deserializeMessage, \
-    invalidInternalMessage
+    unhandledInternalMessage
 
 log = newLogger(__name__)
 
@@ -96,5 +96,5 @@ class Backend:
                 component.cleanup()
             self.done.callback(None)
         else:
-            invalidInternalMessage(message, log)
+            unhandledInternalMessage(message, log)
 

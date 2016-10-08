@@ -3,7 +3,7 @@ from src.shared.game_state import GameState
 from src.shared.unit_orders import UnitOrders
 from src.shared.logconfig import newLogger
 from src.shared.message_infrastructure import deserializeMessage, \
-    invalidData, invalidMessage, InvalidMessageError
+    invalidMessage, unhandledMessageCommand, InvalidMessageError
 
 log = newLogger(__name__)
 
@@ -42,10 +42,11 @@ class CommandHandler(object):
             if isinstance(message, messages.MoveTo):
                 self.unitOrders.giveOrder(playerId, message.dest)
             else:
-                invalidMessage(message, log,
-                               sender="client {id}".format(id=playerId))
+                unhandledMessageCommand(message, log,
+                    sender="client {id}".format(id=playerId))
         except InvalidMessageError as error:
-            invalidData(error, log, sender="client {id}".format(id=playerId))
+            invalidMessage(error, log,
+                sender="client {id}".format(id=playerId))
 
     def applyOrders(self):
         # TODO: Refactor this.

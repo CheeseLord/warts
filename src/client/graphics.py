@@ -11,7 +11,7 @@ from panda3d.core import Point3, Mat4, Filename, NodePath
 from src.shared import messages
 from src.shared.logconfig import newLogger
 from src.shared.message_infrastructure import deserializeMessage, \
-    invalidData, invalidMessage, InvalidMessageError
+    invalidMessage, unhandledMessageCommand, InvalidMessageError
 
 log = newLogger(__name__)
 
@@ -287,9 +287,9 @@ class WartsApp(ShowBase):
             elif isinstance(message, messages.SetPos):
                 self.moveObelisk(message.playerId, message.pos)
             else:
-                invalidMessage(message, log, sender="server")
+                unhandledMessageCommand(message, log, sender="server")
         except InvalidMessageError as error:
-            invalidData(error, log, sender="server")
+            invalidMessage(error, log, sender="server")
 
 
 def getModelPath(modelName):

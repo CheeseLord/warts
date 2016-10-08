@@ -245,9 +245,11 @@ def buildMessage(command, args, lastIsUnsafe=False):
     return message
 
 
-def invalidInternalMessage(message, log):
+def unhandledInternalMessage(message, log):
     """
-    Handle an invalid internal message.
+    Give an error for when a message originating from an internal source is
+    received by a part of the code that doesn't know how to handle that type of
+    message.
     """
 
     error = "Unrecognized command: '{command}'." \
@@ -257,28 +259,38 @@ def invalidInternalMessage(message, log):
     raise InvalidMessageError(message.serialize(), error)
 
 
-def invalidMessage(message, log, sender=""):
+def unhandledMessageCommand(message, log, sender=""):
     """
-    Handle a well-formed but invalid message.
+    Log a warning for a message originating from an external source (ex: sent
+    over the network), where the message is well-formed (valid command with the
+    right number of arguments) but it was received by a part of the code that
+    doesn't know how to handle that type of message.
     """
 
     if sender:
         sender = " from " + sender
 
-    log.warning("Received invalid message{sender}: {command}"
+    log.warning("Could not handle message type{sender}: {command}"
                 .format(sender=sender, command=message.command))
 
 
-def invalidData(error, log, sender=""):
+def invalidMessage(error, log, sender=""):
     """
-    Handle malformed data.
+    Log a warning for when a message string originating from an external source
+    could not be parsed into a message, for example because it used a
+    nonexistent command or passed the wrong number of arguments.
     """
 
     if sender:
         sender = " from " + sender
 
-    log.warning("Received invalid data{sender}: {error}"
+    log.warning("Received invalid message{sender}: {error}"
                 .format(sender=sender, error=error))
+
+
+# Note: if we get a completely invalid message from an internal source,
+# deserializeMessage will already raise an exception, and we'll just let that
+# exception propagate. So we don't need a fourth function for that case.
 
 
 class InvalidMessageError(StandardError):
