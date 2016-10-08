@@ -1,6 +1,3 @@
-import logging
-
-from twisted.internet.defer import Deferred
 from twisted.internet.protocol import ClientFactory
 from twisted.protocols.basic import Int16StringReceiver
 
@@ -55,6 +52,6 @@ class NetworkConnection(Int16StringReceiver):
         self.backend.networkMessage(message)
 
     def backendMessage(self, message):
-        log.info("[send]    {}".format(message))
+        log.debug("[send]    {}".format(message))
         self.sendString(message)
 
