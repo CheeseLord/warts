@@ -1,7 +1,5 @@
-from math import pi, sin, cos
 import os
 import sys
-import logging
 
 from direct.task import Task  # This must be imported first.
 from direct.actor.Actor import Actor
@@ -13,7 +11,7 @@ from panda3d.core import Point3, Mat4, Filename, NodePath
 from src.shared import messages
 from src.shared.logconfig import newLogger
 from src.shared.message_infrastructure import deserializeMessage, \
-    invalidCommand
+    invalidCommand, InvalidMessageError
 
 log = newLogger(__name__)
 
@@ -275,19 +273,23 @@ class WartsApp(ShowBase):
         self.backend.graphicsMessage(message.serialize())
 
     def backendMessage(self, data):
-        message = deserializeMessage(data)
-        if isinstance(message, messages.YourIdIs):
-            if self.myId >= 0:
-                raise RuntimeError("ID already set; can't change it now.")
-            self.myId = message.playerId
-        elif isinstance(message, messages.NewObelisk):
-            self.addObelisk(message.playerId, message.pos)
-        elif isinstance(message, messages.DeleteObelisk):
-            self.removeObelisk(message.playerId)
-        elif isinstance(message, messages.SetPos):
-            self.moveObelisk(message.playerId, message.pos)
-        else:
-            invalidCommand(message)
+        try:
+            message = deserializeMessage(data)
+            if isinstance(message, messages.YourIdIs):
+                if self.myId >= 0:
+                    raise RuntimeError("ID already set; can't change it now.")
+                self.myId = message.playerId
+            elif isinstance(message, messages.NewObelisk):
+                self.addObelisk(message.playerId, message.pos)
+            elif isinstance(message, messages.DeleteObelisk):
+                self.removeObelisk(message.playerId)
+            elif isinstance(message, messages.SetPos):
+                self.moveObelisk(message.playerId, message.pos)
+            else:
+                invalidCommand(message)
+        except InvalidMessageError:
+            log.warning("Invalid message from server: {data!r}"
+                        .format(data=data))
 
 
 def getModelPath(modelName):
