@@ -43,10 +43,10 @@ class CommandHandler(object):
                 self.unitOrders.giveOrder(playerId, message.dest)
             else:
                 invalidMessage(message, log,
-                               sender="client {id}".format(playerId))
+                               sender="client {id}".format(id=playerId))
         except InvalidMessageError:
             # TODO: Log error message.
-            invalidData(data, log, sender="client {id}".format(playerId))
+            invalidData(data, log, sender="client {id}".format(id=playerId))
 
     def applyOrders(self):
         # TODO: Refactor this.
