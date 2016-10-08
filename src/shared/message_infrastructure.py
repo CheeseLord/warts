@@ -243,9 +243,42 @@ def buildMessage(command, args, lastIsUnsafe=False):
     # Checks passed; this is a valid message.
     return message
 
-def invalidCommand(message):
-    raise InvalidMessageError(message.serialize(),
-        "Unrecognized command '{command}'.".format(command=message.command))
+
+def invalidInternalMessage(message, log):
+    """
+    Handle an invalid internal message.
+    """
+
+    error = "Unrecognized command: '{command}'." \
+        .format(command=message.command)
+    log.error(error)
+
+    raise InvalidMessageError(message.serialize(), error)
+
+
+def invalidMessage(message, log, sender=""):
+    """
+    Handle a well-formed but invalid message.
+    """
+
+    if sender:
+        sender = " from " + sender
+
+    log.warning("Received invalid message{sender}: {command}"
+                .format(sender=sender, command=message.command))
+
+
+def invalidData(data, log, sender=""):
+    """
+    Handle malformed data.
+    """
+
+    if sender:
+        sender = " from " + sender
+
+    log.warning("Received invalid data{sender}: {data}"
+                .format(sender=sender, data=data))
+
 
 # def checkArity(command, args, expectedLen):
 #     if len(args) != expectedLen:
@@ -255,11 +288,6 @@ def invalidCommand(message):
 #         raise InvalidMessageError(message,
 #             "Incorrect number of arguments for message; got {got}, expected "
 #             "{expect}.".format(got=len(args), expect=expectedLen))
-
-# def invalidCommand(command, args):
-#     message = buildMessage(command, args)
-#     raise InvalidMessageError(message,
-#         "Unrecognized command '{command}'.".format(command=command))
 
 
 class InvalidMessageError(StandardError):
