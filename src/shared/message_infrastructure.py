@@ -13,38 +13,90 @@ START_STRING = "|"
 messagesByCommand = {}
 
 
+def defineMessageType(commandWord, argNamesAndSpecs):
+    """
+    Define a new message type.
+
+    argNamesAndSpecs should be a list of tuples (name, spec), where name is the
+    name of that argument and spec is an ArgumentSpecification object
+    describing how it is encoded and decoded when the message is serialized and
+    deserialized.
+    """
+
+    if commandWord in messagesByCommand:
+        raise ValueError("Message command {0!r} is already taken."
+                         .format(commandWord))
+
+    # TODO: snake_case to BigCamelCase?
+    # Ideally we'd choose this name so that it matches the actual message class
+    # name. Or just override __str__ in Message.
+    NamedTupleType = namedtuple(commandWord + "_message_tuple",
+                                [nameSpec[0] for nameSpec in argNamesAndSpecs])
+
+    # Subclass from Message before NamedTupleType, so that we can override some
+    # methods of NamedTupleType in Message. (We may want to do this with
+    # __str__?)
+    class NewMessageType(Message, NamedTupleType):
+        command  = commandWord
+        argSpecs = [nameSpec[1] for nameSpec in argNamesAndSpecs]
+
+        def __init__(self, *args):
+            super(NewMessageType, self).__init__(*args)
+
+    messagesByCommand[commandWord] = NewMessageType
+    return NewMessageType
+
+def serializeMessage(message):
+    argStrings = []
+    assert len(message.argSpecs) == len(message)
+    for argSpec, arg in zip(message.argSpecs, message):
+        argWords = argSpec.encode(arg)
+        if argSpec.count == 1:
+            argWords = (argWords,)
+        argStrings.extend(argWords)
+    return buildMessage(message.command, argStrings)
+
+def deserializeMessage(data, errorOnFail=True):
+    try:
+        cmd, argStrings = tokenize(data)
+        if cmd not in messagesByCommand:
+            raise InvalidMessageError(data, "Unrecognized message command.")
+
+        messageType = messagesByCommand[cmd]
+
+        args = []
+        for argSpec in messageType.argSpecs:
+            if argSpec.count > len(argStrings):
+                raise InvalidMessageError(data,
+                                          "Not enough arguments for command.")
+            if argSpec.count == 1:
+                args.append(argSpec.decode(argStrings[0]))
+            else:
+                currWords = tuple(argStrings[:argSpec.count])
+                args.append(argSpec.decode(currWords))
+            argStrings = argStrings[argSpec.count:]
+
+        if len(argStrings) > 0:
+            raise InvalidMessageError(data, "Too many arguments for command.")
+
+        return messageType(*args)
+    except:
+        if errorOnFail:
+            raise
+        else:
+            return None
+
 class Message(object):
-    command = None
+    command  = None
+    argSpecs = None
 
     # Note: this doesn't seem to be necessary, but that might just be because
     # (I think) namedtuple overrides __new__ instead of __init__.
     # def __init__(self, *args):
     #     super(Message, self).__init__(*args)
 
-    # @classmethod
-    # def setCommandWord(cls, word):
-    #     assert cls.command is None
-    #     cls.command = word
-    #     # TODO: Register command word in some global mapping, used when
-    #     # deserializing methods.
-
     def serialize(self):
-        return buildMessage(self.command, self.encodeArgs())
-
-    # TODO: I don't think this is actually used; maybe remove it or comment it
-    # out?
-    @classmethod
-    def deserialize(cls, data):
-        cmd, args = tokenize(data)
-        assert cmd == cls.command
-        return cls.decodeArgs(args)
-
-    def encodeArgs(self):
-        raise NotImplementedError
-
-    @classmethod
-    def decodeArgs(cls, args):
-        raise NotImplementedError
+        return serializeMessage(self)
 
 class ArgumentSpecification:
     """
@@ -79,89 +131,39 @@ class ArgumentSpecification:
             self.encodeFunc = encodeFunc
 
     def encode(self, arg):
+        """
+        Encode an object corresponding to this argument as one or more words.
+        Returns either a single string or a tuple of strings, the same as
+        the encodeFunct passed to __init__.
+        """
+
         words = self.encodeFunc(arg)
-        assert len(words) == self.count
+        if self.count == 1:
+            assert type(words) == str
+        else:
+            # Alow encodeFunc to give a list instead of a tuple, because that's
+            # close enough.
+            assert type(words) in [tuple, list]
+            assert len(words) == self.count
         return words
 
     def decode(self, words):
-        assert type(words) == list and len(words) == self.count
+        """
+        Parse one or more words into the appropriate type of object. The type
+        of 'words' is the same as would be passed to the decodeFunc passed to
+        __init__.
+        """
+
         if self.count == 1:
-            (word,) = words
-            return self.decodeFunc(word)
+            assert type(words) == str
         else:
-            return self.decodeFunc(tuple(words))
-
-def defineMessageType(commandWord, argSpecs):
-    """
-    Define a new message type.
-
-    argSpecs should be a list of tuples (name, spec), where name is the name
-    of that argument and spec is an ArgumentSpecification object describing
-    how it is encoded and decoded when the message is serialized and
-    deserialized.
-    """
-
-    if commandWord in messagesByCommand:
-        raise ValueError("Message command {0!r} is already taken."
-                         .format(commandWord))
-
-    # TODO: snake_case to BigCamelCase?
-    # Ideally we'd choose this name so that it matches the actual message class
-    # name. Or just override __str__ in Message.
-    NamedTupleType = namedtuple(commandWord + "_message_tuple",
-                                [spec[0] for spec in argSpecs])
-
-    # Subclass from Message before NamedTupleType, so that we can override some
-    # methods of NamedTupleType in Message. (We may want to do this with
-    # __str__?)
-    class NewMessageType(Message, NamedTupleType):
-        command = commandWord
-
-        def __init__(self, *args):
-            super(NewMessageType, self).__init__(*args)
-
-        def encodeArgs(self):
-            args = []
-            # Yay, closures!
-            assert len(self) == len(argSpecs)
-            for val, (name, spec) in zip(self, argSpecs):
-                args.extend(spec.encode(val))
-            return args
-
-        @classmethod
-        def decodeArgs(cls, args):
-            # TODO: Error checking
-            initArgs = []
-            i = 0
-            while i < len(argSpecs):
-                spec = argSpecs[i][1]
-                initArgs.append(spec.decode(args[:spec.count]))
-                args = args[spec.count:]
-                i += 1
-            return cls(*initArgs)
-
-    messagesByCommand[commandWord] = NewMessageType
-    return NewMessageType
-
-def deserializeMessage(data, errorOnFail=True):
-    try:
-        cmd, args = tokenize(data)
-        if cmd not in messagesByCommand:
-            raise InvalidMessageError(data, "Unrecognized message command.")
-
-        messageType = messagesByCommand[cmd]
-
-        # It would seem logical to call messageType.deserialize here, but
-        # that's somewhat wasteful since it takes the original string and
-        # therefore has to tokenize the message again. Instead, call decodeArgs
-        # (which does the real work) directly.
-        return messageType.decodeArgs(args)
-    except:
-        if errorOnFail:
-            raise
-        else:
-            return None
-
+            # Since words always comes from deserializeMessage, require that
+            # it be a tuple, not a list. There's no real problem with it being
+            # a list, but we know that that shouldn't happen, so if it does,
+            # then it suggests a bug.
+            assert type(words) == tuple
+            assert len(words) == self.count
+        return self.decodeFunc(words)
 
 # TODO: We can and should unit-test tokenize and buildMessage.
 # For an arbitrary string command and an arbitrary list of strings args,
