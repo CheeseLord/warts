@@ -1,5 +1,4 @@
 from collections import namedtuple
-import math
 
 # Normal delimiter; separates tokens in messages.
 TOKEN_DELIM  = " "
@@ -300,23 +299,3 @@ class InvalidMessageError(StandardError):
     def __str__(self):
         return "{desc}  (Message is: {msg!r})".format(desc = self.errorDesc,
                                                       msg  = self.badMessage)
-
-
-def encodePos(pos):
-    return map(str, pos)
-
-def parsePos(descs):
-    if len(descs) != 2:
-        raise ValueError("Position {0!r} has wrong length (expected 2)." \
-            .format(descs))
-    return tuple(map(parseFloat, descs))
-
-def parseFloat(desc):
-    val = float(desc)
-    if not isfinite(val):
-        raise ValueError("Floating-point value {0!r} ({1!r}) is not finite." \
-            .format(desc, val))
-    return val
-
-def isfinite(x):
-    return not math.isinf(x) and not math.isnan(x)
