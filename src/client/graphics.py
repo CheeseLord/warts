@@ -288,9 +288,8 @@ class WartsApp(ShowBase):
                 self.moveObelisk(message.playerId, message.pos)
             else:
                 invalidMessage(message, log, sender="server")
-        except InvalidMessageError:
-            # TODO: Log error message.
-            invalidData(data, log, sender="server")
+        except InvalidMessageError as error:
+            invalidData(error, log, sender="server")
 
 
 def getModelPath(modelName):

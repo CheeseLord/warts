@@ -269,7 +269,7 @@ def invalidMessage(message, log, sender=""):
                 .format(sender=sender, command=message.command))
 
 
-def invalidData(data, log, sender=""):
+def invalidData(error, log, sender=""):
     """
     Handle malformed data.
     """
@@ -277,18 +277,8 @@ def invalidData(data, log, sender=""):
     if sender:
         sender = " from " + sender
 
-    log.warning("Received invalid data{sender}: {data}"
-                .format(sender=sender, data=data))
-
-
-# def checkArity(command, args, expectedLen):
-#     if len(args) != expectedLen:
-#         # Yes, this is some redundant work, but it only happens when there's a
-#         # bug.
-#         message = buildMessage(command, args)
-#         raise InvalidMessageError(message,
-#             "Incorrect number of arguments for message; got {got}, expected "
-#             "{expect}.".format(got=len(args), expect=expectedLen))
+    log.warning("Received invalid data{sender}: {error}"
+                .format(sender=sender, error=error))
 
 
 class InvalidMessageError(StandardError):
