@@ -1,7 +1,7 @@
 import math
 
 from src.shared.message_infrastructure import defineMessageType, \
-    ArgumentSpecification
+    ArgumentSpecification, InvalidMessageError
 
 
 ###############################################################################
@@ -15,12 +15,20 @@ def parsePos(descs):
     return tuple(map(parseFloat, descs))
 
 def parseFloat(desc):
-    val = float(desc)
-    if not isfinite(val):
-        # FIXME: Can't crash while handling external messages.
-        raise ValueError("Floating-point value {0!r} ({1!r}) is not finite." \
-            .format(desc, val))
-    return val
+    try:
+        val = float(desc)
+        if not isfinite(val):
+            raise ValueError
+        return val
+    except ValueError:
+        # Convert any exceptions raised during parsing into
+        # InvalidMessageErrors, so that we'll handle them correctly and not
+        # crash due to an invalid external message.
+        #
+        # Note: this isn't really quite right -- the full message isn't desc,
+        # but rather something like "set_pos 2 {desc} 1.6" -- but we don't have
+        # access to the full message, so this is the best we can do.
+        raise InvalidMessageError(desc, "Could not parse floating-point value")
 
 def isfinite(x):
     return not math.isinf(x) and not math.isnan(x)
