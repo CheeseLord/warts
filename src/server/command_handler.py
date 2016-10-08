@@ -9,6 +9,8 @@ log = newLogger(__name__)
 
 class CommandHandler(object):
     def __init__(self, connectionManager):
+        super(CommandHandler, self).__init__()
+
         self.gameState = GameState()
         self.unitOrders = UnitOrders()
         self.connectionManager = connectionManager
@@ -34,10 +36,14 @@ class CommandHandler(object):
         self.unitOrders.giveOrder(playerId, None)
 
     def stringReceived(self, playerId, data):
-        message = deserializeMessage(data, errorOnFail=False)
-        if isinstance(message, messages.MoveTo):
-            self.unitOrders.giveOrder(playerId, message.dest)
-        else:
+        try:
+            message = deserializeMessage(data)
+            if isinstance(message, messages.MoveTo):
+                self.unitOrders.giveOrder(playerId, message.dest)
+            else:
+                log.warning("Unrecognized message from client {id}: {data!r}."
+                            .format(id=playerId, data=data))
+        except InvalidMessageError:
             log.warning("Unrecognized message from client {id}: {data!r}."
                         .format(id=playerId, data=data))
 
