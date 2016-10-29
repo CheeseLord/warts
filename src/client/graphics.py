@@ -1,3 +1,4 @@
+import math
 import os
 import sys
 
@@ -146,11 +147,16 @@ class WartsApp(ShowBase):
         x, y = pos
         log.debug("Moving obelisk {} to ({}, {})".format(playerId, x, y))
         obeliskActor = self.obelisks[playerId]
-        z = obeliskActor.getPos()[2]
+        oldX, oldY, oldZ = obeliskActor.getPos()
+        z = oldZ
         moveInterval = obeliskActor.posInterval(config.TICK_LENGTH, (x, y, z))
         moveInterval.start()
 
         if playerId == self.myId:
+            # Ensure the panda is facing the right direction.
+            heading = math.atan2(y - oldY, x - oldX)
+            obeliskActor.setHpr(heading * 180.0 / math.pi, 0, 0)
+
             # TODO: Currently we restart the animation every tick.
             # Find a way to keep it going continuously. See
             #     https://www.panda3d.org/manual/index.php/Actor_Intervals
