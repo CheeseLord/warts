@@ -155,7 +155,11 @@ class WartsApp(ShowBase):
         if playerId == self.myId:
             # Ensure the panda is facing the right direction.
             heading = math.atan2(y - oldY, x - oldX)
-            obeliskActor.setHpr(heading * 180.0 / math.pi, 0, 0)
+            heading *= 180.0 / math.pi
+            # Magic angle adjustment needed to stop the panda always facing
+            # sideways.
+            heading += 90.0
+            obeliskActor.setHpr(heading, 0, 0)
 
             # TODO: Currently we restart the animation every tick.
             # Find a way to keep it going continuously. See
