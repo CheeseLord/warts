@@ -147,7 +147,9 @@ class WartsApp(ShowBase):
                                .format(id=playerId))
         x, y = pos
         log.debug("Moving obelisk {} to ({}, {})".format(playerId, x, y))
-        self.obelisks[playerId].setPos(x, y, 0)
+        # FIXME: Magic numbers bad
+        myInterval = self.obelisks[playerId].posInterval(0.1, (x, y, 0))
+        myInterval.start()
 
     def setCameraCustom(self):
         """
