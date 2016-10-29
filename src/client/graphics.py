@@ -8,6 +8,7 @@ from direct.showbase.ShowBase import ShowBase
 from panda3d import core
 from panda3d.core import Point3, Mat4, Filename, NodePath
 
+from src.shared import config
 from src.shared import messages
 from src.shared.logconfig import newLogger
 from src.shared.message_infrastructure import deserializeMessage, \
@@ -147,8 +148,8 @@ class WartsApp(ShowBase):
                                .format(id=playerId))
         x, y = pos
         log.debug("Moving obelisk {} to ({}, {})".format(playerId, x, y))
-        # FIXME: Magic numbers bad
-        myInterval = self.obelisks[playerId].posInterval(0.1, (x, y, 0))
+        myInterval = self.obelisks[playerId].posInterval(config.TICK_LENGTH,
+                                                         (x, y, 0))
         myInterval.start()
 
     def setCameraCustom(self):
