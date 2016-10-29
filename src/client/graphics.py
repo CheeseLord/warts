@@ -39,7 +39,7 @@ class WartsApp(ShowBase):
         self.setupEventHandlers()
         self.setupMouseHandler()
 
-        # Mapping from playerIds to obelisk nodes.
+        # Mapping from playerIds to obelisk actors.
         self.obelisks = {}
 
         # Set up the background.
@@ -119,28 +119,25 @@ class WartsApp(ShowBase):
             raise RuntimeError("Already have obelisk with id {id}."
                                .format(id=playerId))
 
-        nodeName = "obeliskNode-{}".format(playerId)
         x, y = pos
-
         log.info("Adding obelisk {} at ({}, {})".format(playerId, x, y))
 
-        obeliskNode = self.render.attachNewNode(nodeName)
-        obeliskNode.setPos(x, y, 0)
-
         if playerId == self.myId:
-            modelName = "test-model.egg"
+            # The example panda from the Panda3D "Hello world" tutorial.
+            obeliskActor = Actor("models/panda-model",
+                                 {"walk": "models/panda-walk4"})
+            obeliskActor.setScale(0.004, 0.004, 0.004)
         else:
-            modelName = "other-obelisk.egg"
-        obelisk = self.loader.loadModel(getModelPath(modelName))
-        obelisk.reparentTo(obeliskNode)
-        obelisk.setPos(0, 0, 2.5)
+            obeliskActor = Actor(getModelPath("other-obelisk.egg"), {})
+        obeliskActor.reparentTo(self.render)
+        obeliskActor.setPos(0, 0, 2.5)
 
-        self.obelisks[playerId] = obeliskNode
+        self.obelisks[playerId] = obeliskActor
 
     def removeObelisk(self, playerId):
         log.info("Removing obelisk {}".format(playerId))
-        obeliskNode = self.obelisks.pop(playerId)
-        obeliskNode.removeNode()
+        obeliskActor = self.obelisks.pop(playerId)
+        obeliskActor.removeNode()
 
     def moveObelisk(self, playerId, pos):
         if playerId not in self.obelisks:
@@ -148,9 +145,17 @@ class WartsApp(ShowBase):
                                .format(id=playerId))
         x, y = pos
         log.debug("Moving obelisk {} to ({}, {})".format(playerId, x, y))
-        myInterval = self.obelisks[playerId].posInterval(config.TICK_LENGTH,
-                                                         (x, y, 0))
-        myInterval.start()
+        obeliskActor = self.obelisks[playerId]
+        z = obeliskActor.getPos()[2]
+        moveInterval = obeliskActor.posInterval(config.TICK_LENGTH, (x, y, z))
+        moveInterval.start()
+
+        if playerId == self.myId:
+            # TODO: Currently we restart the animation every tick.
+            # Find a way to keep it going continuously. See
+            #     https://www.panda3d.org/manual/index.php/Actor_Intervals
+            # which will probably be useful.
+            obeliskActor.play("walk")
 
     def setCameraCustom(self):
         """
