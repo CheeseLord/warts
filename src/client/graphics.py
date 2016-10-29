@@ -124,15 +124,15 @@ class WartsApp(ShowBase):
 
         if playerId == self.myId:
             # The example panda from the Panda3D "Hello world" tutorial.
-            obeliskActor = Actor("models/panda-model",
-                                 {"walk": "models/panda-walk4"})
-            obeliskActor.setScale(0.004, 0.004, 0.004)
+            obelisk = Actor("models/panda-model",
+                            {"walk": "models/panda-walk4"})
+            obelisk.setScale(0.004, 0.004, 0.004)
         else:
-            obeliskActor = Actor(getModelPath("other-obelisk.egg"), {})
-        obeliskActor.reparentTo(self.render)
-        obeliskActor.setPos(0, 0, 2.5)
+            obelisk = self.loader.loadModel(getModelPath("other-obelisk.egg"))
+        obelisk.reparentTo(self.render)
+        obelisk.setPos(0, 0, 2.5)
 
-        self.obelisks[playerId] = obeliskActor
+        self.obelisks[playerId] = obelisk
 
     def removeObelisk(self, playerId):
         log.info("Removing obelisk {}".format(playerId))
