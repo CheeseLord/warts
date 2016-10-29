@@ -19,5 +19,5 @@ simplify:
 	                       -exec rm -f '{}' ';'
 
 clean: simplify
-	rm -r $(VIRTUALENV)
-	rm -r .tox .cache
+	rm -rf $(VIRTUALENV)
+	rm -rf .tox .cache
