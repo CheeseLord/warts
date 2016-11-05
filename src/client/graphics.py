@@ -4,7 +4,6 @@ import sys
 
 from direct.task import Task  # This must be imported first.
 from direct.actor.Actor import Actor
-from direct.interval.IntervalGlobal import Sequence
 from direct.showbase.ShowBase import ShowBase
 from panda3d import core
 from panda3d.core import Point3, Mat4, Filename, NodePath
@@ -161,11 +160,23 @@ class WartsApp(ShowBase):
             heading += 90.0
             obeliskActor.setHpr(heading, 0, 0)
 
-            # TODO: Currently we restart the animation every tick.
-            # Find a way to keep it going continuously. See
-            #     https://www.panda3d.org/manual/index.php/Actor_Intervals
-            # which will probably be useful.
-            obeliskActor.play("walk")
+            currFrame = obeliskActor.getCurrentFrame("walk")
+            if currFrame is None:
+                currFrame = 0
+            # Supposedly, it's possible to pass a startFrame and a duration to
+            # actorInterval, instead of calculating the endFrame ourself. But
+            # for some reason, that doesn't seem to work; if I do that, then
+            # the animation just keeps jumping around the early frames and
+            # never gets past frame 5 or so. I'm not sure why. For now at
+            # least, just calculate the endFrame ourselves to work around this.
+            log.debug("Animating panda from frame {}/{}"
+                      .format(currFrame, obeliskActor.getNumFrames("walk")))
+            frameRate = obeliskActor.getAnimControl("walk").getFrameRate()
+            endFrame = currFrame + int(math.ceil(frameRate *
+                                                 config.TICK_LENGTH))
+            animInterval = obeliskActor.actorInterval("walk", loop=1,
+                startFrame=currFrame, endFrame=endFrame)
+            animInterval.start()
 
     def setCameraCustom(self):
         """
