@@ -8,7 +8,7 @@ class GameState:
         if playerId in self.positions:
             raise ValueError("There's already a player with id {}."
                              .format(playerId))
-        self.positions[playerId] = map(int, position)
+        self.positions[playerId] = tuple(int(round(x)) for x in position)
 
     def removePlayer(self, playerId):
         self.checkId(playerId)
@@ -46,7 +46,7 @@ class GameState:
 
     def movePlayerTo(self, playerId, newPos):
         self.checkId(playerId)
-        self.positions[playerId] = map(int, newPos)
+        self.positions[playerId] = tuple(int(round(x)) for x in newPos)
 
     def getPos(self, playerId):
         self.checkId(playerId)

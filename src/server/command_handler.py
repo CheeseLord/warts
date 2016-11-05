@@ -66,7 +66,7 @@ class CommandHandler(object):
 
             # Move player.
             else:
-                dest = orders[playerId]
+                dest = tuple(int(round(x)) for x in orders[playerId])
                 self.gameState.movePlayerToward(playerId, dest)
 
                 pos = self.gameState.getPos(playerId)
@@ -79,3 +79,4 @@ class CommandHandler(object):
                 # TODO: Maybe only broadcast the new position if we handled a
                 # valid command? Else the position isn't changed....
                 self.broadcastMessage(messages.SetPos(playerId, pos))
+

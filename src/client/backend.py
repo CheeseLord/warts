@@ -89,7 +89,7 @@ class Backend:
     def graphicsMessage(self, messageStr):
         message = deserializeMessage(messageStr)
         if isinstance(message, messages.Click):
-            newMsg = messages.MoveTo(message.pos)
+            newMsg = messages.MoveTo(tuple(int(round(x)) for x in message.pos))
             self.network.backendMessage(newMsg.serialize())
         elif isinstance(message, messages.RequestQuit):
             for component in self.allComponents:
