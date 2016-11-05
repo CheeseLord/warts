@@ -8,7 +8,7 @@ class GameState:
         if playerId in self.positions:
             raise ValueError("There's already a player with id {}."
                              .format(playerId))
-        self.positions[playerId] = position
+        self.positions[playerId] = map(int, position)
 
     def removePlayer(self, playerId):
         self.checkId(playerId)
@@ -17,7 +17,7 @@ class GameState:
     def movePlayerToward(self, playerId, dest):
         # TODO: Take in elapsed ticks; have an actual speed, rather than a
         # constant "move amount per update".
-        MAX_SPEED = 1.0
+        MAX_SPEED = 3.0
 
         self.checkId(playerId)
 
@@ -46,7 +46,7 @@ class GameState:
 
     def movePlayerTo(self, playerId, newPos):
         self.checkId(playerId)
-        self.positions[playerId] = newPos
+        self.positions[playerId] = map(int, newPos)
 
     def getPos(self, playerId):
         self.checkId(playerId)
@@ -55,3 +55,4 @@ class GameState:
     def checkId(self, playerId):
         if playerId not in self.positions:
             raise ValueError("There's no player with id {}.".format(playerId))
+
