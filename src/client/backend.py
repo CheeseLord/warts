@@ -89,6 +89,9 @@ class Backend:
     def graphicsMessage(self, messageStr):
         message = deserializeMessage(messageStr)
         if isinstance(message, messages.Click):
+            # TODO: Replace this int/round logic with a proper
+            # graphicsToWorldCoord call (or whatever we end up calling that
+            # function).
             newMsg = messages.MoveTo(tuple(int(round(x)) for x in message.pos))
             self.network.backendMessage(newMsg.serialize())
         elif isinstance(message, messages.RequestQuit):
