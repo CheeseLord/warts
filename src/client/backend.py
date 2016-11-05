@@ -5,6 +5,10 @@ from src.shared.logconfig import newLogger
 from src.shared.message_infrastructure import deserializeMessage, \
     unhandledInternalMessage
 
+# Constants
+GRAPHICS_SCALE=3
+
+# Logging
 log = newLogger(__name__)
 
 
@@ -101,7 +105,6 @@ class Backend:
         else:
             unhandledInternalMessage(message, log)
 
-GRAPHICS_SCALE=3
 def worldToGraphics(*worldCoords):
     """Convert world (xw,yw) integers tuples to graphics (xg,yg) float tuples
     """

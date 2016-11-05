@@ -67,8 +67,9 @@ class WartsApp(ShowBase):
             raise RuntimeError("Already have obelisk with id {id}."
                                .format(id=playerId))
 
-        x, y = pos
-        log.info("Adding obelisk {} at ({}, {})".format(playerId, x, y))
+        xw, yw = pos
+        log.info("Adding obelisk {} at ({}, {})".format(playerId, xw, yw))
+        x, y = worldToGraphics(xw, yw)
 
         if playerId == self.myId:
             # The example panda from the Panda3D "Hello world" tutorial.
@@ -91,8 +92,9 @@ class WartsApp(ShowBase):
         if playerId not in self.obelisks:
             raise RuntimeError("There is no obelisk with id {id}."
                                .format(id=playerId))
-        x, y = pos
-        log.debug("Moving obelisk {} to ({}, {})".format(playerId, x, y))
+        xw, yw = pos
+        log.debug("Moving obelisk {} to ({}, {})".format(playerId, xw, yw))
+        x,y = worldToGraphics(xw, yw)
         obeliskActor = self.obelisks[playerId]
         oldX, oldY, oldZ = obeliskActor.getPos()
         z = oldZ
@@ -332,11 +334,11 @@ class WartsApp(ShowBase):
                 self.myId = message.playerId
                 log.info("Your id is {id}.".format(id=self.myId))
             elif isinstance(message, messages.NewObelisk):
-                self.addObelisk(message.playerId, worldToGraphics(message.pos))
+                self.addObelisk(message.playerId, message.pos)
             elif isinstance(message, messages.DeleteObelisk):
                 self.removeObelisk(message.playerId)
             elif isinstance(message, messages.SetPos):
-                self.moveObelisk(message.playerId, worldToGraphics(message.pos))
+                self.moveObelisk(message.playerId, message.pos)
             else:
                 unhandledMessageCommand(message, log, sender="server")
         except InvalidMessageError as error:
