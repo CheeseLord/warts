@@ -13,6 +13,7 @@ from src.shared import messages
 from src.shared.logconfig import newLogger
 from src.shared.message_infrastructure import deserializeMessage, \
     invalidMessage, unhandledMessageCommand, InvalidMessageError
+from src.client.backend import worldToGraphics
 
 log = newLogger(__name__)
 
@@ -331,11 +332,11 @@ class WartsApp(ShowBase):
                 self.myId = message.playerId
                 log.info("Your id is {id}.".format(id=self.myId))
             elif isinstance(message, messages.NewObelisk):
-                self.addObelisk(message.playerId, message.pos)
+                self.addObelisk(message.playerId, worldToGraphics(message.pos))
             elif isinstance(message, messages.DeleteObelisk):
                 self.removeObelisk(message.playerId)
             elif isinstance(message, messages.SetPos):
-                self.moveObelisk(message.playerId, message.pos)
+                self.moveObelisk(message.playerId, worldToGraphics(message.pos))
             else:
                 unhandledMessageCommand(message, log, sender="server")
         except InvalidMessageError as error:
