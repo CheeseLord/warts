@@ -66,7 +66,10 @@ class CommandHandler(object):
 
             # Move player.
             else:
-                dest = tuple(int(round(x)) for x in orders[playerId])
+                dest = orders[playerId]
+                # POS_INT_CHECK
+                for k in dest:
+                    assert type(k) is int
                 self.gameState.movePlayerToward(playerId, dest)
 
                 pos = self.gameState.getPos(playerId)

@@ -8,7 +8,11 @@ class GameState:
         if playerId in self.positions:
             raise ValueError("There's already a player with id {}."
                              .format(playerId))
-        self.positions[playerId] = tuple(int(round(x)) for x in position)
+
+        # POS_INT_CHECK
+        for k in position:
+            assert type(k) is int
+        self.positions[playerId] = position
 
     def removePlayer(self, playerId):
         self.checkId(playerId)
@@ -34,8 +38,10 @@ class GameState:
             newPos = (oldPos[0] + fraction * (dest[0] - oldPos[0]),
                       oldPos[1] + fraction * (dest[1] - oldPos[1]))
 
+        newPos = tuple(int(round(x)) for x in newPos)
         self.movePlayerTo(playerId, newPos)
 
+    # Does anyone actually use this function?
     def movePlayerBy(self, playerId, deltaPos):
         self.checkId(playerId)
         x, y = self.getPos(playerId)
@@ -46,7 +52,10 @@ class GameState:
 
     def movePlayerTo(self, playerId, newPos):
         self.checkId(playerId)
-        self.positions[playerId] = tuple(int(round(x)) for x in newPos)
+        # POS_INT_CHECK
+        for k in newPos:
+            assert type(k) is int
+        self.positions[playerId] = newPos
 
     def getPos(self, playerId):
         self.checkId(playerId)
