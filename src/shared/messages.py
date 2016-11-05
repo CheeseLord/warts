@@ -8,30 +8,15 @@ from src.shared.message_infrastructure import defineMessageType, \
 # Helper functions used by some of the argument specifications
 
 def encodePos(pos):
-    return map(str, pos)
+    assert len(pos) == 2
+    # For now, force to int before str()ing the coordinates so that if old code
+    # is still using floats, it doesn't mess up the parser on the other end. We
+    # may want to eventually remove that cast; I'm not sure.
+    return [str(int(x)) for x in pos]
 
 def parsePos(descs):
     assert len(descs) == 2
-    return tuple(map(parseFloat, descs))
-
-def parseFloat(desc):
-    try:
-        val = float(desc)
-        if not isfinite(val):
-            raise ValueError
-        return val
-    except ValueError:
-        # Convert any exceptions raised during parsing into
-        # InvalidMessageErrors, so that we'll handle them correctly and not
-        # crash due to an invalid external message.
-        #
-        # Note: this isn't really quite right -- the full message isn't desc,
-        # but rather something like "set_pos 2 {desc} 1.6" -- but we don't have
-        # access to the full message, so this is the best we can do.
-        raise InvalidMessageError(desc, "Could not parse floating-point value")
-
-def isfinite(x):
-    return not math.isinf(x) and not math.isnan(x)
+    return tuple(map(int, descs))
 
 
 ###############################################################################
