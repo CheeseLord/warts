@@ -62,6 +62,9 @@ class GameState:
         return self.positions[playerId]
 
     def checkId(self, playerId):
-        if playerId not in self.positions:
+        if not self.isIdValid(playerId):
             raise ValueError("There's no player with id {}.".format(playerId))
+
+    def isIdValid(self, playerId):
+        return (playerId in self.positions)
 
