@@ -59,59 +59,6 @@ class WartsApp(ShowBase):
     def cleanup(self):
         pass
 
-    def setupMouseHandler(self):
-        """
-        Handle mouse clicks.
-        """
-
-        # Define the ground plane by a normal and a point.
-        groundCollisionPlane = core.CollisionPlane(core.LPlanef(
-            core.Vec3(0, 0, 1), core.Point3(0, 0, 0)))
-
-        # Create a node path for the ground.
-        self.groundPlaneNodePath = self.render.attachNewNode(
-            core.CollisionNode("groundCollisionNode"))
-        self.groundPlaneNodePath.node().addSolid(groundCollisionPlane)
-
-        # Find the ray defined by the mouse click.
-        mouseClickNode = core.CollisionNode("mouseRay")
-        self.mouseClickNodePath = self.camera.attachNewNode(mouseClickNode)
-        # TODO: Do we need to mouseClickNode.setFromCollideMask() here?
-        self.mouseClickRay = core.CollisionRay()
-        mouseClickNode.addSolid(self.mouseClickRay)
-
-        # Create objects to traverse the node tree to find collisions.
-        self.mouseClickHandler = core.CollisionHandlerQueue()
-        self.mouseClickTraverser = core.CollisionTraverser("mouse click")
-        self.mouseClickTraverser.addCollider(self.mouseClickNodePath,
-                                             self.mouseClickHandler)
-
-    def setupEventHandlers(self):
-        def pushKey(key, value):
-            self.keys[key] = value
-
-        for key in ["arrow_up", "arrow_left", "arrow_right", "arrow_down",
-                    "w", "a", "d", "s"]:
-            self.keys[key] = False
-            self.accept(key, pushKey, [key, True])
-            self.accept("shift-%s" % key, pushKey, [key, True])
-            self.accept("%s-up" % key, pushKey, [key, False])
-
-        # Camera toggle.
-        self.accept("f3",       self.toggleCameraStyle, [])
-        self.accept("shift-f3", self.toggleCameraStyle, [])
-
-        # Handle mouse wheel.
-        self.accept("wheel_up", self.zoomCamera, [True])
-        self.accept("wheel_down", self.zoomCamera, [False])
-
-        # Handle clicking.
-        self.accept("mouse1", self.handleMouseClick, [])
-
-        # Handle window close request (clicking the X, Alt-F4, etc.)
-        self.win.set_close_request_event("window-close")
-        self.accept("window-close", self.handleWindowClose)
-
     def addObelisk(self, playerId, pos):
         if self.myId < 0:
             raise RuntimeError("Must set ID before adding obelisks.")
@@ -274,6 +221,24 @@ class WartsApp(ShowBase):
         zoom = -zoomSpeed if inward else zoomSpeed
         self.cameraHolder.setPos(self.cameraHolder, 0, 0, zoom)
 
+    def centerViewOnSelf(self):
+        if self.myId not in self.obelisks:
+            return
+
+        _, _, z = self.cameraHolder.getPos()
+        x, y, _ = self.obelisks[self.myId].getPos()
+
+        # This is a hack.
+        # The camera isn't aimed straight down; it's aimed at a slight angle
+        # (to give some perspective to the scene). Therefore, we don't want to
+        # put the camera directly above the obelisk; we want to put it up and
+        # at an angle. We could (and eventually should) do some geometry on the
+        # camera's HPR to correctly compute that position, but for now I'm just
+        # hardcoding a roughly-correct offset, because it's easier.
+        y -= 16
+
+        self.cameraHolder.setPos(x, y, z)
+
     def handleMouseClick(self):
         # Make sure the mouse is inside the screen
         if self.mouseWatcherNode.hasMouse():
@@ -300,6 +265,62 @@ class WartsApp(ShowBase):
         log.info("Window close requested -- shutting down client.")
         message = messages.RequestQuit()
         self.backend.graphicsMessage(message.serialize())
+
+    def setupMouseHandler(self):
+        """
+        Handle mouse clicks.
+        """
+
+        # Define the ground plane by a normal and a point.
+        groundCollisionPlane = core.CollisionPlane(core.LPlanef(
+            core.Vec3(0, 0, 1), core.Point3(0, 0, 0)))
+
+        # Create a node path for the ground.
+        self.groundPlaneNodePath = self.render.attachNewNode(
+            core.CollisionNode("groundCollisionNode"))
+        self.groundPlaneNodePath.node().addSolid(groundCollisionPlane)
+
+        # Find the ray defined by the mouse click.
+        mouseClickNode = core.CollisionNode("mouseRay")
+        self.mouseClickNodePath = self.camera.attachNewNode(mouseClickNode)
+        # TODO: Do we need to mouseClickNode.setFromCollideMask() here?
+        self.mouseClickRay = core.CollisionRay()
+        mouseClickNode.addSolid(self.mouseClickRay)
+
+        # Create objects to traverse the node tree to find collisions.
+        self.mouseClickHandler = core.CollisionHandlerQueue()
+        self.mouseClickTraverser = core.CollisionTraverser("mouse click")
+        self.mouseClickTraverser.addCollider(self.mouseClickNodePath,
+                                             self.mouseClickHandler)
+
+    def setupEventHandlers(self):
+        def pushKey(key, value):
+            self.keys[key] = value
+
+        for key in ["arrow_up", "arrow_left", "arrow_right", "arrow_down",
+                    "w", "a", "d", "s"]:
+            self.keys[key] = False
+            self.accept(key, pushKey, [key, True])
+            self.accept("shift-%s" % key, pushKey, [key, True])
+            self.accept("%s-up" % key, pushKey, [key, False])
+
+        # Camera toggle.
+        self.accept("f3",       self.toggleCameraStyle, [])
+        self.accept("shift-f3", self.toggleCameraStyle, [])
+
+        # Center view.
+        self.accept("space", self.centerViewOnSelf, [])
+
+        # Handle mouse wheel.
+        self.accept("wheel_up", self.zoomCamera, [True])
+        self.accept("wheel_down", self.zoomCamera, [False])
+
+        # Handle clicking.
+        self.accept("mouse1", self.handleMouseClick, [])
+
+        # Handle window close request (clicking the X, Alt-F4, etc.)
+        self.win.set_close_request_event("window-close")
+        self.accept("window-close", self.handleWindowClose)
 
     def backendMessage(self, data):
         try:
