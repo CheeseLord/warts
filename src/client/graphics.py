@@ -101,6 +101,9 @@ class WartsApp(ShowBase):
         self.accept("f3",       self.toggleCameraStyle, [])
         self.accept("shift-f3", self.toggleCameraStyle, [])
 
+        # Center view.
+        self.accept("space", self.centerViewOnSelf, [])
+
         # Handle mouse wheel.
         self.accept("wheel_up", self.zoomCamera, [True])
         self.accept("wheel_down", self.zoomCamera, [False])
@@ -273,6 +276,24 @@ class WartsApp(ShowBase):
 
         zoom = -zoomSpeed if inward else zoomSpeed
         self.cameraHolder.setPos(self.cameraHolder, 0, 0, zoom)
+
+    def centerViewOnSelf(self):
+        if self.myId not in self.obelisks:
+            return
+
+        _, _, z = self.cameraHolder.getPos()
+        x, y, _ = self.obelisks[self.myId].getPos()
+
+        # This is a hack.
+        # The camera isn't aimed straight down; it's aimed at a slight angle
+        # (to give some perspective to the scene). Therefore, we don't want to
+        # put the camera directly above the obelisk; we want to put it up and
+        # at an angle. We could (and eventually should) do some geometry on the
+        # camera's HPR to correctly compute that position, but for now I'm just
+        # hardcoding a roughly-correct offset, because it's easier.
+        y -= 16
+
+        self.cameraHolder.setPos(x, y, z)
 
     def handleMouseClick(self):
         # Make sure the mouse is inside the screen
