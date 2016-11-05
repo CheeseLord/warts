@@ -59,62 +59,6 @@ class WartsApp(ShowBase):
     def cleanup(self):
         pass
 
-    def setupMouseHandler(self):
-        """
-        Handle mouse clicks.
-        """
-
-        # Define the ground plane by a normal and a point.
-        groundCollisionPlane = core.CollisionPlane(core.LPlanef(
-            core.Vec3(0, 0, 1), core.Point3(0, 0, 0)))
-
-        # Create a node path for the ground.
-        self.groundPlaneNodePath = self.render.attachNewNode(
-            core.CollisionNode("groundCollisionNode"))
-        self.groundPlaneNodePath.node().addSolid(groundCollisionPlane)
-
-        # Find the ray defined by the mouse click.
-        mouseClickNode = core.CollisionNode("mouseRay")
-        self.mouseClickNodePath = self.camera.attachNewNode(mouseClickNode)
-        # TODO: Do we need to mouseClickNode.setFromCollideMask() here?
-        self.mouseClickRay = core.CollisionRay()
-        mouseClickNode.addSolid(self.mouseClickRay)
-
-        # Create objects to traverse the node tree to find collisions.
-        self.mouseClickHandler = core.CollisionHandlerQueue()
-        self.mouseClickTraverser = core.CollisionTraverser("mouse click")
-        self.mouseClickTraverser.addCollider(self.mouseClickNodePath,
-                                             self.mouseClickHandler)
-
-    def setupEventHandlers(self):
-        def pushKey(key, value):
-            self.keys[key] = value
-
-        for key in ["arrow_up", "arrow_left", "arrow_right", "arrow_down",
-                    "w", "a", "d", "s"]:
-            self.keys[key] = False
-            self.accept(key, pushKey, [key, True])
-            self.accept("shift-%s" % key, pushKey, [key, True])
-            self.accept("%s-up" % key, pushKey, [key, False])
-
-        # Camera toggle.
-        self.accept("f3",       self.toggleCameraStyle, [])
-        self.accept("shift-f3", self.toggleCameraStyle, [])
-
-        # Center view.
-        self.accept("space", self.centerViewOnSelf, [])
-
-        # Handle mouse wheel.
-        self.accept("wheel_up", self.zoomCamera, [True])
-        self.accept("wheel_down", self.zoomCamera, [False])
-
-        # Handle clicking.
-        self.accept("mouse1", self.handleMouseClick, [])
-
-        # Handle window close request (clicking the X, Alt-F4, etc.)
-        self.win.set_close_request_event("window-close")
-        self.accept("window-close", self.handleWindowClose)
-
     def addObelisk(self, playerId, pos):
         if self.myId < 0:
             raise RuntimeError("Must set ID before adding obelisks.")
@@ -321,6 +265,62 @@ class WartsApp(ShowBase):
         log.info("Window close requested -- shutting down client.")
         message = messages.RequestQuit()
         self.backend.graphicsMessage(message.serialize())
+
+    def setupMouseHandler(self):
+        """
+        Handle mouse clicks.
+        """
+
+        # Define the ground plane by a normal and a point.
+        groundCollisionPlane = core.CollisionPlane(core.LPlanef(
+            core.Vec3(0, 0, 1), core.Point3(0, 0, 0)))
+
+        # Create a node path for the ground.
+        self.groundPlaneNodePath = self.render.attachNewNode(
+            core.CollisionNode("groundCollisionNode"))
+        self.groundPlaneNodePath.node().addSolid(groundCollisionPlane)
+
+        # Find the ray defined by the mouse click.
+        mouseClickNode = core.CollisionNode("mouseRay")
+        self.mouseClickNodePath = self.camera.attachNewNode(mouseClickNode)
+        # TODO: Do we need to mouseClickNode.setFromCollideMask() here?
+        self.mouseClickRay = core.CollisionRay()
+        mouseClickNode.addSolid(self.mouseClickRay)
+
+        # Create objects to traverse the node tree to find collisions.
+        self.mouseClickHandler = core.CollisionHandlerQueue()
+        self.mouseClickTraverser = core.CollisionTraverser("mouse click")
+        self.mouseClickTraverser.addCollider(self.mouseClickNodePath,
+                                             self.mouseClickHandler)
+
+    def setupEventHandlers(self):
+        def pushKey(key, value):
+            self.keys[key] = value
+
+        for key in ["arrow_up", "arrow_left", "arrow_right", "arrow_down",
+                    "w", "a", "d", "s"]:
+            self.keys[key] = False
+            self.accept(key, pushKey, [key, True])
+            self.accept("shift-%s" % key, pushKey, [key, True])
+            self.accept("%s-up" % key, pushKey, [key, False])
+
+        # Camera toggle.
+        self.accept("f3",       self.toggleCameraStyle, [])
+        self.accept("shift-f3", self.toggleCameraStyle, [])
+
+        # Center view.
+        self.accept("space", self.centerViewOnSelf, [])
+
+        # Handle mouse wheel.
+        self.accept("wheel_up", self.zoomCamera, [True])
+        self.accept("wheel_down", self.zoomCamera, [False])
+
+        # Handle clicking.
+        self.accept("mouse1", self.handleMouseClick, [])
+
+        # Handle window close request (clicking the X, Alt-F4, etc.)
+        self.win.set_close_request_event("window-close")
+        self.accept("window-close", self.handleWindowClose)
 
     def backendMessage(self, data):
         try:
