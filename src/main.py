@@ -1,6 +1,7 @@
 import argparse
 import sys
 
+from shared.logconfig import enableDebugLogging
 from server.main import main as serverMain
 from client.main import main as clientMain
 
@@ -10,6 +11,8 @@ PORT_DEFAULT = "16097"
 
 def main():
     args = parseArguments()
+
+    handleSharedArguments(args)
 
     if args.command == "server":
         print "Running WaRTS server..."
@@ -24,8 +27,16 @@ def main():
         print "Internal error: unrecognized command '{}'".format(args.command)
 
 
+def handleSharedArguments(args):
+    if args.log_debug:
+        enableDebugLogging()
+
 def parseArguments():
     parser = WartsParser()
+
+    parser.add_argument('--log-debug', action="store_true",
+        help="Enable debug-level logging")
+
     subparsers = parser.add_subparsers(title="commands",
         metavar="List of commands")
 
