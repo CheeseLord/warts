@@ -54,8 +54,16 @@ class CommandHandler(object):
         for playerId in orders:
             # Remove player.
             if orders[playerId] is None:
-                self.gameState.removePlayer(playerId)
-                self.broadcastMessage(messages.DeleteObelisk(playerId))
+                # If a client manages to connect then disconnect within a
+                # single tick, then it's possible the only order we'll ever
+                # execute for their obelisk is the "remove" order, without
+                # having first created it. In that case, we can't remove the
+                # obelisk, because it doesn't exist: gameState.removePlayer
+                # would crash if we tried and the clients would be confused if
+                # we sent them a DeleteObelisk message for an unused id.
+                if self.gameState.isIdValid(playerId):
+                    self.gameState.removePlayer(playerId)
+                    self.broadcastMessage(messages.DeleteObelisk(playerId))
 
             # Create player.
             elif playerId not in self.gameState.positions:
