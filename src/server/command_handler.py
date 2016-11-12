@@ -24,6 +24,15 @@ class CommandHandler(object):
 
     def createConnection(self, playerId):
         self.sendMessage(playerId, messages.YourIdIs(playerId))
+
+        # Send ground info.
+        for x in range(len(self.gameState.groundTypes)):
+            for y in range(len(self.gameState.groundTypes[x])):
+                groundType = self.gameState.groundTypes[x][y]
+                msg = messages.GroundInfo((x, y), groundType)
+                self.sendMessage(playerId, msg)
+
+        # Send positions of all existing obelisks.
         for otherId in self.gameState.positions:
             # We will broadcast this one to everyone, including ourself.
             if otherId == playerId:

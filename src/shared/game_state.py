@@ -4,6 +4,10 @@ class GameState:
     def __init__(self):
         self.positions = {}
 
+        # 10x5. Stored [x][y].
+        # TODO [#3]: Magic numbers bad.
+        self.groundTypes = [[0 for y in range(5)] for x in range(10)]
+
     def addPlayer(self, playerId, position):
         if playerId in self.positions:
             raise ValueError("There's already a player with id {}."
