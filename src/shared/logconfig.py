@@ -35,6 +35,8 @@ def enableDebugLogging():
     handler.setLevel(logging.DEBUG)
 
 def newLogger(fullname):
+    SHORTENED_MIDDLE = "..."
+
     # Empirically __name__'s are dot-separated in these modules, not
     # slash-separated. We could do an os.basename to deal with the case where
     # they're slash-separated, but if that happens then the rpartition below is
@@ -42,6 +44,12 @@ def newLogger(fullname):
     # we've actually seen it happen so we can test it, so for now just assert
     # if we see any slashes.
     assert os.sep not in fullname
+
+    # The logic below does weird things if there isn't room for at least one
+    # character on each side of the "..." in the middle when names are
+    # shortened. I'm sure we could handle that, but it shouldn't happen, so
+    # let's just assert.
+    assert MAX_NAME_LENGTH >= len(SHORTENED_MIDDLE) + 2
 
     # Ignore everything before the last dot.
     _, _, name = fullname.rpartition(".")
@@ -53,7 +61,7 @@ def newLogger(fullname):
         # endLen so that if we decide to set MAX_NAME_LENGTH to an even number,
         # then the odd character will be used for the start of the module name,
         # which I think is probably more useful than the end.
-        middle   = "..."
+        middle   = SHORTENED_MIDDLE
         endLen   = (MAX_NAME_LENGTH - len(middle)) / 2
         end      = name[-endLen:]
         beginLen = MAX_NAME_LENGTH - endLen - len(middle)
