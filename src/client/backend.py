@@ -93,10 +93,7 @@ class Backend:
     def graphicsMessage(self, messageStr):
         message = deserializeMessage(messageStr)
         if isinstance(message, messages.Click):
-            # TODO: Replace this int/round logic with a proper
-            # graphicsToWorldCoord call (or whatever we end up calling that
-            # function).
-            newMsg = messages.MoveTo(graphicsToWorld(*message.pos))
+            newMsg = messages.MoveTo(graphicsToWorld(message.pos))
             self.network.backendMessage(newMsg.serialize())
         elif isinstance(message, messages.RequestQuit):
             for component in self.allComponents:
@@ -105,12 +102,12 @@ class Backend:
         else:
             unhandledInternalMessage(message, log)
 
-def worldToGraphics(*worldCoords):
+def worldToGraphics(worldCoords):
     """Convert world (xw,yw) integers tuples to graphics (xg,yg) float tuples
     """
     return tuple(float(x)/GRAPHICS_SCALE for x in worldCoords)
 
-def graphicsToWorld(*graphicsCoords):
+def graphicsToWorld(graphicsCoords):
     """Convert world (xw,yw) integers tuples to graphics (xg,yg) float tuples
     """
     return tuple(int(round(x*GRAPHICS_SCALE)) for x in graphicsCoords)

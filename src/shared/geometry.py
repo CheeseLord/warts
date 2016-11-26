@@ -3,7 +3,7 @@ Functions for doing geometry calculations in the various types of coordinates
 shared between client and server.
 """
 
-from shared.config import CHUNK_SIZE
+from src.shared.config import CHUNK_SIZE
 
 def chunkToWorld(chunkPos):
     """

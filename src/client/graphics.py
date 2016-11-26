@@ -10,10 +10,11 @@ from panda3d.core import Point3, Mat4, Filename, NodePath
 
 from src.shared import config
 from src.shared import messages
+from src.shared.geometry import chunkToWorld
 from src.shared.logconfig import newLogger
 from src.shared.message_infrastructure import deserializeMessage, \
     invalidMessage, unhandledMessageCommand, InvalidMessageError
-from src.client.backend import worldToGraphics
+from src.client.backend import worldToGraphics, GRAPHICS_SCALE
 
 log = newLogger(__name__)
 
@@ -43,11 +44,7 @@ class WartsApp(ShowBase):
         # Mapping from playerIds to obelisk actors.
         self.obelisks = {}
 
-        # Set up the background.
-        self.scene = self.loader.loadModel("environment")
-        self.scene.reparentTo(self.render)
-        self.scene.setScale(0.25, 0.25, 0.25)
-        self.scene.setPos(-8, 42, 0)
+        # Don't add the terrain here; that's handled by addGround now.
 
         # Set up camera control.
         self.cameraHolder = self.render.attachNewNode('CameraHolder')
@@ -67,9 +64,8 @@ class WartsApp(ShowBase):
             raise RuntimeError("Already have obelisk with id {id}."
                                .format(id=playerId))
 
-        xw, yw = pos
-        log.info("Adding obelisk {} at ({}, {})".format(playerId, xw, yw))
-        x, y = worldToGraphics(xw, yw)
+        log.info("Adding obelisk {} at {}".format(playerId, pos))
+        x, y = worldToGraphics(pos)
 
         if playerId == self.myId:
             # The example panda from the Panda3D "Hello world" tutorial.
@@ -79,7 +75,7 @@ class WartsApp(ShowBase):
         else:
             obelisk = self.loader.loadModel(getModelPath("other-obelisk.egg"))
         obelisk.reparentTo(self.render)
-        obelisk.setPos(0, 0, 2.5)
+        obelisk.setPos(x, y, 2.5)
 
         self.obelisks[playerId] = obelisk
 
@@ -92,9 +88,8 @@ class WartsApp(ShowBase):
         if playerId not in self.obelisks:
             raise RuntimeError("There is no obelisk with id {id}."
                                .format(id=playerId))
-        xw, yw = pos
-        log.debug("Moving obelisk {} to ({}, {})".format(playerId, xw, yw))
-        x,y = worldToGraphics(xw, yw)
+        log.debug("Moving obelisk {} to {}".format(playerId, pos))
+        x,y = worldToGraphics(pos)
         obeliskActor = self.obelisks[playerId]
         oldX, oldY, oldZ = obeliskActor.getPos()
         z = oldZ
@@ -127,6 +122,33 @@ class WartsApp(ShowBase):
             animInterval = obeliskActor.actorInterval("walk", loop=1,
                 startFrame=currFrame, endFrame=endFrame)
             animInterval.start()
+
+    def addGround(self, cPos, terrainType):
+        wPos = chunkToWorld(cPos)
+        gPos = worldToGraphics(wPos)
+        modelName = None
+        if terrainType == 0:
+            modelName = "green-ground.egg"
+        elif terrainType == 1:
+            modelName = "red-ground.egg"
+        else:
+            # FIXME: This is the wrong function. Need a new one.
+            # TODO: We're building a new message rather than using the old one
+            # to avoid passing the message to this function. This is ugly, but
+            # I think it's still slightly less bad than the other solution.
+            unhandledMessageCommand(messages.GroundInfo(cPos, terrainType),
+                                    log)
+            # Can't handle this message, so just drop it.
+            return
+
+        groundTile = self.loader.loadModel(getModelPath(modelName))
+        groundTile.reparentTo(self.render)
+        # TODO: Need a better solution for doing this scaling. Also, 2 should
+        # be replaced with actually getting the size of the tile? Maybe? Or
+        # just define a single constant factor...
+        scaleFactor = config.CHUNK_SIZE / GRAPHICS_SCALE / 2
+        groundTile.setScale(scaleFactor, scaleFactor, scaleFactor)
+        groundTile.setPos(gPos[0], gPos[1], 0.0)
 
     def setCameraCustom(self):
         """
@@ -339,6 +361,8 @@ class WartsApp(ShowBase):
                 self.removeObelisk(message.playerId)
             elif isinstance(message, messages.SetPos):
                 self.moveObelisk(message.playerId, message.pos)
+            elif isinstance(message, messages.GroundInfo):
+                self.addGround(message.pos, message.terrainType)
             else:
                 unhandledMessageCommand(message, log, sender="server")
         except InvalidMessageError as error:
