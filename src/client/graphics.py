@@ -13,7 +13,8 @@ from src.shared import messages
 from src.shared.geometry import chunkToWorld
 from src.shared.logconfig import newLogger
 from src.shared.message_infrastructure import deserializeMessage, \
-    invalidMessage, unhandledMessageCommand, InvalidMessageError
+    illFormedMessage, unhandledMessageCommand, invalidMessageArgument, \
+    InvalidMessageError
 from src.client.backend import worldToGraphics, GRAPHICS_SCALE
 
 log = newLogger(__name__)
@@ -132,13 +133,11 @@ class WartsApp(ShowBase):
         elif terrainType == 1:
             modelName = "red-ground.egg"
         else:
-            # FIXME: This is the wrong function. Need a new one.
             # TODO: We're building a new message rather than using the old one
             # to avoid passing the message to this function. This is ugly, but
             # I think it's still slightly less bad than the other solution.
-            unhandledMessageCommand(messages.GroundInfo(cPos, terrainType),
-                                    log)
-            # Can't handle this message, so just drop it.
+            invalidMessageArgument(messages.GroundInfo(cPos, terrainType), log)
+            # Drop the message.
             return
 
         groundTile = self.loader.loadModel(getModelPath(modelName))
@@ -366,7 +365,7 @@ class WartsApp(ShowBase):
             else:
                 unhandledMessageCommand(message, log, sender="server")
         except InvalidMessageError as error:
-            invalidMessage(error, log, sender="server")
+            illFormedMessage(error, log, sender="server")
 
 
 def getModelPath(modelName):

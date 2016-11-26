@@ -274,7 +274,23 @@ def unhandledMessageCommand(message, log, sender=""):
                 .format(sender=sender, command=message.command))
 
 
-def invalidMessage(error, log, sender=""):
+def invalidMessageArgument(message, log, sender=""):
+    """
+    Log a warning for a message originating from an external source (ex: sent
+    over the network), where the message is well-formed (valid command with the
+    right number of arguments) and was received by a part of the code that
+    knows how to handle that type of message, but one of the arguments to the
+    message is invalid (for example, out of range).
+    """
+
+    if sender:
+        sender = " from " + sender
+
+    log.warning("Invalid argument to message{sender}: {message}"
+                .format(sender=sender, message=message))
+
+
+def illFormedMessage(error, log, sender=""):
     """
     Log a warning for when a message string originating from an external source
     could not be parsed into a message, for example because it used a
