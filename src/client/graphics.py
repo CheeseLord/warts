@@ -125,8 +125,6 @@ class WartsApp(ShowBase):
             animInterval.start()
 
     def addGround(self, cPos, terrainType):
-        wPos = chunkToWorld(cPos)
-        gPos = worldToGraphics(wPos)
         modelName = None
         if terrainType == 0:
             modelName = "green-ground.egg"
@@ -140,14 +138,45 @@ class WartsApp(ShowBase):
             # Drop the message.
             return
 
+        # Calculate opposite corners of the ground tile.
+        gPos1 = worldToGraphics(chunkToWorld(cPos))
+        gPos2 = worldToGraphics(chunkToWorld((coord + 1 for coord in cPos)))
+
+        # TODO: Put most of the below in a common function, because it'll be
+        # used for adding most models to the world.
+
+        # Figure out where we want the tile.
+        goalCenterX = 0.5 *    (gPos2[0] + gPos1[0])
+        goalCenterY = 0.5 *    (gPos2[1] + gPos1[1])
+        goalWidthX  = 0.5 * abs(gPos2[0] - gPos1[0])
+        goalWidthY  = 0.5 * abs(gPos2[1] - gPos1[1])
+        # For now, all models sit flush against the ground.
+        goalBottomZ = 0.0
+
+        # Put the model in the scene, but don't position it yet.
         groundTile = self.loader.loadModel(getModelPath(modelName))
         groundTile.reparentTo(self.render)
-        # TODO: Need a better solution for doing this scaling. Also, 2 should
-        # be replaced with actually getting the size of the tile? Maybe? Or
-        # just define a single constant factor...
-        scaleFactor = config.CHUNK_SIZE / GRAPHICS_SCALE / 2
-        groundTile.setScale(scaleFactor, scaleFactor, scaleFactor)
-        groundTile.setPos(gPos[0], gPos[1], 0.0)
+
+        # Calculate the footprint of the tile in its default position/scale.
+        bound1, bound2 = groundTile.getTightBounds()
+        modelCenterX = 0.5 *    (bound2[0] + bound1[0])
+        modelCenterY = 0.5 *    (bound2[1] + bound1[1])
+        modelWidthX  = 0.5 * abs(bound2[0] - bound1[0])
+        modelWidthY  = 0.5 * abs(bound2[1] - bound1[1])
+        modelBottomZ = min(bound2[2], bound1[2])
+
+        # TODO: Give a graceful error if the tight bounds are zero on either
+        # axis.
+
+        # Scale it to the largest it can be while still fitting within the goal
+        # rect. If the aspect ratio of the goal rect is different from that of
+        # the model, then it'll only fill that rect in one dimension.
+        scaleFactor = min(goalWidthX / modelWidthX, goalWidthY / modelWidthY)
+        groundTile.setScale(scaleFactor)
+
+        groundTile.setPos(goalCenterX - modelCenterX,
+                          goalCenterY - modelCenterY,
+                          goalBottomZ - modelBottomZ)
 
     def setCameraCustom(self):
         """
