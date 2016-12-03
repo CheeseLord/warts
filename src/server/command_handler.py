@@ -40,16 +40,16 @@ class CommandHandler(object):
             otherPos = self.gameState.getPos(otherId)
             self.sendMessage(playerId, messages.NewObelisk(otherId, otherPos))
 
-        self.unitOrders.giveOrder(playerId, (0, 0))
+        self.unitOrders.giveOrders(playerId, [(0, 0)])
 
     def removeConnection(self, playerId):
-        self.unitOrders.giveOrder(playerId, None)
+        self.unitOrders.giveOrders(playerId, None)
 
     def stringReceived(self, playerId, data):
         try:
             message = deserializeMessage(data)
             if isinstance(message, messages.MoveTo):
-                self.unitOrders.giveOrder(playerId, message.dest)
+                self.unitOrders.giveOrders(playerId, [message.dest])
             else:
                 unhandledMessageCommand(message, log,
                     sender="client {id}".format(id=playerId))
@@ -59,7 +59,7 @@ class CommandHandler(object):
 
     def applyOrders(self):
         # TODO: Refactor this.
-        orders = self.unitOrders.getOrders()
+        orders = self.unitOrders.getAllUnitsNextOrders()
         for playerId in orders:
             # Remove player.
             if orders[playerId] is None:
@@ -84,18 +84,20 @@ class CommandHandler(object):
             # Move player.
             else:
                 dest = orders[playerId]
+                pos = self.gameState.getPos(playerId)
+                # Don't try to move to the current position.
+                while dest == pos:
+                    self.unitOrders.removeNextOrder(playerId)
+                    dest = self.unitOrders.getNextOrder(playerId)
+                # If there are no more orders, don't move.
+                if dest is None:
+                    continue
                 # POS_INT_CHECK
                 for k in dest:
                     assert type(k) is int
+
                 self.gameState.movePlayerToward(playerId, dest)
-
                 pos = self.gameState.getPos(playerId)
-                if pos != dest:
-                    # Need to keep moving on the next turn.
-                    # TODO: Probably shouldn't've removed the order in the
-                    # first place....
-                    self.unitOrders.giveOrder(playerId, dest)
-
                 # TODO: Maybe only broadcast the new position if we handled a
                 # valid command? Else the position isn't changed....
                 self.broadcastMessage(messages.SetPos(playerId, pos))
