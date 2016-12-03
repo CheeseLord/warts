@@ -7,6 +7,7 @@ class GameState:
         # 10x5. Stored [x][y].
         # TODO [#3]: Magic numbers bad.
         self.groundTypes = [[0 for y in range(5)] for x in range(10)]
+        self.groundTypes[5][3] = 1
 
     def addPlayer(self, playerId, position):
         if playerId in self.positions:
