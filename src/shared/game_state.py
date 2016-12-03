@@ -9,6 +9,18 @@ class GameState:
         self.groundTypes = [[0 for y in range(5)] for x in range(10)]
         self.groundTypes[5][3] = 1
 
+    @property
+    def sizeInChunks(self):
+        # Note: don't allow a map where either dimension is zero.
+        return (len(self.groundTypes), len(self.groundTypes[0]))
+
+    def chunkIsPassable(self, cPos):
+        x, y = cPos
+        if not (0 <= x < len(self.groundTypes) and \
+                0 <= y < len(self.groundTypes[0])):
+            return False
+        return self.groundTypes[x][y] == 0
+
     def addPlayer(self, playerId, position):
         if playerId in self.positions:
             raise ValueError("There's already a player with id {}."
