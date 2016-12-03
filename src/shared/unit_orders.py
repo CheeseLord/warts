@@ -9,7 +9,11 @@ class UnitOrders(object):
 
     def getNextOrder(self, unit):
         try:
-            return self.orders[unit][0]
+            orders = self.orders[unit]
+            if orders is None:
+                return None
+            else:
+                return orders[0]
         except (KeyError, IndexError):
             return None
 
