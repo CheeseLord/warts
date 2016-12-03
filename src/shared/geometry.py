@@ -104,16 +104,16 @@ def getChunkCenter(chunkPos):
     """
     Return the unit coordinates of the center of chunkPos.
     """
-    return map(lambda x: x + CHUNK_SIZE/2, chunkToUnit(chunkPos))
+    return tuple(map(lambda x: x + CHUNK_SIZE/2, chunkToUnit(chunkPos)))
 
 def chunkToUnit(chunkPos):
     """
     Return the unit coordinates of the origin corner of chunkPos.
     """
-    return map(lambda x: x * CHUNK_SIZE, chunkPos)
+    return tuple(map(lambda x: x * CHUNK_SIZE, chunkPos))
 
 def unitToChunk(unitPos):
     """
     Return the chunk coordinates of the chunk containing unitPos.
     """
-    return map(lambda x: x / CHUNK_SIZE, unitPos)
+    return tuple(map(lambda x: x / CHUNK_SIZE, unitPos))

@@ -1,5 +1,7 @@
 from src.shared import messages
+from src.shared.exceptions import NoPathToTargetError
 from src.shared.game_state import GameState
+from src.shared.geometry import findPath
 from src.shared.unit_orders import UnitOrders
 from src.shared.logconfig import newLogger
 from src.shared.message_infrastructure import deserializeMessage, \
@@ -49,7 +51,14 @@ class CommandHandler(object):
         try:
             message = deserializeMessage(data)
             if isinstance(message, messages.MoveTo):
-                self.unitOrders.giveOrders(playerId, [message.dest])
+                try:
+                    srcPos = self.gameState.getPos(playerId)
+                    path = findPath(self.gameState, srcPos, message.dest)
+                    self.unitOrders.giveOrders(playerId, path)
+                except NoPathToTargetError:
+                    # If the target position is not reachable, just drop the
+                    # command.
+                    pass
             else:
                 unhandledMessageCommand(message, log,
                     sender="client {id}".format(id=playerId))
@@ -89,6 +98,8 @@ class CommandHandler(object):
                 while dest == pos:
                     self.unitOrders.removeNextOrder(playerId)
                     dest = self.unitOrders.getNextOrder(playerId)
+                # log.debug("Moving player {} (at {}) toward {}."
+                #           .format(playerId, pos, dest))
                 # If there are no more orders, don't move.
                 if dest is None:
                     continue

@@ -9,6 +9,12 @@ class GameState:
         self.groundTypes = [[0 for y in range(5)] for x in range(10)]
         self.groundTypes[5][3] = 1
 
+        # Some more impassable squares, to better exercise the pathfinding.
+        self.groundTypes[1][1] = 1
+        self.groundTypes[1][2] = 1
+        self.groundTypes[1][3] = 1
+        self.groundTypes[2][3] = 1
+
     @property
     def sizeInChunks(self):
         # Note: don't allow a map where either dimension is zero.
