@@ -10,12 +10,12 @@ from panda3d.core import Point3, Mat4, Filename, NodePath
 
 from src.shared import config
 from src.shared import messages
-from src.shared.geometry import chunkToWorld
+from src.shared.geometry import chunkToUnit
 from src.shared.logconfig import newLogger
 from src.shared.message_infrastructure import deserializeMessage, \
     illFormedMessage, unhandledMessageCommand, invalidMessageArgument, \
     InvalidMessageError
-from src.client.backend import worldToGraphics, GRAPHICS_SCALE
+from src.client.backend import unitToGraphics, GRAPHICS_SCALE
 
 log = newLogger(__name__)
 
@@ -66,7 +66,7 @@ class WartsApp(ShowBase):
                                .format(id=playerId))
 
         log.info("Adding obelisk {} at {}".format(playerId, pos))
-        x, y = worldToGraphics(pos)
+        x, y = unitToGraphics(pos)
 
         if playerId == self.myId:
             # The example panda from the Panda3D "Hello world" tutorial.
@@ -90,7 +90,7 @@ class WartsApp(ShowBase):
             raise RuntimeError("There is no obelisk with id {id}."
                                .format(id=playerId))
         log.debug("Moving obelisk {} to {}".format(playerId, pos))
-        x,y = worldToGraphics(pos)
+        x,y = unitToGraphics(pos)
         obeliskActor = self.obelisks[playerId]
         oldX, oldY, oldZ = obeliskActor.getPos()
         z = oldZ
@@ -139,8 +139,8 @@ class WartsApp(ShowBase):
             return
 
         # Calculate opposite corners of the ground tile.
-        gPos1 = worldToGraphics(chunkToWorld(cPos))
-        gPos2 = worldToGraphics(chunkToWorld((coord + 1 for coord in cPos)))
+        gPos1 = unitToGraphics(chunkToUnit(cPos))
+        gPos2 = unitToGraphics(chunkToUnit((coord + 1 for coord in cPos)))
 
         # TODO: Put most of the below in a common function, because it'll be
         # used for adding most models to the world.

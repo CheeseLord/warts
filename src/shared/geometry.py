@@ -5,14 +5,14 @@ shared between client and server.
 
 from src.shared.config import CHUNK_SIZE
 
-def chunkToWorld(chunkPos):
+def chunkToUnit(chunkPos):
     """
-    Return the world coordinates of the origin corner of chunkPos.
+    Return the unit coordinates of the origin corner of chunkPos.
     """
     return map(lambda x: x * CHUNK_SIZE, chunkPos)
 
-def worldToChunk(worldPos):
+def unitToChunk(unitPos):
     """
-    Return the chunk coordinates of the chunk containing worldPos.
+    Return the chunk coordinates of the chunk containing unitPos.
     """
     return map(lambda x: x / CHUNK_SIZE, chunkPos)

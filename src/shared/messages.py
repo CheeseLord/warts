@@ -68,7 +68,7 @@ idArg = intArg
 
 # Different types of coordinates. For now at least, all bug graphics are
 # encoded and parsed exactly the same way.
-wPosArg = intPairArg    # World position (unit movements)
+uPosArg = intPairArg    # Unit position  (unit movements)
 bPosArg = intPairArg    # Build position (build grid)
 cPosArg = intPairArg    # Chunk position (terrain tiles)
 gPosArg = floatPairArg  # Graphics position (intra-client messages only)
@@ -85,10 +85,10 @@ DeleteObelisk = defineMessageType("delete_obelisk", [("playerId", idArg)])
 GroundInfo    = defineMessageType("ground_info",
                                   [("pos", cPosArg),
                                    ("terrainType", terrainTypeArg)])
-MoveTo        = defineMessageType("move_to", [("dest", wPosArg)])
+MoveTo        = defineMessageType("move_to", [("dest", uPosArg)])
 NewObelisk    = defineMessageType("new_obelisk",
-                                  [("playerId", idArg), ("pos", wPosArg)])
+                                  [("playerId", idArg), ("pos", uPosArg)])
 RequestQuit   = defineMessageType("request_quit", [])
 SetPos        = defineMessageType("set_pos",
-                                  [("playerId", idArg), ("pos", wPosArg)])
+                                  [("playerId", idArg), ("pos", uPosArg)])
 YourIdIs      = defineMessageType("your_id_is", [("playerId", idArg)])

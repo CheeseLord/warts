@@ -93,7 +93,7 @@ class Backend:
     def graphicsMessage(self, messageStr):
         message = deserializeMessage(messageStr)
         if isinstance(message, messages.Click):
-            newMsg = messages.MoveTo(graphicsToWorld(message.pos))
+            newMsg = messages.MoveTo(graphicsToUnit(message.pos))
             self.network.backendMessage(newMsg.serialize())
         elif isinstance(message, messages.RequestQuit):
             for component in self.allComponents:
@@ -102,12 +102,12 @@ class Backend:
         else:
             unhandledInternalMessage(message, log)
 
-def worldToGraphics(worldCoords):
-    """Convert world (xw,yw) integers tuples to graphics (xg,yg) float tuples
+def unitToGraphics(unitCoords):
+    """Convert unit (xu,yu) integers tuples to graphics (xg,yg) float tuples
     """
-    return tuple(float(x)/GRAPHICS_SCALE for x in worldCoords)
+    return tuple(float(x)/GRAPHICS_SCALE for x in unitCoords)
 
-def graphicsToWorld(graphicsCoords):
-    """Convert world (xw,yw) integers tuples to graphics (xg,yg) float tuples
+def graphicsToUnit(graphicsCoords):
+    """Convert graphics (xg,yg) float tuples to unit (xu,yu) integers tuples
     """
     return tuple(int(round(x*GRAPHICS_SCALE)) for x in graphicsCoords)
