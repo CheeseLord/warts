@@ -54,8 +54,12 @@ class CommandHandler(object):
                 try:
                     srcPos = self.gameState.getPos(playerId)
                     path = findPath(self.gameState, srcPos, message.dest)
+                    log.debug("Issuing orders to player {}: {}."
+                              .format(playerId, path))
                     self.unitOrders.giveOrders(playerId, path)
                 except NoPathToTargetError:
+                    log.debug("Can't order player {} to {}: no path to target."
+                              .format(playerId, message.dest))
                     # If the target position is not reachable, just drop the
                     # command.
                     pass

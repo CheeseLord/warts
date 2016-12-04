@@ -24,6 +24,12 @@ def findPath(gameState, srcPos, destPos):
     srcChunk  = unitToChunk(srcPos)
     destChunk = unitToChunk(destPos)
 
+    # If the source and dest points are in the same chunk, there's no point
+    # doing a chunk-based search to find a path, because the result will be
+    # trivial. Just go straight to the dest.
+    if srcChunk == destChunk:
+        return [destPos]
+
     # This list actually serves 2 purposes. First, it keeps track of which
     # chunks have been visited already. Second, for those that have been
     # visited, it tracks which chunk came before it in the shortest path from
@@ -84,11 +90,10 @@ def findPath(gameState, srcPos, destPos):
     # there's definitely not an obstacle in between.
 
     # We still need to correct the last waypoint, which is currently the center
-    # of the dest chunk rather than the actual dest point. Note that if the src
-    # and dest points were the same, the waypoints will be empty so no
-    # correction is necessary.
-    if waypoints:
-        waypoints[-1] = destPos
+    # of the dest chunk rather than the actual dest point. Note that we already
+    # handled the case where srcChunk == destChunk, so waypoints can't be
+    # empty.
+    waypoints[-1] = destPos
 
     return waypoints
 
