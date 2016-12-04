@@ -20,12 +20,14 @@ class GameState:
         # Note: don't allow a map where either dimension is zero.
         return (len(self.groundTypes), len(self.groundTypes[0]))
 
+    def chunkInBounds(self, cPos):
+        x, y = cPos
+        return (0 <= x < len(self.groundTypes) and
+                0 <= y < len(self.groundTypes[0]))
+
     def chunkIsPassable(self, cPos):
         x, y = cPos
-        if not (0 <= x < len(self.groundTypes) and \
-                0 <= y < len(self.groundTypes[0])):
-            return False
-        return self.groundTypes[x][y] == 0
+        return self.chunkInBounds(cPos) and self.groundTypes[x][y] == 0
 
     def addPlayer(self, playerId, position):
         if playerId in self.positions:

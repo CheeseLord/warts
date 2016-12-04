@@ -50,16 +50,15 @@ def findPath(gameState, srcPos, destPos):
             break
         for neighbor in _getNeighbors(currChunk):
             nx, ny = neighbor
-            # Note: do the passability check before the UNVISITED check because
-            # the passability check also implicitly checks that the coordinates
-            # are in bounds.
-            if gameState.chunkIsPassable(neighbor):
-                if parents[nx][ny] == UNVISITED:
-                    chunksToCheck.put(neighbor)
-                    parents[nx][ny] = currChunk
+            if      gameState.chunkInBounds(neighbor) and \
+                    parents[nx][ny] == UNVISITED and \
+                    gameState.chunkIsPassable(neighbor):
+                chunksToCheck.put(neighbor)
+                parents[nx][ny] = currChunk
 
     destCX, destCY = destChunk
-    if parents[destCX][destCY] == UNVISITED:
+    if      (not gameState.chunkInBounds(destChunk)) or \
+            parents[destCX][destCY] == UNVISITED:
         raise NoPathToTargetError("No path exists from {} to {}."
                                   .format(srcPos, destPos))
 
