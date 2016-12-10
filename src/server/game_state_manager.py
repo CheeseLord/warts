@@ -10,9 +10,9 @@ from src.shared.message_infrastructure import deserializeMessage, \
 log = newLogger(__name__)
 
 
-class CommandHandler(object):
+class GameStateManager(object):
     def __init__(self, connectionManager):
-        super(CommandHandler, self).__init__()
+        super(GameStateManager, self).__init__()
 
         self.gameState = GameState()
         self.unitOrders = UnitOrders()

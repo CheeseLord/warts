@@ -35,7 +35,7 @@ class ConnectionManager:
         self.commandHandler = None
 
     # Must be called immediately after __init__, before any other methods.
-    def setCommandHandler(self, commandHandler):
+    def setGameStateHandler(self, commandHandler):
         self.commandHandler = commandHandler
 
     def newConnection(self, *args):
