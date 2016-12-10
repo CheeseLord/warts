@@ -5,6 +5,7 @@ from twisted.python import log as twistedLog
 
 from src.shared.logconfig import newLogger
 
+from src.client.graphics_interface    import GraphicsInterface
 from src.client.backend    import Backend
 from src.client.networking import setupNetworking
 from src.client.stdio      import setupStdio
@@ -26,14 +27,15 @@ def twistedMain(reactor, args):
     done = Deferred()
 
     backend = Backend(done)
+    graphicsInterface = GraphicsInterface(backend)
     setupStdio(backend)
     setupNetworking(reactor, backend, args.host, args.port)
-    setupGraphics(reactor, backend)
+    setupGraphics(reactor, graphicsInterface)
 
     return done
 
-def setupGraphics(reactor, backend):
-    app = WartsApp(backend)
+def setupGraphics(reactor, graphicsInterface):
+    app = WartsApp(graphicsInterface)
 
     def onGraphicsException(failure):
         log.error("Shutting down client due to unhandled exception "

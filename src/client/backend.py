@@ -20,13 +20,13 @@ class Backend:
 
         self.stdio    = None
         self.network  = None
-        self.graphics = None
+        self.graphicsInterface = None
 
         self.allReady = False
 
     @property
     def allComponents(self):
-        return (self.stdio, self.network, self.graphics)
+        return (self.stdio, self.network, self.graphicsInterface)
 
 
     ########################################################################
@@ -49,10 +49,10 @@ class Backend:
         self.checkIfAllReady()
 
     # Red 5, standing by.
-    def graphicsReady(self, graphicsComponent):
-        assert self.graphics is None
-        self.graphics = graphicsComponent
-        assert self.graphics is not None
+    def graphicsInterfaceReady(self, graphicsInterface):
+        assert self.graphicsInterface is None
+        self.graphicsInterface = graphicsInterface
+        assert self.graphicsInterface is not None
         self.checkIfAllReady()
 
     def checkIfAllReady(self):
@@ -84,7 +84,7 @@ class Backend:
 
     def networkMessage(self, message):
         if self.allReady:
-            self.graphics.backendMessage(message)
+            self.graphicsInterface.backendMessage(message)
         else:
             # TODO: Buffer messages until ready? Don't just drop them....
             log.warning("Server message '{}' ignored; client not " \

@@ -29,10 +29,10 @@ class WartsApp(ShowBase):
     The application running all the graphics.
     """
 
-    def __init__(self, backend):
+    def __init__(self, graphicsInterface):
         ShowBase.__init__(self)
 
-        self.backend = backend
+        self.graphicsInterface = graphicsInterface
 
         # Our playerId.
         self.myId = -1
@@ -53,7 +53,7 @@ class WartsApp(ShowBase):
         self.prevCameraHpr = (0, -80, 0)
         self.setCameraCustom()
 
-        self.backend.graphicsReady(self)
+        self.graphicsInterface.graphicsReady(self)
 
     def cleanup(self):
         pass
@@ -312,12 +312,12 @@ class WartsApp(ShowBase):
                             clickedPoint = entry.getSurfacePoint(self.render)
                             x, y, z = clickedPoint
                             message = messages.Click((x, y))
-                            self.backend.graphicsMessage(message.serialize())
+                            self.graphicsInterface.graphicsMessage(message.serialize())
 
     def handleWindowClose(self):
         log.info("Window close requested -- shutting down client.")
         message = messages.RequestQuit()
-        self.backend.graphicsMessage(message.serialize())
+        self.graphicsInterface.graphicsMessage(message.serialize())
 
     def setupMouseHandler(self):
         """
@@ -374,27 +374,6 @@ class WartsApp(ShowBase):
         # Handle window close request (clicking the X, Alt-F4, etc.)
         self.win.set_close_request_event("window-close")
         self.accept("window-close", self.handleWindowClose)
-
-    def backendMessage(self, data):
-        try:
-            message = deserializeMessage(data)
-            if isinstance(message, messages.YourIdIs):
-                if self.myId >= 0:
-                    raise RuntimeError("ID already set; can't change it now.")
-                self.myId = message.playerId
-                log.info("Your id is {id}.".format(id=self.myId))
-            elif isinstance(message, messages.NewObelisk):
-                self.addObelisk(message.playerId, message.pos)
-            elif isinstance(message, messages.DeleteObelisk):
-                self.removeObelisk(message.playerId)
-            elif isinstance(message, messages.SetPos):
-                self.moveObelisk(message.playerId, message.pos)
-            elif isinstance(message, messages.GroundInfo):
-                self.addGround(message.pos, message.terrainType)
-            else:
-                unhandledMessageCommand(message, log, sender="server")
-        except InvalidMessageError as error:
-            illFormedMessage(error, log, sender="server")
 
 
 def getModelPath(modelName):
