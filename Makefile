@@ -19,8 +19,9 @@ test:
 	./$(VIRTUALENV)/bin/tox -e py27
 
 simplify:
-	find src -name '*.pyc' -exec echo removing '{}' ';' \
-	                       -exec rm -f '{}' ';'
+	rm -rf tests/__pycache__
+	find src tests -name '*.pyc' -exec echo removing '{}' ';' \
+	                             -exec rm -f '{}' ';'
 
 clean: simplify
 	rm -rf $(VIRTUALENV)
