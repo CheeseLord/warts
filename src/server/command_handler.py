@@ -36,9 +36,9 @@ class CommandHandler(object):
 
         # Send positions of all existing obelisks.
         for otherId in self.gameState.positions:
-            # We will broadcast this one to everyone, including ourself.
-            if otherId == playerId:
-                continue
+            # The gameState does not yet know about this new player, so their
+            # id should not be in the gameState's mapping.
+            assert otherId != playerId
             otherPos = self.gameState.getPos(otherId)
             self.sendMessage(playerId, messages.NewObelisk(otherId, otherPos))
 
