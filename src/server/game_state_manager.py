@@ -18,21 +18,16 @@ class GameStateManager(object):
         self.unitOrders = UnitOrders()
         self.connectionManager = connectionManager
 
-    def broadcastMessage(self, message):
-        self.connectionManager.broadcastMessage(message)
-
-    def sendMessage(self, playerId, message):
-        self.connectionManager.sendMessage(playerId, message)
-
     def createConnection(self, playerId):
-        self.sendMessage(playerId, messages.YourIdIs(playerId))
+        msg = messages.YourIdIs(playerId)
+        self.connectionManager.sendMessage(playerId, msg)
 
         # Send ground info.
         for x in range(len(self.gameState.groundTypes)):
             for y in range(len(self.gameState.groundTypes[x])):
                 groundType = self.gameState.groundTypes[x][y]
                 msg = messages.GroundInfo((x, y), groundType)
-                self.sendMessage(playerId, msg)
+                self.connectionManager.sendMessage(playerId, msg)
 
         # Send positions of all existing obelisks.
         for otherId in self.gameState.positions:
@@ -40,7 +35,8 @@ class GameStateManager(object):
             # id should not be in the gameState's mapping.
             assert otherId != playerId
             otherPos = self.gameState.getPos(otherId)
-            self.sendMessage(playerId, messages.NewObelisk(otherId, otherPos))
+            msg = messages.NewObelisk(otherId, otherPos)
+            self.connectionManager.sendMessage(playerId, msg)
 
         self.unitOrders.giveOrders(playerId, [(0, 0)])
 
@@ -85,14 +81,16 @@ class GameStateManager(object):
                 # we sent them a DeleteObelisk message for an unused id.
                 if self.gameState.isIdValid(playerId):
                     self.gameState.removePlayer(playerId)
-                    self.broadcastMessage(messages.DeleteObelisk(playerId))
+                    msg = messages.DeleteObelisk(playerId)
+                    self.connectionManager.broadcastMessage(msg)
 
             # Create player.
             elif playerId not in self.gameState.positions:
                 self.gameState.addPlayer(playerId, orders[playerId])
                 pos = self.gameState.getPos(playerId)
 
-                self.broadcastMessage(messages.NewObelisk(playerId, pos))
+                msg = messages.NewObelisk(playerId, pos)
+                self.connectionManager.broadcastMessage(msg)
 
             # Move player.
             else:
@@ -115,5 +113,6 @@ class GameStateManager(object):
                 pos = self.gameState.getPos(playerId)
                 # TODO: Maybe only broadcast the new position if we handled a
                 # valid command? Else the position isn't changed....
-                self.broadcastMessage(messages.SetPos(playerId, pos))
+                msg = messages.SetPos(playerId, pos)
+                self.connectionManager.broadcastMessage(msg)
 
