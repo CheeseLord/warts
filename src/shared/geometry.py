@@ -43,7 +43,7 @@ def findPath(gameState, srcPos, destPos):
     chunksToCheck.put(srcChunk)
 
     # Perform a breadth-first search.
-    # TODO: Use A* instead.
+    # TODO [#11]: Use A* instead.
     while not chunksToCheck.empty():
         currChunk = chunksToCheck.get()
         if currChunk == destChunk:
