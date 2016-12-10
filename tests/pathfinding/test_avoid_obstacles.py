@@ -1,5 +1,9 @@
+import pytest
+
+from src.shared.exceptions import NoPathToTargetError
 from src.shared.game_state import GameState
-from src.shared.geometry import findPath, chunkToUnit, unitToChunk
+from src.shared.geometry import chunkToUnit, unitToChunk, getChunkCenter
+from src.shared.geometry import findPath
 
 
 class TestAvoidObstacles:
@@ -17,9 +21,8 @@ class TestAvoidObstacles:
         ]
         gameState = GameState(groundTypes=groundTypes)
 
-        # TODO: Don't assume the chunks are big enough.
-        srcPos  = chunkToUnit((1, 2))
-        destPos = chunkToUnit((1, 4))
+        srcPos  = getChunkCenter((1, 2))
+        destPos = getChunkCenter((1, 4))
 
         path = findPath(gameState, srcPos, destPos)
 
@@ -30,4 +33,21 @@ class TestAvoidObstacles:
             assert groundTypes[x][y] == 0
         # TODO: Check that none of the lines between waypoints pass through
         # impassible ground.
+
+    def test_diagonallyBlocked(self):
+        groundTypes = [
+            [1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 0, 0, 1],
+            [1, 1, 1, 0, 0, 1],
+            [1, 0, 0, 1, 1, 1],
+            [1, 0, 0, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1],
+        ]
+        gameState = GameState(groundTypes=groundTypes)
+
+        srcPos  = getChunkCenter((1, 4))
+        destPos = getChunkCenter((4, 2))
+
+        with pytest.raises(NoPathToTargetError):
+            findPath(gameState, srcPos, destPos)
 
