@@ -55,18 +55,11 @@ class ConnectionManager:
             log.warning("Failed to remove connection.")
 
     def broadcastMessage(self, message):
-        self._broadcastString(message.serialize())
+        for connection in self:
+            connection.sendMessage(message)
 
     def sendMessage(self, playerId, message):
-        self._sendString(playerId, message.serialize())
-
-    # Low-level string sending methods; don't call these directly.
-    def _broadcastString(self, data):
-        for connection in self:
-            connection.sendString(data)
-
-    def _sendString(self, playerId, data):
-        self.connections[playerId].sendString(data)
+        self.connections[playerId].sendMessage(message)
 
     def __iter__(self):
         # Iterate over all connections, in ascending order by ID.
