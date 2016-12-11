@@ -3,6 +3,7 @@ from twisted.protocols.basic import Int16StringReceiver
 
 from src.shared.logconfig import newLogger
 from src.shared.message_infrastructure import buildMessage
+from src.shared import messages
 
 log = newLogger(__name__)
 
@@ -81,7 +82,9 @@ class NetworkConnection(Int16StringReceiver):
 
     def connectionMade(self):
         peer = self.transport.getPeer()
-        self.gameStateManager.createConnection(self.playerId)
+
+        self.handshake()
+        self.gameStateManager.handshake(self.playerId)
 
         # TODO: Create a common method for doing all these prefixed logs?
         log.info(
@@ -91,6 +94,9 @@ class NetworkConnection(Int16StringReceiver):
                 playerId = self.playerId,
             )
         )
+
+    def handshake(self):
+        self.sendMessage(messages.YourIdIs(self.playerId))
 
     def connectionLost(self, reason):
         peer = self.transport.getPeer()
@@ -115,6 +121,5 @@ class NetworkConnection(Int16StringReceiver):
             msg=data)
         )
 
-    def sendMessage(self, *args, **kwargs):
-        message = buildMessage(*args, **kwargs)
-        self.sendString(message)
+    def sendMessage(self, message):
+        self.sendString(message.serialize())

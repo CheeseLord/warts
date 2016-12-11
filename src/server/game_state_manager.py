@@ -18,10 +18,7 @@ class GameStateManager(object):
         self.unitOrders = UnitOrders()
         self.connectionManager = connectionManager
 
-    def createConnection(self, playerId):
-        msg = messages.YourIdIs(playerId)
-        self.connectionManager.sendMessage(playerId, msg)
-
+    def handshake(self, playerId):
         # Send ground info.
         for x in range(len(self.gameState.groundTypes)):
             for y in range(len(self.gameState.groundTypes[x])):
