@@ -46,3 +46,6 @@ class GraphicsInterface(object):
 
     def graphicsMessage(self, messageStr):
         self.backend.graphicsMessage(messageStr)
+
+    def cleanup(self):
+        self.graphics.cleanup()
