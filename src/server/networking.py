@@ -3,6 +3,7 @@ from twisted.protocols.basic import Int16StringReceiver
 
 from src.shared.logconfig import newLogger
 from src.shared.message_infrastructure import buildMessage
+from src.shared import messages
 
 log = newLogger(__name__)
 
@@ -32,14 +33,15 @@ class ConnectionManager:
         # TODO: Don't let the ID grow forever.
         self.nextId      = 0
 
-        self.commandHandler = None
+        self.gameStateManager = None
 
     # Must be called immediately after __init__, before any other methods.
-    def setCommandHandler(self, commandHandler):
-        self.commandHandler = commandHandler
+    def setGameStateHandler(self, gameStateManager):
+        self.gameStateManager = gameStateManager
 
     def newConnection(self, *args):
-        connection = NetworkConnection(self.nextId, self.commandHandler, self)
+        connection = NetworkConnection(self.nextId, self.gameStateManager,
+                                       self)
         self.connections[self.nextId] = connection
         self.nextId += 1
         return connection
@@ -47,7 +49,7 @@ class ConnectionManager:
     def removeConnection(self, connection):
         if connection.playerId in self.connections:
             del self.connections[connection.playerId]
-            self.commandHandler.removeConnection(connection.playerId)
+            self.gameStateManager.removeConnection(connection.playerId)
             log.info("{} connections remain.".format(len(self.connections)))
         else:
             log.warning("Failed to remove connection.")
@@ -73,14 +75,16 @@ class ConnectionManager:
 
 
 class NetworkConnection(Int16StringReceiver):
-    def __init__(self, playerId, commandHandler, connections):
+    def __init__(self, playerId, gameStateManager, connections):
         self.playerId = playerId
         self.connections = connections
-        self.commandHandler = commandHandler
+        self.gameStateManager = gameStateManager
 
     def connectionMade(self):
         peer = self.transport.getPeer()
-        self.commandHandler.createConnection(self.playerId)
+
+        self.handshake()
+        self.gameStateManager.handshake(self.playerId)
 
         # TODO: Create a common method for doing all these prefixed logs?
         log.info(
@@ -90,6 +94,9 @@ class NetworkConnection(Int16StringReceiver):
                 playerId = self.playerId,
             )
         )
+
+    def handshake(self):
+        self.sendMessage(messages.YourIdIs(self.playerId))
 
     def connectionLost(self, reason):
         peer = self.transport.getPeer()
@@ -106,7 +113,7 @@ class NetworkConnection(Int16StringReceiver):
 
     def stringReceived(self, data):
         peer = self.transport.getPeer()
-        self.commandHandler.stringReceived(self.playerId, data)
+        self.gameStateManager.stringReceived(self.playerId, data)
 
         log.info("[{ip}:{port}] {msg!r}".format(
             ip=peer.host,
@@ -114,6 +121,5 @@ class NetworkConnection(Int16StringReceiver):
             msg=data)
         )
 
-    def sendMessage(self, *args, **kwargs):
-        message = buildMessage(*args, **kwargs)
-        self.sendString(message)
+    def sendMessage(self, message):
+        self.sendString(message.serialize())
