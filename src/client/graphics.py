@@ -69,10 +69,10 @@ class WartsApp(ShowBase):
         x, y = unitToGraphics(pos)
 
         if playerId == self.myId:
-            # The example panda from the Panda3D "Hello world" tutorial.
-            obelisk = Actor("models/panda-model",
-                            {"walk": "models/panda-walk4"})
-            obelisk.setScale(0.004, 0.004, 0.004)
+            # A janky-but-sort-of-barely-almost-functional test model with
+            # animation.
+            obelisk = Actor(getModelPath("gingerbread.egg"))
+            # obelisk.setScale(1.000, 1.000, 1.000)
         else:
             obelisk = self.loader.loadModel(getModelPath("other-obelisk.egg"))
         obelisk.reparentTo(self.render)
@@ -106,7 +106,7 @@ class WartsApp(ShowBase):
             heading += 90.0
             obeliskActor.setHpr(heading, 0, 0)
 
-            currFrame = obeliskActor.getCurrentFrame("walk")
+            currFrame = obeliskActor.getCurrentFrame("wave")
             if currFrame is None:
                 currFrame = 0
             # Supposedly, it's possible to pass a startFrame and a duration to
@@ -116,11 +116,11 @@ class WartsApp(ShowBase):
             # never gets past frame 5 or so. I'm not sure why. For now at
             # least, just calculate the endFrame ourselves to work around this.
             log.debug("Animating panda from frame {}/{}"
-                      .format(currFrame, obeliskActor.getNumFrames("walk")))
-            frameRate = obeliskActor.getAnimControl("walk").getFrameRate()
+                      .format(currFrame, obeliskActor.getNumFrames("wave")))
+            frameRate = obeliskActor.getAnimControl("wave").getFrameRate()
             endFrame = currFrame + int(math.ceil(frameRate *
                                                  config.TICK_LENGTH))
-            animInterval = obeliskActor.actorInterval("walk", loop=1,
+            animInterval = obeliskActor.actorInterval("wave", loop=1,
                 startFrame=currFrame, endFrame=endFrame)
             animInterval.start()
 
