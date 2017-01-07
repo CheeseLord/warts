@@ -37,8 +37,7 @@ def parseArguments():
     parser.add_argument('--log-debug', action="store_true",
         help="Enable debug-level logging")
 
-    subparsers = parser.add_subparsers(title="commands",
-        metavar="List of commands")
+    subparsers = parser.add_subparsers(title="commands")
 
     # Server command
     server_parser = subparsers.add_parser("server", help="Run a WaRTS server")
@@ -46,6 +45,8 @@ def parseArguments():
     server_parser.add_argument(
         '--port', type=int, nargs='?', default=PORT_DEFAULT,
         help="server port [Default: %(default)s]")
+    server_parser.add_argument('--log-debug', action="store_true",
+        help="Enable debug-level logging")
 
     # Server command
     client_parser = subparsers.add_parser("client",
@@ -57,6 +58,8 @@ def parseArguments():
     client_parser.add_argument(
         '--port', type=int, nargs='?', default=PORT_DEFAULT,
         help="server port [Default: %(default)s]")
+    client_parser.add_argument('--log-debug', action="store_true",
+        help="Enable debug-level logging")
 
     return parser.parse_args()
 
