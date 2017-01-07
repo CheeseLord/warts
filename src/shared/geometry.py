@@ -3,10 +3,14 @@ Functions for doing geometry calculations in the various types of coordinates
 shared between client and server.
 """
 
-from Queue import Queue
+import heapq
+import math
 
 from src.shared.config import CHUNK_SIZE
 from src.shared.exceptions import NoPathToTargetError
+from src.shared.logconfig import newLogger
+
+log = newLogger(__name__)
 
 def findPath(gameState, srcPos, destPos):
     """
@@ -17,12 +21,20 @@ def findPath(gameState, srcPos, destPos):
     get to destPos without hitting any obstacles.
     """
 
+    log.debug("Searching for path from {} to {}".format(srcPos, destPos))
+
+    chunkWidth, chunkHeight = gameState.sizeInChunks
+
     # We indicate that a chunk hasn't been visited yet by setting its parent to
     # this special value.
     UNVISITED  = (-1, -1)
+    # Value larger than any actual distance.
+    FAR_FAR_AWAY = CHUNK_SIZE * CHUNK_SIZE * chunkWidth * chunkHeight
 
     srcChunk  = unitToChunk(srcPos)
     destChunk = unitToChunk(destPos)
+    srcCX,  srcCY  = srcChunk
+    destCX, destCY = destChunk
 
     # If the source and dest points are in the same chunk, there's no point
     # doing a chunk-based search to find a path, because the result will be
@@ -34,29 +46,54 @@ def findPath(gameState, srcPos, destPos):
     # chunks have been visited already. Second, for those that have been
     # visited, it tracks which chunk came before it in the shortest path from
     # the srcChunk to it.
-    chunkWidth, chunkHeight = gameState.sizeInChunks
     parents = [[UNVISITED for y in range(chunkHeight)]
                for x in range(chunkWidth)]
 
-    # Queue of chunks that we still need to search outward from.
-    chunksToCheck = Queue()
-    chunksToCheck.put(srcChunk)
+    # Set to True for a node once we know we've found a shortest path to it, so
+    # that we don't keep checking new paths to that node.
+    nodeFinalized = [[False for y in range(chunkHeight)]
+                      for x in range(chunkWidth)]
 
-    # Perform a breadth-first search.
-    # TODO [#11]: Use A* instead.
-    while not chunksToCheck.empty():
-        currChunk = chunksToCheck.get()
+    # Shortest distance to each node from the start.
+    distanceFromStart = [[FAR_FAR_AWAY for y in range(chunkHeight)]
+                         for x in range(chunkWidth)]
+    distanceFromStart[srcCX][srcCY] = 0
+
+    # Priority queue of chunks that we still need to search outward from, where
+    # priority = distance from start + heuristic distance to end.
+    chunksToCheck = []
+    heapq.heappush(chunksToCheck, (_heuristicDistance(srcChunk, destChunk),
+                                   srcChunk))
+
+    while len(chunksToCheck) > 0:
+        _, currChunk = heapq.heappop(chunksToCheck)
+        log.debug("Pathfinding: search out from {}".format(currChunk))
         if currChunk == destChunk:
             break
-        for neighbor in _getNeighbors(currChunk):
-            nx, ny = neighbor
-            if      gameState.chunkInBounds(neighbor) and \
-                    parents[nx][ny] == UNVISITED and \
-                    gameState.chunkIsPassable(neighbor):
-                chunksToCheck.put(neighbor)
-                parents[nx][ny] = currChunk
+        cx, cy = currChunk
+        if nodeFinalized[cx][cy]:
+            # Already expanded from this node; don't do it again.
+            continue
+        nodeFinalized[cx][cy] = True
 
-    destCX, destCY = destChunk
+        log.debug("Pathfinding: checking neighbors.")
+
+        for neighbor in _getNeighbors(currChunk):
+            log.debug("Pathfinding: trying {}".format(neighbor))
+            if      gameState.chunkInBounds(neighbor) and \
+                    gameState.chunkIsPassable(neighbor):
+                log.debug("Pathfinding: neighbor is valid.")
+                nx, ny = neighbor
+                # Distances in unit coordinates, so add CHUNK_SIZE, not 1.
+                neighborStartDist = distanceFromStart[cx][cy] + CHUNK_SIZE
+                if neighborStartDist < distanceFromStart[nx][ny]:
+                    log.debug("Pathfinding: found shorter path to neighbor.")
+                    distanceFromStart[nx][ny] = neighborStartDist
+                    parents[nx][ny] = currChunk
+                    neighborFwdDist = _heuristicDistance(neighbor, destChunk)
+                    neighborEstCost = neighborStartDist + neighborFwdDist
+                    heapq.heappush(chunksToCheck, (neighborEstCost, neighbor))
+
     if      (not gameState.chunkInBounds(destChunk)) or \
             parents[destCX][destCY] == UNVISITED:
         raise NoPathToTargetError("No path exists from {} to {}."
@@ -95,6 +132,19 @@ def findPath(gameState, srcPos, destPos):
     waypoints[-1] = destPos
 
     return waypoints
+
+def _heuristicDistance(chunkA, chunkB):
+    """
+    Return a heuristic estimate of the distance between chunk A and chunk B,
+    in *unit coordinates*.
+    """
+
+    # Use Euclidean distance as the heuristic.
+    ax, ay = chunkA
+    bx, by = chunkB
+    deltaX = CHUNK_SIZE * (bx - ax)
+    deltaY = CHUNK_SIZE * (by - ay)
+    return int(math.hypot(deltaX, deltaY))
 
 # Helper function for findPath.
 def _getNeighbors(chunkPos):
