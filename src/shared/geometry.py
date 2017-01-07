@@ -12,6 +12,11 @@ from src.shared.logconfig import newLogger
 
 log = newLogger(__name__)
 
+# Costs used by pathfinding code.
+# Measure distances in unit coordinates.
+ORTHOGONAL_COST = CHUNK_SIZE
+DIAGONAL_COST   = int(ORTHOGONAL_COST * math.sqrt(2))
+
 def findPath(gameState, srcPos, destPos):
     """
     Compute and return a path from srcPos to destPos, avoiding any obstacles.
@@ -26,7 +31,7 @@ def findPath(gameState, srcPos, destPos):
     chunkWidth, chunkHeight = gameState.sizeInChunks
 
     # Value larger than any actual distance.
-    FAR_FAR_AWAY = CHUNK_SIZE * CHUNK_SIZE * chunkWidth * chunkHeight
+    FAR_FAR_AWAY = ORTHOGONAL_COST**2 * chunkWidth * chunkHeight
 
     srcChunk  = unitToChunk(srcPos)
     destChunk = unitToChunk(destPos)
@@ -74,22 +79,17 @@ def findPath(gameState, srcPos, destPos):
         nodeFinalized[cx][cy] = True
 
         log.debug("Pathfinding: checking neighbors.")
-        for neighbor in _getNeighbors(currChunk):
+        for addlDist, neighbor in _getValidNeighbors(currChunk, gameState):
             log.debug("Pathfinding: trying {}".format(neighbor))
-            if      gameState.chunkInBounds(neighbor) and \
-                    gameState.chunkIsPassable(neighbor):
-                log.debug("Pathfinding: neighbor is valid.")
-                nx, ny = neighbor
-
-                # Distances in unit coordinates, so add CHUNK_SIZE, not 1.
-                neighborStartDist = distanceFromStart[cx][cy] + CHUNK_SIZE
-                if neighborStartDist < distanceFromStart[nx][ny]:
-                    log.debug("Pathfinding: found shorter path to neighbor.")
-                    distanceFromStart[nx][ny] = neighborStartDist
-                    parents[nx][ny] = currChunk
-                    neighborFwdDist = _heuristicDistance(neighbor, destChunk)
-                    neighborEstCost = neighborStartDist + neighborFwdDist
-                    heapq.heappush(chunksToCheck, (neighborEstCost, neighbor))
+            nx, ny = neighbor
+            neighborStartDist = distanceFromStart[cx][cy] + addlDist
+            if neighborStartDist < distanceFromStart[nx][ny]:
+                log.debug("Pathfinding: found shorter path to neighbor.")
+                distanceFromStart[nx][ny] = neighborStartDist
+                parents[nx][ny] = currChunk
+                neighborFwdDist = _heuristicDistance(neighbor, destChunk)
+                neighborEstCost = neighborStartDist + neighborFwdDist
+                heapq.heappush(chunksToCheck, (neighborEstCost, neighbor))
 
     if      (not gameState.chunkInBounds(destChunk)) or \
             parents[destCX][destCY] is None:
@@ -139,17 +139,40 @@ def _heuristicDistance(chunkA, chunkB):
     # Use Euclidean distance as the heuristic.
     ax, ay = chunkA
     bx, by = chunkB
-    deltaX = CHUNK_SIZE * (bx - ax)
-    deltaY = CHUNK_SIZE * (by - ay)
+    deltaX = ORTHOGONAL_COST * (bx - ax)
+    deltaY = ORTHOGONAL_COST * (by - ay)
     return int(math.hypot(deltaX, deltaY))
 
 # Helper function for findPath.
-def _getNeighbors(chunkPos):
+def _getValidNeighbors(chunkPos, gameState):
     x, y = chunkPos
-    yield (x - 1, y)
-    yield (x + 1, y)
-    yield (x, y - 1)
-    yield (x, y + 1)
+
+    # The 8 neighbors, separated into those orthogonally adjaent and those
+    # diagonally adjacent. Within each category, the particular neighbors are
+    # in random order.
+    diagonals = [
+        (x - 1, y + 1), # northwest
+        (x + 1, y - 1), # southeast
+        (x - 1, y - 1), # southwest
+        (x + 1, y + 1), # northeast
+    ]
+    orthogonals = [
+        (x,     y - 1), # south
+        (x,     y + 1), # north
+        (x + 1, y    ), # east
+        (x - 1, y    ), # west
+    ]
+
+    # Try diagonals first, so that when crossing a non-square rectangle we do
+    # the diagonal part of the path before the orthogonal part.
+    for neighbor in diagonals:
+        if      gameState.chunkInBounds(neighbor) and \
+                gameState.chunkIsPassable(neighbor):
+            yield (DIAGONAL_COST, neighbor)
+    for neighbor in orthogonals:
+        if      gameState.chunkInBounds(neighbor) and \
+                gameState.chunkIsPassable(neighbor):
+            yield (ORTHOGONAL_COST, neighbor)
 
 def getChunkCenter(chunkPos):
     """

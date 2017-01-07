@@ -16,6 +16,7 @@ class GameState:
             self.groundTypes[1][2] = 1
             self.groundTypes[1][3] = 1
             self.groundTypes[2][3] = 1
+            self.groundTypes[3][2] = 1
 
     @property
     def sizeInChunks(self):
