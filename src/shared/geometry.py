@@ -25,9 +25,6 @@ def findPath(gameState, srcPos, destPos):
 
     chunkWidth, chunkHeight = gameState.sizeInChunks
 
-    # We indicate that a chunk hasn't been visited yet by setting its parent to
-    # this special value.
-    UNVISITED  = (-1, -1)
     # Value larger than any actual distance.
     FAR_FAR_AWAY = CHUNK_SIZE * CHUNK_SIZE * chunkWidth * chunkHeight
 
@@ -46,7 +43,7 @@ def findPath(gameState, srcPos, destPos):
     # chunks have been visited already. Second, for those that have been
     # visited, it tracks which chunk came before it in the shortest path from
     # the srcChunk to it.
-    parents = [[UNVISITED for y in range(chunkHeight)]
+    parents = [[None for y in range(chunkHeight)]
                for x in range(chunkWidth)]
 
     # Set to True for a node once we know we've found a shortest path to it, so
@@ -77,13 +74,13 @@ def findPath(gameState, srcPos, destPos):
         nodeFinalized[cx][cy] = True
 
         log.debug("Pathfinding: checking neighbors.")
-
         for neighbor in _getNeighbors(currChunk):
             log.debug("Pathfinding: trying {}".format(neighbor))
             if      gameState.chunkInBounds(neighbor) and \
                     gameState.chunkIsPassable(neighbor):
                 log.debug("Pathfinding: neighbor is valid.")
                 nx, ny = neighbor
+
                 # Distances in unit coordinates, so add CHUNK_SIZE, not 1.
                 neighborStartDist = distanceFromStart[cx][cy] + CHUNK_SIZE
                 if neighborStartDist < distanceFromStart[nx][ny]:
@@ -95,7 +92,7 @@ def findPath(gameState, srcPos, destPos):
                     heapq.heappush(chunksToCheck, (neighborEstCost, neighbor))
 
     if      (not gameState.chunkInBounds(destChunk)) or \
-            parents[destCX][destCY] == UNVISITED:
+            parents[destCX][destCY] is None:
         raise NoPathToTargetError("No path exists from {} to {}."
                                   .format(srcPos, destPos))
 
@@ -109,7 +106,7 @@ def findPath(gameState, srcPos, destPos):
         waypoints.append(currChunk)
         cx, cy = currChunk
         currChunk = parents[cx][cy]
-        assert currChunk != UNVISITED
+        assert currChunk is not None
 
         # If there's a bug, crash rather than hanging (it's easier to debug).
         lim -= 1
