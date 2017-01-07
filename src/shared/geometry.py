@@ -168,7 +168,16 @@ def _getValidNeighbors(chunkPos, gameState):
     for neighbor in diagonals:
         if      gameState.chunkInBounds(neighbor) and \
                 gameState.chunkIsPassable(neighbor):
-            yield (DIAGONAL_COST, neighbor)
+            # Check that the other two corners of the square are passable, so
+            # we don't try to move through zero-width spaces in cases like:
+            #     @@ B
+            #     @@/
+            #      /@@
+            #     A @@
+            nx, ny = neighbor
+            if      gameState.chunkIsPassable(( x, ny)) and \
+                    gameState.chunkIsPassable((nx,  y)):
+                yield (DIAGONAL_COST, neighbor)
     for neighbor in orthogonals:
         if      gameState.chunkInBounds(neighbor) and \
                 gameState.chunkIsPassable(neighbor):
