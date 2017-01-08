@@ -6,6 +6,55 @@ from src.shared.geometry import chunkToUnit, unitToChunk, getChunkCenter
 from src.shared.geometry import findPath
 
 
+# TODO: Add the following new tests:
+#
+#
+#   ..@..
+#   A.@.B
+#   ..@..
+#
+#
+#   @@@@@@@@@@@
+#   @.........@
+#   @.......B.@
+#   @..@@.....@
+#   @..@@....@@
+#   @.......@@@
+#   @......@@@@
+#   @.....@@@@@
+#   @.A..@@@@@@
+#   @...@@@@@@@
+#   @@@@@@@@@@@
+#
+#
+#   @@@@@@
+#   @@@@B@
+#   @@@@.@
+#   @@@@.@
+#   @A...@
+#   @@@@@@
+#
+#
+#   @@@@@@@
+#   @@..B.@
+#   @.@...@
+#   @..@..@
+#   @A..@.@
+#   @.....@
+#   @@@@@@@
+#
+#
+#   @@@@@@@@@
+#   @.......@
+#   @...@...@
+#   @...@...@
+#   @.A.@.B.@
+#   @...@...@
+#   @.......@
+#   @@@@@@@@@
+
+
+
 class TestBasics:
     """
     Make sure the path finding never tries to send units through obstacles.
