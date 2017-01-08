@@ -78,7 +78,7 @@ class TestBasics:
         destPos = getChunkCenter((1, 4))
 
         path = findPath(gameState, srcPos, destPos)
-        checkWaypointsPassable(path, gameState)
+        checkWaypointsPassable(path, groundTypes)
 
         # TODO: Check that none of the lines between waypoints pass through
         # impassible ground.
@@ -101,7 +101,7 @@ class TestBasics:
             findPath(gameState, srcPos, destPos)
 
 
-def checkWaypointsPassable(path, gameState):
+def checkWaypointsPassable(path, groundTypes):
     for unitPos in path:
         x, y = unitToChunk(unitPos)
         assert groundTypes[x][y] == 0
