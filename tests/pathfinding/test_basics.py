@@ -106,3 +106,40 @@ def checkWaypointsPassable(path, groundTypes):
         x, y = unitToChunk(unitPos)
         assert groundTypes[x][y] == 0
 
+
+
+# Give a couple options for each one, since we've used a couple different
+# notations in the past.
+PASSABLE_DESCS   = (".", " ")
+IMPASSABLE_DESCS = ("#", "@")
+
+def parseTestCase(desc):
+    assert type(desc) == str
+    lines = desc.strip().split("\n")
+
+    # Determine dimensions
+    height = len(lines)
+    widths = set(map(len, lines))
+    assert len(widths) == 1
+    width = next(iter(widths))
+
+    pointsOfInterest = {}
+
+    # Actually parse the description.
+    groundTypes = [[None for y in range(height)] for x in range(width)]
+    for y in range(height):
+        for x in range(width):
+            locDesc = lines[height - 1 - y][x]
+            # TODO: Magic numbers bad.
+            if locDesc in IMPASSABLE_DESCS:
+                groundTypes[x][y] = 1
+            elif locDesc in PASSABLE_DESCS:
+                groundTypes[x][y] = 0
+            elif locDesc.isalpha():
+                # Points of interest are always passable, at least for now.
+                groundTypes[x][y] = 0
+                assert locDesc not in pointsOfInterest
+                pointsOfInterest[locDesc] = (x, y)
+
+    return (groundTypes, pointsOfInterest)
+
