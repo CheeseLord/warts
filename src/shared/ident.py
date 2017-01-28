@@ -9,6 +9,12 @@ class UnitId:
     def __ne__(self, rhs):
         return not (self == rhs)
 
+    def __hash__(self):
+        return hash((self.playerId, self.unitSubId))
+
+    def __repr__(self):
+        return repr((self.playerId, self.unitSubId))
+
 def unitToPlayer(unitId):
     return unitId.playerId
 

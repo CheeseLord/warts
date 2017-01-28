@@ -67,9 +67,6 @@ floatPairArg = ArgumentSpecification(2, parseFloatPair, encodeFloatPair)
 playerIdArg  = intArg
 unitIdArg    = ArgumentSpecification(2, parseUnitId, encodeUnitId)
 
-# For player IDs.
-idArg = intArg
-
 # Different types of coordinates. For now at least, all bug graphics are
 # encoded and parsed exactly the same way.
 uPosArg = intPairArg    # Unit position  (unit movements)
@@ -86,16 +83,17 @@ terrainTypeArg = intArg
 
 Click         = defineMessageType("click", [("pos", gPosArg)])
 DeleteObelisk = defineMessageType("delete_obelisk",
-                                  [("playerId", playerIdArg)])
+                                  [("unitId", unitIdArg)])
 GroundInfo    = defineMessageType("ground_info",
                                   [("pos", cPosArg),
                                    ("terrainType", terrainTypeArg)])
 MoveTo        = defineMessageType("move_to", [("dest", uPosArg)])
 NewObelisk    = defineMessageType("new_obelisk",
-                                  [("playerId", playerIdArg),
+                                  [("unitId", unitIdArg),
                                    ("pos", uPosArg)])
 RequestQuit   = defineMessageType("request_quit", [])
 SetPos        = defineMessageType("set_pos",
-                                  [("playerId", playerIdArg),
+                                  [("unitId", unitIdArg),
                                    ("pos", uPosArg)])
 YourIdIs      = defineMessageType("your_id_is", [("playerId", playerIdArg)])
+

@@ -32,11 +32,11 @@ class GraphicsInterface(object):
                 self.graphics.myId = message.playerId
                 log.info("Your id is {id}.".format(id=self.graphics.myId))
             elif isinstance(message, messages.NewObelisk):
-                self.graphics.addObelisk(message.playerId, message.pos)
+                self.graphics.addObelisk(message.unitId, message.pos)
             elif isinstance(message, messages.DeleteObelisk):
-                self.graphics.removeObelisk(message.playerId)
+                self.graphics.removeObelisk(message.unitId)
             elif isinstance(message, messages.SetPos):
-                self.graphics.moveObelisk(message.playerId, message.pos)
+                self.graphics.moveObelisk(message.unitId, message.pos)
             elif isinstance(message, messages.GroundInfo):
                 self.graphics.addGround(message.pos, message.terrainType)
             else:

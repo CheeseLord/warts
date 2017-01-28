@@ -32,28 +32,31 @@ class GameState:
         x, y = cPos
         return self.chunkInBounds(cPos) and self.groundTypes[x][y] == 0
 
-    def addPlayer(self, playerId, position):
-        if playerId in self.positions:
-            raise ValueError("There's already a player with id {}."
-                             .format(playerId))
+    # FIXME: Rename this.
+    def addPlayer(self, unitId, position):
+        if unitId in self.positions:
+            raise ValueError("There's already a unit with id {}."
+                             .format(unitId))
 
         # POS_INT_CHECK
         for k in position:
             assert type(k) is int
-        self.positions[playerId] = position
+        self.positions[unitId] = position
 
-    def removePlayer(self, playerId):
-        self.checkId(playerId)
-        del self.positions[playerId]
+    # FIXME: Rename this.
+    def removePlayer(self, unitId):
+        self.checkId(unitId)
+        del self.positions[unitId]
 
-    def movePlayerToward(self, playerId, dest):
+    # FIXME: Rename this.
+    def movePlayerToward(self, unitId, dest):
         # TODO: Take in elapsed ticks; have an actual speed, rather than a
         # constant "move amount per update".
         MAX_SPEED = 3.0
 
-        self.checkId(playerId)
+        self.checkId(unitId)
 
-        oldPos = self.getPos(playerId)
+        oldPos = self.getPos(unitId)
         distance = math.hypot(dest[0] - oldPos[0], dest[1] - oldPos[1])
         if distance <= MAX_SPEED:
             # We have enough speed to reach our destination this tick.
@@ -67,32 +70,34 @@ class GameState:
                       oldPos[1] + fraction * (dest[1] - oldPos[1]))
 
         newPos = tuple(int(round(x)) for x in newPos)
-        self.movePlayerTo(playerId, newPos)
+        self.movePlayerTo(unitId, newPos)
 
+    # FIXME: Rename this.
     # Does anyone actually use this function?
-    def movePlayerBy(self, playerId, deltaPos):
-        self.checkId(playerId)
-        x, y = self.getPos(playerId)
+    def movePlayerBy(self, unitId, deltaPos):
+        self.checkId(unitId)
+        x, y = self.getPos(unitId)
         dx, dy = deltaPos
         x += dx
         y += dy
-        self.movePlayerTo(playerId, (x, y))
+        self.movePlayerTo(unitId, (x, y))
 
-    def movePlayerTo(self, playerId, newPos):
-        self.checkId(playerId)
+    # FIXME: Rename this.
+    def movePlayerTo(self, unitId, newPos):
+        self.checkId(unitId)
         # POS_INT_CHECK
         for k in newPos:
             assert type(k) is int
-        self.positions[playerId] = newPos
+        self.positions[unitId] = newPos
 
-    def getPos(self, playerId):
-        self.checkId(playerId)
-        return self.positions[playerId]
+    def getPos(self, unitId):
+        self.checkId(unitId)
+        return self.positions[unitId]
 
-    def checkId(self, playerId):
-        if not self.isIdValid(playerId):
-            raise ValueError("There's no player with id {}.".format(playerId))
+    def checkId(self, unitId):
+        if not self.isIdValid(unitId):
+            raise ValueError("There's no unit with id {}.".format(unitId))
 
-    def isIdValid(self, playerId):
-        return (playerId in self.positions)
+    def isIdValid(self, unitId):
+        return unitId in self.positions
 

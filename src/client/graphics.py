@@ -11,6 +11,7 @@ from panda3d.core import Point3, Mat4, Filename, NodePath
 from src.shared import config
 from src.shared import messages
 from src.shared.geometry import chunkToUnit
+from src.shared.ident import playerToUnit, unitToPlayer
 from src.shared.logconfig import newLogger
 from src.shared.message_infrastructure import deserializeMessage, \
     illFormedMessage, unhandledMessageCommand, invalidMessageArgument, \
@@ -42,7 +43,7 @@ class WartsApp(ShowBase):
         self.setupEventHandlers()
         self.setupMouseHandler()
 
-        # Mapping from playerIds to obelisk actors.
+        # Mapping from unitIds to obelisk actors.
         self.obelisks = {}
 
         # Don't add the terrain here; that's handled by addGround now.
@@ -58,17 +59,17 @@ class WartsApp(ShowBase):
     def cleanup(self):
         pass
 
-    def addObelisk(self, playerId, pos):
+    def addObelisk(self, unitId, pos):
         if self.myId < 0:
             raise RuntimeError("Must set ID before adding obelisks.")
-        if playerId in self.obelisks:
+        if unitId in self.obelisks:
             raise RuntimeError("Already have obelisk with id {id}."
-                               .format(id=playerId))
+                               .format(id=unitId))
 
-        log.info("Adding obelisk {} at {}".format(playerId, pos))
+        log.info("Adding obelisk {} at {}".format(unitId, pos))
         x, y = unitToGraphics(pos)
 
-        if playerId == self.myId:
+        if unitToPlayer(unitId) == self.myId:
             # The example panda from the Panda3D "Hello world" tutorial.
             obelisk = Actor("models/panda-model",
                             {"walk": "models/panda-walk4"})
@@ -78,26 +79,26 @@ class WartsApp(ShowBase):
         obelisk.reparentTo(self.render)
         obelisk.setPos(x, y, 2.5)
 
-        self.obelisks[playerId] = obelisk
+        self.obelisks[unitId] = obelisk
 
-    def removeObelisk(self, playerId):
-        log.info("Removing obelisk {}".format(playerId))
-        obeliskActor = self.obelisks.pop(playerId)
+    def removeObelisk(self, unitId):
+        log.info("Removing obelisk {}".format(unitId))
+        obeliskActor = self.obelisks.pop(unitId)
         obeliskActor.removeNode()
 
-    def moveObelisk(self, playerId, pos):
-        if playerId not in self.obelisks:
+    def moveObelisk(self, unitId, pos):
+        if unitId not in self.obelisks:
             raise RuntimeError("There is no obelisk with id {id}."
-                               .format(id=playerId))
-        log.debug("Moving obelisk {} to {}".format(playerId, pos))
+                               .format(id=unitId))
+        log.debug("Moving obelisk {} to {}".format(unitId, pos))
         x,y = unitToGraphics(pos)
-        obeliskActor = self.obelisks[playerId]
+        obeliskActor = self.obelisks[unitId]
         oldX, oldY, oldZ = obeliskActor.getPos()
         z = oldZ
         moveInterval = obeliskActor.posInterval(config.TICK_LENGTH, (x, y, z))
         moveInterval.start()
 
-        if playerId == self.myId:
+        if unitToPlayer(unitId) == self.myId:
             # Ensure the panda is facing the right direction.
             heading = math.atan2(y - oldY, x - oldX)
             heading *= 180.0 / math.pi
@@ -279,7 +280,7 @@ class WartsApp(ShowBase):
             return
 
         _, _, z = self.cameraHolder.getPos()
-        x, y, _ = self.obelisks[self.myId].getPos()
+        x, y, _ = self.obelisks[playerToUnit(self.myId)].getPos()
 
         # This is a hack.
         # The camera isn't aimed straight down; it's aimed at a slight angle
