@@ -87,7 +87,8 @@ DeleteObelisk = defineMessageType("delete_obelisk",
 GroundInfo    = defineMessageType("ground_info",
                                   [("pos", cPosArg),
                                    ("terrainType", terrainTypeArg)])
-MoveTo        = defineMessageType("move_to", [("dest", uPosArg)])
+OrderMove     = defineMessageType("order_move", [("unitId", unitIdArg),
+                                                 ("dest", uPosArg)])
 NewObelisk    = defineMessageType("new_obelisk",
                                   [("unitId", unitIdArg),
                                    ("pos", uPosArg)])

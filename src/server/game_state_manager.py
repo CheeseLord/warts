@@ -49,8 +49,8 @@ class GameStateManager(object):
     def stringReceived(self, playerId, data):
         try:
             message = deserializeMessage(data)
-            if isinstance(message, messages.MoveTo):
-                unitId = playerToUnit(playerId)
+            if isinstance(message, messages.OrderMove):
+                unitId = message.unitId
                 try:
                     srcPos = self.gameState.getPos(unitId)
                     path = findPath(self.gameState, srcPos, message.dest)

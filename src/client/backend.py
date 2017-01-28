@@ -1,9 +1,10 @@
 import logging
 
 from src.shared import messages
+from src.shared.ident import playerToUnit
 from src.shared.logconfig import newLogger
 from src.shared.message_infrastructure import deserializeMessage, \
-    unhandledInternalMessage
+    unhandledInternalMessage, InvalidMessageError
 
 # Constants
 GRAPHICS_SCALE=3
@@ -23,6 +24,8 @@ class Backend:
         self.graphicsInterface = None
 
         self.allReady = False
+
+        self.myId = -1
 
     @property
     def allComponents(self):
@@ -82,18 +85,33 @@ class Backend:
             log.warning("Input '{}' ignored; client not initialized yet." \
                 .format(message))
 
-    def networkMessage(self, message):
+    def networkMessage(self, messageStr):
         if self.allReady:
-            self.graphicsInterface.backendMessage(message)
+            try:
+                message = deserializeMessage(messageStr)
+                if isinstance(message, messages.YourIdIs):
+                    if self.myId >= 0:
+                        raise RuntimeError("ID already set; can't change it "
+                                           "now.")
+                    self.myId = message.playerId
+                    log.info("Your id is {id}.".format(id=self.myId))
+            except InvalidMessageError as error:
+                illFormedMessage(error, log, sender="server")
+
+            # Regardless of whether we were able to handle it, forward the
+            # message on to the graphicsInterface (which -- at least for now --
+            # also handles the YourIdIs message).
+            self.graphicsInterface.backendMessage(messageStr)
         else:
             # TODO: Buffer messages until ready? Don't just drop them....
             log.warning("Server message '{}' ignored; client not " \
-                "initialized yet.".format(message))
+                "initialized yet.".format(messageStr))
 
     def graphicsMessage(self, messageStr):
         message = deserializeMessage(messageStr)
         if isinstance(message, messages.Click):
-            newMsg = messages.MoveTo(graphicsToUnit(message.pos))
+            unitId = playerToUnit(self.myId)
+            newMsg = messages.OrderMove(unitId, graphicsToUnit(message.pos))
             self.network.backendMessage(newMsg.serialize())
         elif isinstance(message, messages.RequestQuit):
             for component in self.allComponents:
