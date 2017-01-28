@@ -73,6 +73,10 @@ class Backend:
         # constantly check self.allReady for the entire lifetime of the client.
         self.allReady = True
 
+        # Request an obelisk.
+        msg = messages.OrderNew((0, 0))
+        self.network.backendMessage(msg.serialize())
+
 
     ########################################################################
     # Incoming messages

@@ -37,9 +37,6 @@ class GameStateManager(object):
             msg = messages.NewObelisk(unitId, otherPos)
             self.connectionManager.sendMessage(playerId, msg)
 
-        # TODO[#16]: Create *a* unit, not *the* unit.
-        self.unitOrders.giveOrders(playerToUnit(playerId), [(0, 0)])
-
     # FIXME[#10]: Why is this in GameStateManager?
     def removeConnection(self, playerId):
         # TODO[#16]: Remove *all* units, not *the* unit.
@@ -49,7 +46,16 @@ class GameStateManager(object):
     def stringReceived(self, playerId, data):
         try:
             message = deserializeMessage(data)
-            if isinstance(message, messages.OrderMove):
+            # FIXME[#17]: For all except OrderNew, validate that the unit
+            # belongs to the player issuing the order.
+            if isinstance(message, messages.OrderNew):
+                # TODO[#16]: Create *a* unit, not *the* unit.
+                self.unitOrders.giveOrders(playerToUnit(playerId),
+                                           [message.pos])
+            elif isinstance(message, messages.OrderDel):
+                # TODO[#16]: Remove *a* unit, not *the* unit.
+                self.unitOrders.giveOrders(message.unitId, None)
+            elif isinstance(message, messages.OrderMove):
                 unitId = message.unitId
                 try:
                     srcPos = self.gameState.getPos(unitId)
