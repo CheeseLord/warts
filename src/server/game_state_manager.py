@@ -83,17 +83,14 @@ class GameStateManager(object):
                 # obelisk, because it doesn't exist: gameState.removePlayer
                 # would crash if we tried and the clients would be confused if
                 # we sent them a DeleteObelisk message for an unused id.
-                # TODO[#15]: Rename isIdValid to isUnitIdValid.
-                if self.gameState.isIdValid(unitId):
-                    # TODO[#15]: Rename removePlayer to removeUnit.
-                    self.gameState.removePlayer(unitId)
+                if self.gameState.isUnitIdValid(unitId):
+                    self.gameState.removeUnit(unitId)
                     msg = messages.DeleteObelisk(unitId)
                     self.connectionManager.broadcastMessage(msg)
 
             # Create player.
             elif unitId not in self.gameState.positions:
-                # TODO[#15]: Rename addPlayer to addUnit.
-                self.gameState.addPlayer(unitId, orders[unitId])
+                self.gameState.addUnit(unitId, orders[unitId])
                 pos = self.gameState.getPos(unitId)
 
                 msg = messages.NewObelisk(unitId, pos)
@@ -116,8 +113,7 @@ class GameStateManager(object):
                 for k in dest:
                     assert type(k) is int
 
-                # TODO[#15]: Rename movePlayerToward to moveUnitToward.
-                self.gameState.movePlayerToward(unitId, dest)
+                self.gameState.moveUnitToward(unitId, dest)
                 pos = self.gameState.getPos(unitId)
                 # TODO: Maybe only broadcast the new position if we handled a
                 # valid command? Else the position isn't changed....

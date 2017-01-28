@@ -32,8 +32,7 @@ class GameState:
         x, y = cPos
         return self.chunkInBounds(cPos) and self.groundTypes[x][y] == 0
 
-    # FIXME: Rename this.
-    def addPlayer(self, unitId, position):
+    def addUnit(self, unitId, position):
         if unitId in self.positions:
             raise ValueError("There's already a unit with id {}."
                              .format(unitId))
@@ -43,13 +42,11 @@ class GameState:
             assert type(k) is int
         self.positions[unitId] = position
 
-    # FIXME: Rename this.
-    def removePlayer(self, unitId):
+    def removeUnit(self, unitId):
         self.checkId(unitId)
         del self.positions[unitId]
 
-    # FIXME: Rename this.
-    def movePlayerToward(self, unitId, dest):
+    def moveUnitToward(self, unitId, dest):
         # TODO: Take in elapsed ticks; have an actual speed, rather than a
         # constant "move amount per update".
         MAX_SPEED = 3.0
@@ -70,20 +67,18 @@ class GameState:
                       oldPos[1] + fraction * (dest[1] - oldPos[1]))
 
         newPos = tuple(int(round(x)) for x in newPos)
-        self.movePlayerTo(unitId, newPos)
+        self.moveUnitTo(unitId, newPos)
 
-    # FIXME: Rename this.
     # Does anyone actually use this function?
-    def movePlayerBy(self, unitId, deltaPos):
+    def moveUnitBy(self, unitId, deltaPos):
         self.checkId(unitId)
         x, y = self.getPos(unitId)
         dx, dy = deltaPos
         x += dx
         y += dy
-        self.movePlayerTo(unitId, (x, y))
+        self.moveUnitTo(unitId, (x, y))
 
-    # FIXME: Rename this.
-    def movePlayerTo(self, unitId, newPos):
+    def moveUnitTo(self, unitId, newPos):
         self.checkId(unitId)
         # POS_INT_CHECK
         for k in newPos:
@@ -95,9 +90,9 @@ class GameState:
         return self.positions[unitId]
 
     def checkId(self, unitId):
-        if not self.isIdValid(unitId):
+        if not self.isUnitIdValid(unitId):
             raise ValueError("There's no unit with id {}.".format(unitId))
 
-    def isIdValid(self, unitId):
+    def isUnitIdValid(self, unitId):
         return unitId in self.positions
 
