@@ -1,5 +1,6 @@
 import math
 
+from src.shared.ident import encodeUnitId, parseUnitId
 from src.shared.message_infrastructure import defineMessageType, \
     ArgumentSpecification, InvalidMessageError
 
@@ -63,6 +64,9 @@ intArg       = ArgumentSpecification(1, int)
 intPairArg   = ArgumentSpecification(2, parseIntPair, encodeIntPair)
 floatPairArg = ArgumentSpecification(2, parseFloatPair, encodeFloatPair)
 
+playerIdArg  = intArg
+unitIdArg    = ArgumentSpecification(2, parseUnitId, encodeUnitId)
+
 # For player IDs.
 idArg = intArg
 
@@ -81,14 +85,17 @@ terrainTypeArg = intArg
 # The messages themselves
 
 Click         = defineMessageType("click", [("pos", gPosArg)])
-DeleteObelisk = defineMessageType("delete_obelisk", [("playerId", idArg)])
+DeleteObelisk = defineMessageType("delete_obelisk",
+                                  [("playerId", playerIdArg)])
 GroundInfo    = defineMessageType("ground_info",
                                   [("pos", cPosArg),
                                    ("terrainType", terrainTypeArg)])
 MoveTo        = defineMessageType("move_to", [("dest", uPosArg)])
 NewObelisk    = defineMessageType("new_obelisk",
-                                  [("playerId", idArg), ("pos", uPosArg)])
+                                  [("playerId", playerIdArg),
+                                   ("pos", uPosArg)])
 RequestQuit   = defineMessageType("request_quit", [])
 SetPos        = defineMessageType("set_pos",
-                                  [("playerId", idArg), ("pos", uPosArg)])
-YourIdIs      = defineMessageType("your_id_is", [("playerId", idArg)])
+                                  [("playerId", playerIdArg),
+                                   ("pos", uPosArg)])
+YourIdIs      = defineMessageType("your_id_is", [("playerId", playerIdArg)])
