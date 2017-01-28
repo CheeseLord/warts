@@ -18,7 +18,7 @@ class UnitId:
 def unitToPlayer(unitId):
     return unitId.playerId
 
-# FIXME [#15]: This function shouldn't exist.
+# FIXME [#16]: This function shouldn't exist.
 def playerToUnit(playerId):
     return UnitId(playerId, 0)
 
