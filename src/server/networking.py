@@ -50,6 +50,7 @@ class ConnectionManager:
         if connection.playerId in self.connections:
             del self.connections[connection.playerId]
             self.gameStateManager.removeConnection(connection.playerId)
+            # TODO: Can we output this after the "connection lost" message?
             log.info("{} connections remain.".format(len(self.connections)))
         else:
             log.warning("Failed to remove connection.")
