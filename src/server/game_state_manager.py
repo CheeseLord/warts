@@ -115,6 +115,7 @@ class GameStateManager(object):
                     self.gameState.removeUnit(unitId)
                     msg = messages.DeleteObelisk(unitId)
                     self.connectionManager.broadcastMessage(msg)
+                    self.unitOrders.removeNextOrder(unitId)
                 done = True
 
             # Move player.
