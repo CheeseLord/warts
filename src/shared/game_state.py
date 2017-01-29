@@ -89,6 +89,10 @@ class GameState:
         self.checkId(unitId)
         return self.positions[unitId]
 
+    def getAllUnitIds(self):
+        for unitId in self.positions.keys():
+            yield unitId
+
     def checkId(self, unitId):
         if not self.isUnitIdValid(unitId):
             raise ValueError("There's no unit with id {}.".format(unitId))

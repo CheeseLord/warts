@@ -20,6 +20,7 @@ def unitToPlayer(unitId):
 
 # FIXME [#16]: This function shouldn't exist.
 def playerToUnit(playerId):
+    assert type(playerId) == int
     return UnitId(playerId, 0)
 
 # For using UnitIds in messages
