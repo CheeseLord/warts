@@ -81,7 +81,9 @@ terrainTypeArg = intArg
 ###############################################################################
 # The messages themselves
 
-Click         = defineMessageType("click", [("pos", gPosArg)])
+Click         = defineMessageType("click",
+                                  [("button", intArg),
+                                   ("pos", gPosArg)])
 DeleteObelisk = defineMessageType("delete_obelisk",
                                   [("unitId", unitIdArg)])
 GroundInfo    = defineMessageType("ground_info",

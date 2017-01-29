@@ -293,7 +293,7 @@ class WartsApp(ShowBase):
 
         self.cameraHolder.setPos(x, y, z)
 
-    def handleMouseClick(self):
+    def handleMouseClick(self, button):
         # Make sure the mouse is inside the screen
         if self.mouseWatcherNode.hasMouse():
             # Get the screen coordinates of the mouse, normalized to [-1, 1].
@@ -312,7 +312,7 @@ class WartsApp(ShowBase):
                         if self.usingCustomCamera:
                             clickedPoint = entry.getSurfacePoint(self.render)
                             x, y, z = clickedPoint
-                            message = messages.Click((x, y))
+                            message = messages.Click(button, (x, y))
                             self.graphicsInterface.graphicsMessage(message.serialize())
 
     def handleWindowClose(self):
@@ -370,7 +370,8 @@ class WartsApp(ShowBase):
         self.accept("wheel_down", self.zoomCamera, [False])
 
         # Handle clicking.
-        self.accept("mouse1", self.handleMouseClick, [])
+        self.accept("mouse1", self.handleMouseClick, [1])
+        self.accept("mouse2", self.handleMouseClick, [2])
 
         # Handle window close request (clicking the X, Alt-F4, etc.)
         self.win.set_close_request_event("window-close")

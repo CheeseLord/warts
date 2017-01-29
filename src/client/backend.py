@@ -73,8 +73,10 @@ class Backend:
         # constantly check self.allReady for the entire lifetime of the client.
         self.allReady = True
 
-        # Request an obelisk.
-        msg = messages.OrderNew((0, 0))
+        # Request obelisks.
+        msg = messages.OrderNew((10, 0))
+        self.network.backendMessage(msg.serialize())
+        msg = messages.OrderNew((0, 10))
         self.network.backendMessage(msg.serialize())
 
 
@@ -114,7 +116,9 @@ class Backend:
     def graphicsMessage(self, messageStr):
         message = deserializeMessage(messageStr)
         if isinstance(message, messages.Click):
+            # FIXME [#16]: Handle this sanely.
             unitId = playerToUnit(self.myId)
+            unitId.subId = message.button - 1
             newMsg = messages.OrderMove(unitId, graphicsToUnit(message.pos))
             self.network.backendMessage(newMsg.serialize())
         elif isinstance(message, messages.RequestQuit):
@@ -133,3 +137,4 @@ def graphicsToUnit(graphicsCoords):
     """Convert graphics (xg,yg) float tuples to unit (xu,yu) integers tuples
     """
     return tuple(int(round(x*GRAPHICS_SCALE)) for x in graphicsCoords)
+
