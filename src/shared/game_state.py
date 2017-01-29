@@ -1,5 +1,7 @@
 import math
 
+from src.shared.ident import UnitId, unitToPlayer, getUnitSubId
+
 class GameState:
     def __init__(self, groundTypes=None):
         self.positions = {}
@@ -32,15 +34,15 @@ class GameState:
         x, y = cPos
         return self.chunkInBounds(cPos) and self.groundTypes[x][y] == 0
 
-    def addUnit(self, unitId, position):
-        if unitId in self.positions:
-            raise ValueError("There's already a unit with id {}."
-                             .format(unitId))
+    def addUnit(self, playerId, position):
+        unitId = self.createNewUnitId(playerId)
+        assert unitId not in self.positions
 
         # POS_INT_CHECK
         for k in position:
             assert type(k) is int
         self.positions[unitId] = position
+        return unitId
 
     def removeUnit(self, unitId):
         self.checkId(unitId)
@@ -88,6 +90,16 @@ class GameState:
     def getPos(self, unitId):
         self.checkId(unitId)
         return self.positions[unitId]
+
+    # Internal helper function to generate a new unit id.
+    def createNewUnitId(self, playerId):
+        # For now, just return 1 + max(all existing unit ids for playerId)
+        # TODO: Randomize it better, to avoid the German tank problem.
+        highest = -1
+        for unitId in self.getAllUnitIds():
+            if unitToPlayer(unitId) == playerId:
+                highest = max(highest, getUnitSubId(unitId))
+        return UnitId(playerId, 1 + highest)
 
     def getAllUnitIds(self):
         for unitId in self.positions.keys():

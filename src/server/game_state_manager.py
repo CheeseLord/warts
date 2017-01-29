@@ -79,9 +79,7 @@ class GameStateManager(object):
     def applyOrders(self):
         # Create any pending units.
         for playerId, pos in self.unitOrders.getPendingNewUnits():
-            # FIXME: Create *a* unit, not *the* unit.
-            unitId = playerToUnit(playerId)
-            self.gameState.addUnit(unitId, pos)
+            unitId = self.gameState.addUnit(playerId, pos)
             # Should have no effect, but just to make sure we have the right
             # position...
             pos = self.gameState.getPos(unitId)

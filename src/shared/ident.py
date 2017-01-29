@@ -1,5 +1,7 @@
 class UnitId:
     def __init__(self, playerId, unitSubId):
+        assert playerId  >= 0
+        assert unitSubId >= 0
         self.playerId = playerId
         self.subId    = unitSubId
 
@@ -17,6 +19,9 @@ class UnitId:
 
 def unitToPlayer(unitId):
     return unitId.playerId
+
+def getUnitSubId(unitId):
+    return unitId.subId
 
 # FIXME [#16]: This function shouldn't exist.
 def playerToUnit(playerId):
