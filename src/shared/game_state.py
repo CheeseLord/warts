@@ -96,12 +96,16 @@ class GameState:
         # For now, just return 1 + max(all existing unit ids for playerId)
         # TODO: Randomize it better, to avoid the German tank problem.
         highest = -1
-        for unitId in self.getAllUnitIds():
-            if unitToPlayer(unitId) == playerId:
-                highest = max(highest, getUnitSubId(unitId))
+        for unitId in self.getAllUnitsForPlayer(playerId):
+            highest = max(highest, getUnitSubId(unitId))
         return UnitId(playerId, 1 + highest)
 
-    def getAllUnitIds(self):
+    def getAllUnitsForPlayer(self, playerId):
+        for unitId in self.getAllUnits():
+            if unitToPlayer(unitId) == playerId:
+                yield unitId
+
+    def getAllUnits(self):
         for unitId in self.positions.keys():
             yield unitId
 

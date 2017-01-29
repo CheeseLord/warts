@@ -40,8 +40,8 @@ class GameStateManager(object):
 
     # FIXME[#10]: Why is this in GameStateManager?
     def removeConnection(self, playerId):
-        # TODO[#16]: Remove *all* units, not *the* unit.
-        self.unitOrders.giveOrders(playerToUnit(playerId), [DelUnitOrder()])
+        for unitId in self.gameState.getAllUnitsForPlayer(playerId):
+            self.unitOrders.giveOrders(unitId, [DelUnitOrder()])
 
     # FIXME[#10]: Why is this in GameStateManager?
     def stringReceived(self, playerId, data):
@@ -90,7 +90,7 @@ class GameStateManager(object):
             self.unitOrders.clearPendingNewUnits()
 
         # Resolve orders to any existing units.
-        for unitId in self.gameState.getAllUnitIds():
+        for unitId in self.gameState.getAllUnits():
             self.applyOrdersForUnit(unitId)
 
     def applyOrdersForUnit(self, unitId):
