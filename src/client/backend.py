@@ -118,7 +118,7 @@ class Backend:
         if isinstance(message, messages.Click):
             # FIXME [#16]: Handle this sanely.
             unitId = playerToUnit(self.myId)
-            unitId.subId = message.button - 1
+            unitId.subId = message.button // 2
             newMsg = messages.OrderMove(unitId, graphicsToUnit(message.pos))
             self.network.backendMessage(newMsg.serialize())
         elif isinstance(message, messages.RequestQuit):

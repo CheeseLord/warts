@@ -371,7 +371,8 @@ class WartsApp(ShowBase):
 
         # Handle clicking.
         self.accept("mouse1", self.handleMouseClick, [1])
-        self.accept("mouse2", self.handleMouseClick, [2])
+        # TODO: Make sure this is always the right mouse button.
+        self.accept("mouse3", self.handleMouseClick, [3])
 
         # Handle window close request (clicking the X, Alt-F4, etc.)
         self.win.set_close_request_event("window-close")
