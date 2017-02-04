@@ -55,6 +55,9 @@ def serializeMessage(message):
         argStrings.extend(argWords)
     return buildMessage(message.command, argStrings)
 
+# Note: errorOnFail might never be passed as False; currently all callers that
+# don't want to crash still pass errorOnFail=True and just handle
+# InvalidMessageError themselves.
 def deserializeMessage(data, errorOnFail=True):
     try:
         cmd, argStrings = tokenize(data)
@@ -79,9 +82,15 @@ def deserializeMessage(data, errorOnFail=True):
             raise InvalidMessageError(data, "Too many arguments for command.")
 
         return messageType(*args)
-    except:
+    except StandardError, exc:
         if errorOnFail:
-            raise
+            # Reraise the exception, but converted (if necessary) to an
+            # InvalidMessageError. This ensures that it'll be handled correctly
+            # by the caller and not cause the program to crash unnecessarily.
+            if isinstance(exc, InvalidMessageError):
+                raise exc
+            else:
+                raise InvalidMessageError(data, str(exc))
         else:
             return None
 
