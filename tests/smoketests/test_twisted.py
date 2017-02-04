@@ -25,8 +25,8 @@ def test_failure():
     #     deferredThatFails.addCallback(deferredThatSucceeds.errback)
     #     deferredThatFails.addErrback (deferredThatSucceeds.callback)
     #
-    # Unfortunately, that doesn't work. The problem is that each callbacks or
-    # errbacks in a Deferred's callback/errback chain is passed the result of
+    # Unfortunately, that doesn't work. The problem is that each callback or
+    # errback in a Deferred's callback/errback chain is passed the result of
     # the previous callback/errback, and execution switches between those
     # chains depending on whether that result is a failure or not. So if a
     # callback returns a failure, we switch to the errbacks, and if an errback
