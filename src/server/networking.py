@@ -50,10 +50,11 @@ class ConnectionManager:
         if connection.playerId in self.connections:
             del self.connections[connection.playerId]
             self.gameStateManager.removeConnection(connection.playerId)
-            # TODO: Can we output this after the "connection lost" message?
-            log.info("{} connections remain.".format(len(self.connections)))
         else:
             log.warning("Failed to remove connection.")
+
+    def reportRemainingConnections(self):
+        log.info("{} connections remain.".format(len(self.connections)))
 
     def broadcastMessage(self, message):
         for connection in self:
@@ -104,6 +105,8 @@ class NetworkConnection(Int16StringReceiver):
                 reason   = reason.getErrorMessage(),
             )
         )
+
+        self.connections.reportRemainingConnections()
 
     def stringReceived(self, data):
         peer = self.transport.getPeer()
