@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from src.shared.exceptions import NoPathToTargetError
 from src.shared.game_state import GameState
 from src.shared.geometry import findPath
@@ -12,6 +14,9 @@ from src.shared.unit_orders import UnitOrders, Order, DelUnitOrder, \
 
 log = newLogger(__name__)
 
+# TODO[#10]: Why is this in GameStateManager?
+MAXIMUM_MESSAGES_PER_TICK = 1024
+
 
 class GameStateManager(object):
     def __init__(self, connectionManager):
@@ -20,6 +25,9 @@ class GameStateManager(object):
         self.gameState = GameState()
         self.unitOrders = UnitOrders()
         self.connectionManager = connectionManager
+
+        # TODO[#10]: Why is this in GameStateManager?
+        self.messageCounts = defaultdict(int)
 
     # TODO[#10]: Why is this in GameStateManager?
     def handshake(self, playerId):
@@ -46,6 +54,14 @@ class GameStateManager(object):
 
     # FIXME[#10]: Why is this in GameStateManager?
     def stringReceived(self, playerId, data):
+        # Rate-limit the client.
+        self.messageCounts[playerId] += 1
+        if self.messageCounts[playerId] == MAXIMUM_MESSAGES_PER_TICK:
+            log.warning("Received too many messages this tick from player {}"
+                        .format(playerId))
+        if self.messageCounts[playerId] >= MAXIMUM_MESSAGES_PER_TICK:
+            return
+
         try:
             message = deserializeMessage(data)
             if isinstance(message, messages.OrderNew):
@@ -83,6 +99,11 @@ class GameStateManager(object):
         except InvalidMessageError as error:
             illFormedMessage(error, log,
                 sender="client {id}".format(id=playerId))
+
+    # FIXME[#10]: Why is this in GameStateManager?
+    def tick(self):
+        self.applyOrders()
+        self.messageCounts.clear()
 
     def applyOrders(self):
         # Create any pending units.

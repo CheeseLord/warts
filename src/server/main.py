@@ -10,7 +10,7 @@ def main(args):
     gameStateManager = GameStateManager(connections)
     connections.setGameStateHandler(gameStateManager)
 
-    loop = LoopingCall(gameStateManager.applyOrders)
+    loop = LoopingCall(gameStateManager.tick)
     deferred = loop.start(config.TICK_LENGTH)
     deferred.addErrback(twistedLog.err)
 
