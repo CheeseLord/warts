@@ -84,6 +84,12 @@ class WartsApp(ShowBase):
     def removeObelisk(self, unitId):
         log.info("Removing obelisk {}".format(unitId))
         obeliskActor = self.obelisks.pop(unitId)
+        # TODO [#30]: The obelisk isn't actually an actor, so it doesn't
+        # have a cleanup() method.
+        try:
+            obeliskActor.cleanup()
+        except AttributeError:
+            pass
         obeliskActor.removeNode()
 
     def moveObelisk(self, unitId, pos):
