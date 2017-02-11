@@ -38,6 +38,11 @@ def findPath(gameState, srcPos, destPos):
     srcCX,  srcCY  = srcChunk
     destCX, destCY = destChunk
 
+    # Make sure we're starting within the world.
+    if not (0 <= srcCX < chunkWidth and 0 <= srcCY < chunkHeight):
+        raise NoPathToTargetError("Starting point {} outside the word."
+                                  .format(srcPos))
+
     # If the source and dest points are in the same chunk, there's no point
     # doing a chunk-based search to find a path, because the result will be
     # trivial. Just go straight to the dest.
