@@ -15,7 +15,7 @@ from src.shared.unit_orders import UnitOrders, Order, DelUnitOrder, \
 log = newLogger(__name__)
 
 # TODO[#10]: Why is this in GameStateManager?
-MAXIMUM_MESSAGES_PER_TICK = 1024
+MAXIMUM_MESSAGES_PER_TICK = 10
 
 
 class GameStateManager(object):
