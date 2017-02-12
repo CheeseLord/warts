@@ -20,6 +20,9 @@ class UnitOrders(object):
             assert isinstance(order, Order)
         self.orders[unit] = orders
 
+    def clearOrders(self, unit):
+        del self.orders[unit]
+
     def hasNextOrder(self, unit):
         return unit in self.orders and len(self.orders[unit]) > 0
 
@@ -30,6 +33,32 @@ class UnitOrders(object):
 
     def removeNextOrder(self, unit):
         self.orders[unit] = self.orders[unit][1:]
+
+    def getAllUnitsWithOrders(self):
+        """
+        Generate the ids of all units that have a nonempty list of orders.
+        """
+
+        # While we're at it, lazily remove any units from the mapping if they
+        # don't actually have orders.
+        unitsWithNoOrders = []
+
+        # Note! Don't change this to use iteritems(). We need to make sure that
+        # the caller can modify the unit orders while they are iterating over
+        # this list, without messing up the iteration. Currently this is
+        # accomplished by just getting the whole list of unit IDs up front
+        # (self.orders.keys()) and then iterating over that list.
+        for unitId in self.orders.keys():
+            if self.orders[unitId]:
+                yield unitId
+            else:
+                # Don't actually remove the unit yet, because modifying a
+                # container while iterating over it tends to cause problems.
+                # Instead, store it in a list to remove later.
+                unitsWithNoOrders.append(unitId)
+
+        for unitId in unitsWithNoOrders:
+            del self.orders[unitId]
 
     ### Probably not needed anymore.
     # def getAllUnitsNextOrders(self):
