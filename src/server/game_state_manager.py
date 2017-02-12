@@ -68,14 +68,18 @@ class GameStateManager(object):
                 self.unitOrders.createNewUnit(playerId, message.pos)
             elif isinstance(message, messages.OrderDel):
                 unitId = message.unitId
-                if playerId == unitToPlayer(unitId):
+                # TODO: Factor out this pair of checks? We're probably going to
+                # be doing them a *lot*.
+                if self.gameState.isUnitIdValid(unitId) and \
+                        playerId == unitToPlayer(unitId):
                     self.unitOrders.giveOrders(unitId, [DelUnitOrder()])
                 else:
                     invalidMessageArgument(message, log,
                         sender="client {id}".format(id=playerId))
             elif isinstance(message, messages.OrderMove):
                 unitId = message.unitId
-                if playerId == unitToPlayer(unitId):
+                if self.gameState.isUnitIdValid(unitId) and \
+                        playerId == unitToPlayer(unitId):
                     try:
                         srcPos = self.gameState.getPos(unitId)
                         path = findPath(self.gameState, srcPos, message.dest)
@@ -116,10 +120,11 @@ class GameStateManager(object):
             msg = messages.NewObelisk(unitId, pos)
             self.connectionManager.broadcastMessage(msg)
 
-            self.unitOrders.clearPendingNewUnits()
+        self.unitOrders.clearPendingNewUnits()
 
         # Resolve orders to any existing units.
-        for unitId in self.gameState.getAllUnits():
+        for unitId in self.unitOrders.getAllUnitsWithOrders():
+            assert self.gameState.isUnitIdValid(unitId)
             self.applyOrdersForUnit(unitId)
 
     def applyOrdersForUnit(self, unitId):
@@ -142,9 +147,9 @@ class GameStateManager(object):
                 # that order to be created in the first place.
                 if self.gameState.isUnitIdValid(unitId):
                     self.gameState.removeUnit(unitId)
+                    self.unitOrders.clearOrders(unitId)
                     msg = messages.DeleteObelisk(unitId)
                     self.connectionManager.broadcastMessage(msg)
-                    self.unitOrders.removeNextOrder(unitId)
                 done = True
 
             # Move player.
