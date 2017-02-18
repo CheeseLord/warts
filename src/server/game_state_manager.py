@@ -75,7 +75,8 @@ class GameStateManager(object):
                     self.unitOrders.giveOrders(unitId, [DelUnitOrder()])
                 else:
                     invalidMessageArgument(message, log,
-                        sender="client {id}".format(id=playerId))
+                        sender="client {id}".format(id=playerId),
+                        reason="Can't delete other player's unit")
             elif isinstance(message, messages.OrderMove):
                 unitId = message.unitId
                 if self.gameState.isUnitIdValid(unitId) and \
@@ -96,7 +97,8 @@ class GameStateManager(object):
                         pass
                 else:
                     invalidMessageArgument(message, log,
-                        sender="client {id}".format(id=playerId))
+                        sender="client {id}".format(id=playerId),
+                        reason="Can't order other player's unit")
             else:
                 unhandledMessageCommand(message, log,
                     sender="client {id}".format(id=playerId))

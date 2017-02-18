@@ -283,7 +283,7 @@ def unhandledMessageCommand(message, log, sender=""):
                 .format(sender=sender, command=message.command))
 
 
-def invalidMessageArgument(message, log, sender=""):
+def invalidMessageArgument(message, log, sender="", reason=""):
     """
     Log a warning for a message originating from an external source (ex: sent
     over the network), where the message is well-formed (valid command with the
@@ -294,9 +294,11 @@ def invalidMessageArgument(message, log, sender=""):
 
     if sender:
         sender = " from " + sender
+    if reason:
+        reason = "\n\t" + reason
 
-    log.warning("Invalid argument to message{sender}: {message}"
-                .format(sender=sender, message=message))
+    log.warning("Invalid argument to message{sender}: {message}{reason}"
+                .format(sender=sender, message=message, reason=reason))
 
 
 def illFormedMessage(error, log, sender=""):

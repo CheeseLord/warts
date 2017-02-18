@@ -141,7 +141,8 @@ class WartsApp(ShowBase):
             # TODO: We're building a new message rather than using the old one
             # to avoid passing the message to this function. This is ugly, but
             # I think it's still slightly less bad than the other solution.
-            invalidMessageArgument(messages.GroundInfo(cPos, terrainType), log)
+            invalidMessageArgument(messages.GroundInfo(cPos, terrainType), log,
+                                   reason="Invalid terrain type")
             # Drop the message.
             return
 
