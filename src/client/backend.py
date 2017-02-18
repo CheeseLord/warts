@@ -3,6 +3,7 @@ import logging
 from src.shared import messages
 from src.shared.ident import playerToUnit
 from src.shared.logconfig import newLogger
+from src.shared.unit_set import UnitSet
 from src.shared.message_infrastructure import deserializeMessage, \
     unhandledInternalMessage, InvalidMessageError
 
@@ -119,7 +120,7 @@ class Backend:
             # FIXME [#16]: Handle this sanely.
             unitId = playerToUnit(self.myId)
             unitId.subId = message.button // 2
-            newMsg = messages.OrderMove(unitId, graphicsToUnit(message.pos))
+            newMsg = messages.OrderMove(UnitSet([unitId]), graphicsToUnit(message.pos))
             self.network.backendMessage(newMsg.serialize())
         elif isinstance(message, messages.RequestQuit):
             for component in self.allComponents:

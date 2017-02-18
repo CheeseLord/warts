@@ -1,5 +1,6 @@
 import math
 
+from src.shared.unit_set import UnitSet
 from src.shared.ident import encodeUnitId, parseUnitId
 from src.shared.message_infrastructure import defineMessageType, \
     ArgumentSpecification, InvalidMessageError
@@ -65,6 +66,7 @@ intPairArg   = ArgumentSpecification(2, parseIntPair, encodeIntPair)
 floatPairArg = ArgumentSpecification(2, parseFloatPair, encodeFloatPair)
 
 playerIdArg  = intArg
+unitSetArg   = ArgumentSpecification(2, UnitSet.deserialize, UnitSet.serialize)
 unitIdArg    = ArgumentSpecification(2, parseUnitId, encodeUnitId)
 
 # Different types of coordinates. For now at least, all bug graphics are
@@ -90,7 +92,7 @@ GroundInfo    = defineMessageType("ground_info",
                                   [("pos", cPosArg),
                                    ("terrainType", terrainTypeArg)])
 OrderDel      = defineMessageType("order_del", [("unitId", unitIdArg)])
-OrderMove     = defineMessageType("order_move", [("unitId", unitIdArg),
+OrderMove     = defineMessageType("order_move", [("unitSet", unitSetArg),
                                                  ("dest", uPosArg)])
 OrderNew      = defineMessageType("order_new", [("pos", uPosArg)])
 NewObelisk    = defineMessageType("new_obelisk",

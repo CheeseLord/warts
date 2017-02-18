@@ -9,6 +9,7 @@ from src.shared.message_infrastructure import deserializeMessage, \
     invalidMessageArgument, illFormedMessage, unhandledMessageCommand, \
     InvalidMessageError
 from src.shared import messages
+from src.shared.unit_set import UnitSet
 from src.shared.unit_orders import UnitOrders, Order, DelUnitOrder, \
     MoveUnitOrder
 
@@ -81,30 +82,31 @@ class GameStateManager(object):
                 else:
                     self.unitOrders.giveOrders(unitId, [DelUnitOrder()])
             elif isinstance(message, messages.OrderMove):
-                unitId = message.unitId
-                if not playerId == unitToPlayer(unitId):
-                    invalidMessageArgument(message, log,
-                        sender="client {id}".format(id=playerId),
-                        reason="Can't order other player's unit")
-                elif not self.gameState.isUnitIdValid(unitId):
-                    invalidMessageArgument(message, log,
-                        sender="client {id}".format(id=playerId),
-                        reason="No such unit")
-                else:
-                    try:
-                        srcPos = self.gameState.getPos(unitId)
-                        path = findPath(self.gameState, srcPos, message.dest)
-                        log.debug("Issuing orders to unit {}: {}."
-                                  .format(unitId, path))
-                        orders = map(MoveUnitOrder, path)
-                        self.unitOrders.giveOrders(unitId, orders)
-                    except NoPathToTargetError:
-                        log.debug("Can't order unit {} to {}: "
-                                  "no path to target."
-                                  .format(unitId, message.dest))
-                        # If the target position is not reachable, just drop
-                        # the command.
-                        pass
+                unitSet = message.unitSet
+                for unitId in unitSet:
+                    if not playerId == unitToPlayer(unitId):
+                        invalidMessageArgument(message, log,
+                            sender="client {id}".format(id=playerId),
+                            reason="Can't order other player's unit")
+                    elif not self.gameState.isUnitIdValid(unitId):
+                        invalidMessageArgument(message, log,
+                            sender="client {id}".format(id=playerId),
+                            reason="No such unit")
+                    else:
+                        try:
+                            srcPos = self.gameState.getPos(unitId)
+                            path = findPath(self.gameState, srcPos, message.dest)
+                            log.debug("Issuing orders to unit {}: {}."
+                                      .format(unitId, path))
+                            orders = map(MoveUnitOrder, path)
+                            self.unitOrders.giveOrders(unitId, orders)
+                        except NoPathToTargetError:
+                            log.debug("Can't order unit {} to {}: "
+                                      "no path to target."
+                                      .format(unitId, message.dest))
+                            # If the target position is not reachable, just drop
+                            # the command.
+                            pass
             else:
                 unhandledMessageCommand(message, log,
                     sender="client {id}".format(id=playerId))
