@@ -1,11 +1,6 @@
 from collections import defaultdict
 
-from src.shared.config import MAX_PLAYER_UNITS
-from src.shared.ident import UnitId
-
-def deserializeUnitSet(desc):
-    # TODO
-    NotImplemented
+from src.shared.ident import UnitId, unitToPlayer, getUnitSubId
 
 class UnitSet(object):
     def __init__(self, units=[]):
@@ -16,6 +11,11 @@ class UnitSet(object):
         self.addMany(units)
 
     def serialize(self):
+        # TODO
+        NotImplemented
+
+    @classmethod
+    def deserialize(cls, desc):
         # TODO
         NotImplemented
 
