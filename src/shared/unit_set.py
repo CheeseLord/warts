@@ -28,7 +28,7 @@ class UnitSet(object):
         for part in desc.split(","):
             playerId, _, subIdDesc = part.partition(":")
             subIds = _deserializeSubIds(subIdDesc)
-            ret._addManyHomogeneous(playerId, subIds)
+            ret._addManyHomogeneous(int(playerId), subIds)
         return ret
 
     # TODO: Optimize better. Make use of _addManyHomogeneous if there's a lot
@@ -70,6 +70,19 @@ class UnitSet(object):
         for playerId in sorted(self.units.keys()):
             for subId in sorted(self.units[playerId]):
                 yield UnitId(playerId, subId)
+
+    def __repr__(self):
+        s = "{"
+        isFirst = True
+        for playerId in sorted(self.units.keys()):
+            part = ""
+            if not isFirst:
+                part += ", "
+            isFirst = False
+            part += repr(playerId) + ": " + repr(sorted(self.units[playerId]))
+            s += part
+        s += "}"
+        return s
 
 def _serializeSubIds(subIds):
     """
