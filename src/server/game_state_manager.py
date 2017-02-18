@@ -70,17 +70,27 @@ class GameStateManager(object):
                 unitId = message.unitId
                 # TODO: Factor out this pair of checks? We're probably going to
                 # be doing them a *lot*.
-                if self.gameState.isUnitIdValid(unitId) and \
-                        playerId == unitToPlayer(unitId):
-                    self.unitOrders.giveOrders(unitId, [DelUnitOrder()])
-                else:
+                if not playerId == unitToPlayer(unitId):
                     invalidMessageArgument(message, log,
                         sender="client {id}".format(id=playerId),
                         reason="Can't delete other player's unit")
+                elif not self.gameState.isUnitIdValid(unitId):
+                    invalidMessageArgument(message, log,
+                        sender="client {id}".format(id=playerId),
+                        reason="No such unit")
+                else:
+                    self.unitOrders.giveOrders(unitId, [DelUnitOrder()])
             elif isinstance(message, messages.OrderMove):
                 unitId = message.unitId
-                if self.gameState.isUnitIdValid(unitId) and \
-                        playerId == unitToPlayer(unitId):
+                if not playerId == unitToPlayer(unitId):
+                    invalidMessageArgument(message, log,
+                        sender="client {id}".format(id=playerId),
+                        reason="Can't order other player's unit")
+                elif not self.gameState.isUnitIdValid(unitId):
+                    invalidMessageArgument(message, log,
+                        sender="client {id}".format(id=playerId),
+                        reason="No such unit")
+                else:
                     try:
                         srcPos = self.gameState.getPos(unitId)
                         path = findPath(self.gameState, srcPos, message.dest)
@@ -95,10 +105,6 @@ class GameStateManager(object):
                         # If the target position is not reachable, just drop
                         # the command.
                         pass
-                else:
-                    invalidMessageArgument(message, log,
-                        sender="client {id}".format(id=playerId),
-                        reason="Can't order other player's unit")
             else:
                 unhandledMessageCommand(message, log,
                     sender="client {id}".format(id=playerId))

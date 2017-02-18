@@ -295,7 +295,7 @@ def invalidMessageArgument(message, log, sender="", reason=""):
     if sender:
         sender = " from " + sender
     if reason:
-        reason = "\n\t" + reason
+        reason = "\n    " + reason
 
     log.warning("Invalid argument to message{sender}: {message}{reason}"
                 .format(sender=sender, message=message, reason=reason))
@@ -328,3 +328,4 @@ class InvalidMessageError(StandardError):
     def __str__(self):
         return "{desc}  (Message is: {msg!r})".format(desc = self.errorDesc,
                                                       msg  = self.badMessage)
+
