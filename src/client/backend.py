@@ -1,7 +1,7 @@
 import logging
 
 from src.shared import messages
-from src.shared.ident import playerToUnit
+from src.shared.ident import playerToUnit, UnitId
 from src.shared.logconfig import newLogger
 from src.shared.unit_set import UnitSet
 from src.shared.message_infrastructure import deserializeMessage, \
@@ -27,6 +27,10 @@ class Backend:
         self.allReady = False
 
         self.myId = -1
+
+        # FIXME[#16]: Make sure an empty UnitSet doesn't serialize to the empty
+        # string before trying to issue orders to it.
+        self.unitSelection = UnitSet()
 
     @property
     def allComponents(self):
@@ -102,6 +106,11 @@ class Backend:
                                            "now.")
                     self.myId = message.playerId
                     log.info("Your id is {id}.".format(id=self.myId))
+
+                    # FIXME[#16]: This might be a nonexistent id. We shouldn't
+                    # issue orders to it unless that unit id actually exists.
+                    firstId = UnitId(self.myId, 0)
+                    self.unitSelection = UnitSet([firstId])
             except InvalidMessageError as error:
                 illFormedMessage(error, log, sender="server")
 
@@ -117,11 +126,17 @@ class Backend:
     def graphicsMessage(self, messageStr):
         message = deserializeMessage(messageStr)
         if isinstance(message, messages.Click):
-            # FIXME [#16]: Handle this sanely.
-            unitId = playerToUnit(self.myId)
-            unitId.subId = message.button // 2
-            newMsg = messages.OrderMove(UnitSet([unitId]), graphicsToUnit(message.pos))
-            self.network.backendMessage(newMsg.serialize())
+            # TODO: Have Click indicate "left" or "right", rather than just a
+            # numerical button.
+            if message.button == 1:
+                # Left mouse button
+                # TODO[#16]: Use LMB for selecting a unit.
+                log.warn("Left mouse button not implemented yet.")
+            elif message.button == 3:
+                # Right mouse button
+                newMsg = messages.OrderMove(self.unitSelection,
+                                            graphicsToUnit(message.pos))
+                self.network.backendMessage(newMsg.serialize())
         elif isinstance(message, messages.RequestQuit):
             for component in self.allComponents:
                 component.cleanup()
