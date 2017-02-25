@@ -23,11 +23,6 @@ def unitToPlayer(unitId):
 def getUnitSubId(unitId):
     return unitId.subId
 
-# FIXME [#16]: This function shouldn't exist.
-def playerToUnit(playerId):
-    assert type(playerId) == int
-    return UnitId(playerId, 0)
-
 # For using UnitIds in messages
 def encodeUnitId(unitId):
     return (str(unitId.playerId), str(unitId.subId))

@@ -1,7 +1,7 @@
 import logging
 
 from src.shared import messages
-from src.shared.ident import playerToUnit, UnitId
+from src.shared.ident import UnitId
 from src.shared.logconfig import newLogger
 from src.shared.unit_set import UnitSet
 from src.shared.message_infrastructure import deserializeMessage, \

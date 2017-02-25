@@ -11,7 +11,7 @@ from panda3d.core import Point3, Mat4, Filename, NodePath
 from src.shared import config
 from src.shared import messages
 from src.shared.geometry import chunkToUnit
-from src.shared.ident import playerToUnit, unitToPlayer
+from src.shared.ident import unitToPlayer
 from src.shared.logconfig import newLogger
 from src.shared.message_infrastructure import deserializeMessage, \
     illFormedMessage, unhandledMessageCommand, invalidMessageArgument, \
@@ -286,8 +286,12 @@ class WartsApp(ShowBase):
         if self.myId not in self.obelisks:
             return
 
-        _, _, z = self.cameraHolder.getPos()
-        x, y, _ = self.obelisks[playerToUnit(self.myId)].getPos()
+        # This code is commented out as we need to have a selection algorithm
+        # of identifying the unit to focus the camera on
+        pass
+
+        ##_, _, z = self.cameraHolder.getPos()
+        ##x, y, _ = self.obelisks[playerToUnit(self.myId)].getPos()
 
         # This is a hack.
         # The camera isn't aimed straight down; it's aimed at a slight angle
@@ -296,9 +300,9 @@ class WartsApp(ShowBase):
         # at an angle. We could (and eventually should) do some geometry on the
         # camera's HPR to correctly compute that position, but for now I'm just
         # hardcoding a roughly-correct offset, because it's easier.
-        y -= 16
+        ##y -= 16
 
-        self.cameraHolder.setPos(x, y, z)
+        ##self.cameraHolder.setPos(x, y, z)
 
     def handleMouseClick(self, button):
         # Make sure the mouse is inside the screen

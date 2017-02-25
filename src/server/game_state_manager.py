@@ -3,7 +3,7 @@ from collections import defaultdict
 from src.shared.exceptions import NoPathToTargetError
 from src.shared.game_state import GameState
 from src.shared.geometry import findPath
-from src.shared.ident import unitToPlayer, playerToUnit
+from src.shared.ident import unitToPlayer
 from src.shared.logconfig import newLogger
 from src.shared.message_infrastructure import deserializeMessage, \
     invalidMessageArgument, illFormedMessage, unhandledMessageCommand, \
