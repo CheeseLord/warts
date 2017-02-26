@@ -6,54 +6,6 @@ from src.shared.geometry import chunkToUnit, unitToChunk, getChunkCenter
 from src.shared.geometry import findPath
 
 
-# TODO[#20]: Add the following new tests:
-#
-#
-#   ..@..
-#   A.@.B
-#   ..@..
-#
-#
-#   @@@@@@@@@@@
-#   @.........@
-#   @.......B.@
-#   @..@@.....@
-#   @..@@....@@
-#   @.......@@@
-#   @......@@@@
-#   @.....@@@@@
-#   @.A..@@@@@@
-#   @...@@@@@@@
-#   @@@@@@@@@@@
-#
-#
-#   @@@@@@
-#   @@@@B@
-#   @@@@.@
-#   @@@@.@
-#   @A...@
-#   @@@@@@
-#
-#
-#   @@@@@@@
-#   @@..B.@
-#   @.@...@
-#   @..@..@
-#   @A..@.@
-#   @.....@
-#   @@@@@@@
-#
-#
-#   @@@@@@@@@
-#   @.......@
-#   @...@...@
-#   @...@...@
-#   @.A.@.B.@
-#   @...@...@
-#   @.......@
-#   @@@@@@@@@
-
-
 
 class TestBasics:
     """
@@ -61,21 +13,20 @@ class TestBasics:
     """
 
     def test_tbone(self):
-        # Note: the actual layout is transposed relative to this array!
-        # TODO: We need a function that takes in an ASCII-art description of
-        # what the test should look like and sets up the gameState, srcPos, and
-        # destPos. Else we're never going to get all the coordinates right.
-        groundTypes = [
-            [1, 1, 1, 1, 1, 1, 1],
-            [1, 0, 0, 1, 0, 0, 1],
-            [1, 0, 1, 1, 1, 0, 1],
-            [1, 0, 0, 0, 0, 0, 1],
-            [1, 1, 1, 1, 1, 1, 1],
-        ]
+        groundTypes, pointsOfInterest = parseTestCase(
+            """
+                #######
+                #.A#B.#
+                #.###.#
+                #.....#
+                #######
+            """
+        )
+        # TODO: Maybe create the GameState and do the getChunkCenters in
+        # parseTestCase?
         gameState = GameState(groundTypes=groundTypes)
-
-        srcPos  = getChunkCenter((1, 2))
-        destPos = getChunkCenter((1, 4))
+        srcPos  = getChunkCenter(pointsOfInterest["A"])
+        destPos = getChunkCenter(pointsOfInterest["B"])
 
         path = findPath(gameState, srcPos, destPos)
         checkWaypointsPassable(path, groundTypes)
@@ -84,27 +35,135 @@ class TestBasics:
         # impassible ground.
 
     def test_diagonallyBlocked(self):
-        groundTypes = [
-            [1, 1, 1, 1, 1, 1],
-            [1, 1, 1, 0, 0, 1],
-            [1, 1, 1, 0, 0, 1],
-            [1, 0, 0, 1, 1, 1],
-            [1, 0, 0, 1, 1, 1],
-            [1, 1, 1, 1, 1, 1],
-        ]
+        groundTypes, pointsOfInterest = parseTestCase(
+            """
+                ######
+                ###A.#
+                ###..#
+                #..###
+                #.B###
+                ######
+            """
+        )
         gameState = GameState(groundTypes=groundTypes)
-
-        srcPos  = getChunkCenter((1, 4))
-        destPos = getChunkCenter((4, 2))
+        srcPos  = getChunkCenter(pointsOfInterest["A"])
+        destPos = getChunkCenter(pointsOfInterest["B"])
 
         with pytest.raises(NoPathToTargetError):
             findPath(gameState, srcPos, destPos)
+
+    def test_noOutsideWall(self):
+        groundTypes, pointsOfInterest = parseTestCase(
+            """
+                ..#..
+                A.#.B
+                ..#..
+            """
+        )
+        gameState = GameState(groundTypes=groundTypes)
+        srcPos  = getChunkCenter(pointsOfInterest["A"])
+        destPos = getChunkCenter(pointsOfInterest["B"])
+
+        with pytest.raises(NoPathToTargetError):
+            findPath(gameState, srcPos, destPos)
+
+    def test_aroundColumn(self):
+        groundTypes, pointsOfInterest = parseTestCase(
+            """
+                ###########
+                #.........#
+                #.......B.#
+                #..##.....#
+                #..##....##
+                #.......###
+                #......####
+                #.....#####
+                #.A..######
+                #...#######
+                ###########
+            """
+        )
+        gameState = GameState(groundTypes=groundTypes)
+        srcPos  = getChunkCenter(pointsOfInterest["A"])
+        destPos = getChunkCenter(pointsOfInterest["B"])
+
+        path = findPath(gameState, srcPos, destPos)
+        checkWaypointsPassable(path, groundTypes)
+
+        # TODO: Check that we didn't take the long way around.
+
+    def test_aroundCorner(self):
+        groundTypes, pointsOfInterest = parseTestCase(
+            """
+                ######
+                ####B#
+                ####.#
+                ####.#
+                #A...#
+                ######
+            """
+        )
+        gameState = GameState(groundTypes=groundTypes)
+        srcPos  = getChunkCenter(pointsOfInterest["A"])
+        destPos = getChunkCenter(pointsOfInterest["B"])
+
+        path = findPath(gameState, srcPos, destPos)
+        checkWaypointsPassable(path, groundTypes)
+
+        # TODO: Was there supposed to be some extra checking in this test? I
+        # forget.
+
+    def test_orthogWall(self):
+        groundTypes, pointsOfInterest = parseTestCase(
+            """
+                #########
+                #.......#
+                #...#...#
+                #...#...#
+                #.A.#.B.#
+                #...#...#
+                #.......#
+                #########
+            """
+        )
+        gameState = GameState(groundTypes=groundTypes)
+        srcPos  = getChunkCenter(pointsOfInterest["A"])
+        destPos = getChunkCenter(pointsOfInterest["B"])
+
+        path = findPath(gameState, srcPos, destPos)
+        checkWaypointsPassable(path, groundTypes)
+
+        # TODO: Test that we went around the shorter way.
+
+    def test_diagWall(self):
+        groundTypes, pointsOfInterest = parseTestCase(
+            """
+                #######
+                ##..B.#
+                #.#...#
+                #..#..#
+                #A..#.#
+                #.....#
+                #######
+            """
+        )
+        gameState = GameState(groundTypes=groundTypes)
+        srcPos  = getChunkCenter(pointsOfInterest["A"])
+        destPos = getChunkCenter(pointsOfInterest["B"])
+
+        path = findPath(gameState, srcPos, destPos)
+        checkWaypointsPassable(path, groundTypes)
+
+        # TODO: Test that we didn't cut through the wall.
 
 
 def checkWaypointsPassable(path, groundTypes):
     for unitPos in path:
         x, y = unitToChunk(unitPos)
         assert groundTypes[x][y] == 0
+
+    # TODO: Check that none of the lines between waypoints pass through
+    # impassible ground.
 
 
 
@@ -115,12 +174,19 @@ IMPASSABLE_DESCS = ("#", "@")
 
 def parseTestCase(desc):
     assert type(desc) == str
-    lines = desc.strip().split("\n")
+    lines = map(lambda s: s.strip(), desc.strip().split("\n"))
 
     # Determine dimensions
     height = len(lines)
     widths = set(map(len, lines))
-    assert len(widths) == 1
+    if len(widths) != 1:
+        print "Error: len(widths) is {}, not 1".format(len(widths))
+        print "--------"
+        print lines
+        print "--------"
+        print widths
+        print "--------"
+        assert False
     width = next(iter(widths))
 
     pointsOfInterest = {}
