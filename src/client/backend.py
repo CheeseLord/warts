@@ -130,8 +130,8 @@ class Backend:
             # numerical button.
             if message.button == 1:
                 # Left mouse button
-                # TODO[#16]: Use LMB for selecting a unit.
-                log.warn("Left mouse button not implemented yet.")
+                newMsg = messages.RequestUnitAt(message.pos)
+                self.graphicsInterface.backendMessage(newMsg.serialize())
             elif message.button == 3:
                 # Right mouse button
                 newMsg = messages.OrderMove(self.unitSelection,
@@ -141,6 +141,8 @@ class Backend:
             for component in self.allComponents:
                 component.cleanup()
             self.done.callback(None)
+        elif isinstance(message, messages.SelectUnits):
+            self.unitSelection = message.unitSet
         else:
             unhandledInternalMessage(message, log)
 

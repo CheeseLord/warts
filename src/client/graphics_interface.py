@@ -38,6 +38,10 @@ class GraphicsInterface(object):
                 self.graphics.moveObelisk(message.unitId, message.pos)
             elif isinstance(message, messages.GroundInfo):
                 self.graphics.addGround(message.pos, message.terrainType)
+            elif isinstance(message, messages.RequestUnitAt):
+                unitSet = self.graphics.unitAt(message.pos)
+                self.backend.graphicsMessage(
+                    messages.SelectUnits(unitSet).serialize())
             else:
                 unhandledMessageCommand(message, log, sender="server")
         except InvalidMessageError as error:
@@ -48,3 +52,4 @@ class GraphicsInterface(object):
 
     def cleanup(self):
         self.graphics.cleanup()
+

@@ -91,14 +91,16 @@ DeleteObelisk = defineMessageType("delete_obelisk",
 GroundInfo    = defineMessageType("ground_info",
                                   [("pos", cPosArg),
                                    ("terrainType", terrainTypeArg)])
+NewObelisk    = defineMessageType("new_obelisk",
+                                  [("unitId", unitIdArg),
+                                   ("pos", uPosArg)])
 OrderDel      = defineMessageType("order_del", [("unitId", unitIdArg)])
 OrderMove     = defineMessageType("order_move", [("unitSet", unitSetArg),
                                                  ("dest", uPosArg)])
 OrderNew      = defineMessageType("order_new", [("pos", uPosArg)])
-NewObelisk    = defineMessageType("new_obelisk",
-                                  [("unitId", unitIdArg),
-                                   ("pos", uPosArg)])
+RequestUnitAt = defineMessageType("request_unit_at", [("pos", gPosArg)])
 RequestQuit   = defineMessageType("request_quit", [])
+SelectUnits   = defineMessageType("select_units", [("unitSet", unitSetArg)])
 SetPos        = defineMessageType("set_pos",
                                   [("unitId", unitIdArg),
                                    ("pos", uPosArg)])

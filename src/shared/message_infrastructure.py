@@ -83,16 +83,7 @@ def deserializeMessage(data, errorOnFail=True):
 
         return messageType(*args)
     except StandardError, exc:
-        if errorOnFail:
-            # Reraise the exception, but converted (if necessary) to an
-            # InvalidMessageError. This ensures that it'll be handled correctly
-            # by the caller and not cause the program to crash unnecessarily.
-            if isinstance(exc, InvalidMessageError):
-                raise exc
-            else:
-                raise InvalidMessageError(data, str(exc))
-        else:
-            return None
+        raise
 
 class Message(object):
     command  = None

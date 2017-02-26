@@ -3,8 +3,10 @@ from collections import defaultdict
 from src.shared.ident import UnitId, unitToPlayer, getUnitSubId
 
 class UnitSet(object):
-    def __init__(self, units=[]):
+    def __init__(self, units=None):
         super(UnitSet, self).__init__()
+        if units is None:
+            units = []
         self.units = defaultdict(set)
         self.addMany(units)
 

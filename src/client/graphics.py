@@ -16,6 +16,7 @@ from src.shared.logconfig import newLogger
 from src.shared.message_infrastructure import deserializeMessage, \
     illFormedMessage, unhandledMessageCommand, invalidMessageArgument, \
     InvalidMessageError
+from src.shared.unit_set import UnitSet
 from src.client.backend import unitToGraphics, GRAPHICS_SCALE
 
 log = newLogger(__name__)
@@ -389,6 +390,23 @@ class WartsApp(ShowBase):
         self.win.set_close_request_event("window-close")
         self.accept("window-close", self.handleWindowClose)
 
+    # TODO [#34]: This really shouldn't happen here.
+    def unitAt(self, pos):
+        x, y = pos
+
+        nearest = UnitSet()
+        nearestDistance = float('inf')
+        for unitId in self.obelisks:
+            if unitToPlayer(unitId) != self.myId:
+                continue
+
+            unitX, unitY, unitZ = self.obelisks[unitId].getPos()
+            distance = (unitX - x) ** 2 + (unitY - y) ** 2
+            if distance < nearestDistance:
+                nearest = UnitSet([unitId])
+                nearestDistance = distance
+        return nearest
+
 
 def getModelPath(modelName):
     """
@@ -405,3 +423,4 @@ def getModelPath(modelName):
     modelsDir = repository + 'assets/models/'
 
     return modelsDir + modelName
+
