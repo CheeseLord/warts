@@ -48,10 +48,29 @@ def parseFloat(desc):
         # Note: this isn't really quite right -- the full message isn't desc,
         # but rather something like "set_pos 2 {desc} 1.6" -- but we don't have
         # access to the full message, so this is the best we can do.
+        #
+        # TODO: Is this right? We now do this at a higher level -- any
+        # exceptions raised during deserializeMessage are converted to
+        # InvalidMessageErrors in a standard way. Is this going to mess that
+        # up?
         raise InvalidMessageError(desc, "Could not parse floating-point value")
 
 def isfinite(x):
     return not math.isinf(x) and not math.isnan(x)
+
+
+# Booleans -- encoded using T and F so they don't look like integers.
+
+def encodeBool(b):
+    return "T" if b else "F"
+
+def parseBool(desc):
+    if desc == "T":
+        return True
+    elif desc == "F":
+        return False
+    else:
+        raise ValueError
 
 
 ###############################################################################
@@ -62,8 +81,15 @@ def isfinite(x):
 # example) the three different type of pos args that all boil down to "pair of
 # ints" can be implemented as a single underlying specification.
 intArg       = ArgumentSpecification(1, int)
+boolArg      = ArgumentSpecification(1, parseBool, encodeBool)
 intPairArg   = ArgumentSpecification(2, parseIntPair, encodeIntPair)
 floatPairArg = ArgumentSpecification(2, parseFloatPair, encodeFloatPair)
+
+# FIXME FIXME FIXME [#43]: This is bad!
+# unsafeStringArgs need to make use of the lastIsUnsafe feature of
+# buildMessage, since they might contain any arbitrary character. This is going
+# to come back to bite us if we don't fix it.
+unsafeStringArg = ArgumentSpecification(1, str)
 
 playerIdArg  = intArg
 unitSetArg   = ArgumentSpecification(1, UnitSet.deserialize, UnitSet.serialize)
@@ -78,6 +104,8 @@ gPosArg = floatPairArg  # Graphics position (intra-client messages only)
 
 # The type of ground on a certain chunk.
 terrainTypeArg = intArg
+
+graphicsIdArg = intArg
 
 
 ###############################################################################
@@ -105,6 +133,13 @@ YourIdIs      = defineMessageType("your_id_is", [("playerId", playerIdArg)])
 
 # Purely intra-client messages.
 
+# TODO[#9]: Get rid of isExample argument; replace with more generic isActor
+# (or hasAnimations?).
+AddEntity     = defineMessageType("add_entity",
+                                  [("gid", graphicsIdArg),
+                                   ("pos", gPosArg),
+                                   ("isExample", boolArg),
+                                   ("modelPath", unsafeStringArg)])
 Click         = defineMessageType("click",
                                   [("button", intArg),
                                    ("pos", gPosArg)])

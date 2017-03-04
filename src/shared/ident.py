@@ -17,6 +17,8 @@ class UnitId:
     def __repr__(self):
         return repr((self.playerId, self.subId))
 
+# TODO: These names sound like they're for coordinate conversions. Need to put
+# an actual noun somewhere in the name.
 def unitToPlayer(unitId):
     return unitId.playerId
 

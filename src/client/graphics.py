@@ -26,6 +26,18 @@ log = newLogger(__name__)
 DESIRED_FPS = 60
 
 
+class Entity(object):
+    """
+    Class to represent any sort of thing with a graphical presence in the
+    world: ground, trees, units, structures.
+    """
+
+    def __init__(self, graphicId, model, isActor):
+        self.gid     = graphicId
+        self.model   = model
+        self.isActor = isActor
+
+
 class WartsApp(ShowBase):
     """
     The application running all the graphics.
@@ -35,6 +47,9 @@ class WartsApp(ShowBase):
         ShowBase.__init__(self)
 
         self.graphicsInterface = graphicsInterface
+
+        # Mapping from gids to entities.
+        self.entities = {}
 
         # Our playerId.
         # TODO[#34]: Graphics shouldn't even know this.
@@ -59,6 +74,40 @@ class WartsApp(ShowBase):
 
     def cleanup(self):
         pass
+
+    def interfaceMessage(self, data):
+        # Messages from GraphicsInterface to Graphics are always internal
+        # client messages, so no need to catch InvalidMessageError.
+        message = deserializeMessage(data)
+        if isinstance(message, messages.AddEntity):
+            self.addEntity(message.gid, message.pos, message.modelPath,
+                           message.isExample)
+        else:
+            unhandledInternalMessage(message, log)
+
+    def addEntity(self, gid, pos, modelPath, isExample):
+        if gid in self.entities:
+            raise RuntimeError("Already have entity with gid {gid}."
+                               .format(gid=gid))
+
+        log.debug("Adding graphical entity {} at {}".format(gid, pos))
+        x, y = pos
+
+        if isExample:
+            # The example panda from the Panda3D "Hello world" tutorial.
+            # TODO[#9]: Figure out a more general way of specifying animations.
+            model = Actor(modelPath,
+                          {"walk": "models/panda-walk4"})
+            model.setScale(0.004, 0.004, 0.004)
+        else:
+            model = self.loader.loadModel(getModelPath(modelPath))
+        model.reparentTo(self.render)
+        # TODO: Non-ground models need to be raised up. Really <z> just needs
+        # to be part of the graphical position passed in pos.
+        model.setPos(x, y, 0.0)
+
+        entity = Entity(gid, model, isExample)
+        self.entities[gid] = entity
 
     # TODO[#34]: Just have a generic addModel method. Don't do all this id
     # checking.
