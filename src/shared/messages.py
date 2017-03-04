@@ -83,9 +83,8 @@ terrainTypeArg = intArg
 ###############################################################################
 # The messages themselves
 
-Click         = defineMessageType("click",
-                                  [("button", intArg),
-                                   ("pos", gPosArg)])
+# Messages that are sent between client and server.
+
 DeleteObelisk = defineMessageType("delete_obelisk",
                                   [("unitId", unitIdArg)])
 GroundInfo    = defineMessageType("ground_info",
@@ -98,11 +97,19 @@ OrderDel      = defineMessageType("order_del", [("unitId", unitIdArg)])
 OrderMove     = defineMessageType("order_move", [("unitSet", unitSetArg),
                                                  ("dest", uPosArg)])
 OrderNew      = defineMessageType("order_new", [("pos", uPosArg)])
-RequestUnitAt = defineMessageType("request_unit_at", [("pos", gPosArg)])
-RequestQuit   = defineMessageType("request_quit", [])
-SelectUnits   = defineMessageType("select_units", [("unitSet", unitSetArg)])
 SetPos        = defineMessageType("set_pos",
                                   [("unitId", unitIdArg),
                                    ("pos", uPosArg)])
 YourIdIs      = defineMessageType("your_id_is", [("playerId", playerIdArg)])
+
+
+# Purely intra-client messages.
+
+Click         = defineMessageType("click",
+                                  [("button", intArg),
+                                   ("pos", gPosArg)])
+# TODO[#34]: Remove RequestUnitAt and SelectUnits entirely.
+RequestUnitAt = defineMessageType("request_unit_at", [("pos", gPosArg)])
+RequestQuit   = defineMessageType("request_quit", [])
+SelectUnits   = defineMessageType("select_units", [("unitSet", unitSetArg)])
 
