@@ -22,7 +22,7 @@ from src.client.backend import unitToGraphics, GRAPHICS_SCALE
 log = newLogger(__name__)
 
 
-# TODO: Read from a config file.
+# TODO[#34]: Read from a config file.
 DESIRED_FPS = 60
 
 
@@ -37,6 +37,7 @@ class WartsApp(ShowBase):
         self.graphicsInterface = graphicsInterface
 
         # Our playerId.
+        # TODO[#34]: Graphics shouldn't even know this.
         self.myId = -1
 
         # Set up event handling.
@@ -45,9 +46,8 @@ class WartsApp(ShowBase):
         self.setupMouseHandler()
 
         # Mapping from unitIds to obelisk actors.
+        # TODO[#34]: Shouldn't use UnitIds.
         self.obelisks = {}
-
-        # Don't add the terrain here; that's handled by addGround now.
 
         # Set up camera control.
         self.cameraHolder = self.render.attachNewNode('CameraHolder')
@@ -60,6 +60,8 @@ class WartsApp(ShowBase):
     def cleanup(self):
         pass
 
+    # TODO[#34]: Just have a generic addModel method. Don't do all this id
+    # checking.
     def addObelisk(self, unitId, pos):
         if self.myId < 0:
             raise RuntimeError("Must set ID before adding obelisks.")
@@ -82,6 +84,7 @@ class WartsApp(ShowBase):
 
         self.obelisks[unitId] = obelisk
 
+    # TODO[#34]: Replace with removeModel.
     def removeObelisk(self, unitId):
         log.info("Removing obelisk {}".format(unitId))
         obeliskActor = self.obelisks.pop(unitId)
@@ -93,6 +96,8 @@ class WartsApp(ShowBase):
             pass
         obeliskActor.removeNode()
 
+    # TODO[#34]: Replace with moveModel. And figure out how animation factors
+    # into that?
     def moveObelisk(self, unitId, pos):
         if unitId not in self.obelisks:
             raise RuntimeError("There is no obelisk with id {id}."
@@ -132,6 +137,11 @@ class WartsApp(ShowBase):
                 startFrame=currFrame, endFrame=endFrame)
             animInterval.start()
 
+    # TODO[#34]: Graphics probably shouldn't know about ground versus units.
+    # Though it may be useful to distinguish fixtures (ground, trees) from
+    # non-fixtures (units, structures). For now, let's just store a metadata
+    # field with each model to prove we can. In short: this method should be
+    # merged into addModel.
     def addGround(self, cPos, terrainType):
         modelName = None
         if terrainType == 0:
@@ -283,6 +293,11 @@ class WartsApp(ShowBase):
         zoom = -zoomSpeed if inward else zoomSpeed
         self.cameraHolder.setPos(self.cameraHolder, 0, 0, zoom)
 
+    # TODO[#34]: The core logic here belongs in graphicsInterface if anywhere.
+    # The graphics shouldn't have any idea where it makes sense to center the
+    # view on. It may make sense to have a message that means "move view to <x>
+    # <y> coordinates", but figuring out <x> and <y> is up to the
+    # graphicsInterface.
     def centerViewOnSelf(self):
         if self.myId not in self.obelisks:
             return
@@ -324,8 +339,13 @@ class WartsApp(ShowBase):
                         if self.usingCustomCamera:
                             clickedPoint = entry.getSurfacePoint(self.render)
                             x, y, z = clickedPoint
+                            # TODO: This component should take care of decoding
+                            # the click as far as "left" or "right"; we
+                            # shouldn't send a numerical button id to the
+                            # graphicsInterface.
                             message = messages.Click(button, (x, y))
-                            self.graphicsInterface.graphicsMessage(message.serialize())
+                            self.graphicsInterface.graphicsMessage(
+                                message.serialize())
 
     def handleWindowClose(self):
         log.info("Window close requested -- shutting down client.")
