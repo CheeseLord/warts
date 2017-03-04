@@ -20,7 +20,9 @@ class GraphicsInterface(object):
         # about this.
         self.myId = -1
 
-        self.nextGid = 0
+        self.nextGid  = 0
+        # Mapping from unit ids to graphics ids.
+        self.uidToGid = {}
 
     # Red A5, standing by.
     def graphicsReady(self, graphicsComponent):
@@ -47,6 +49,18 @@ class GraphicsInterface(object):
                 gid  = self.getNextGid()
                 gPos = unitToGraphics(uPos)
 
+                if uid in self.uidToGid:
+                    invalidMessageArgument(message, log, sender="server",
+                        reason="uid {} already corresponds to gid {}"
+                            .format(uid, gid))
+                    # This is probably a bug on our end, so maybe we shouldn't
+                    # drop the message. Instead, it would make sense to just
+                    # assign that uid a new gid and add it to the graphics.
+                    # But that would probably leave the old gid orphaned, with
+                    # no way to ever remove it. So for now, drop the message.
+                    return
+                self.uidToGid[uid] = gid
+
                 # TODO: Long-term, we need to just get rid of this logic
                 # entirely. Need a real way of distinguishing my units from
                 # other players' units.
@@ -63,6 +77,18 @@ class GraphicsInterface(object):
                 # TODO: Remove this.
                 self.graphics.addObelisk(message.unitId, message.pos)
             elif isinstance(message, messages.DeleteObelisk):
+                uid = message.unitId
+
+                if uid not in self.uidToGid:
+                    invalidMessageArgument(message, log, sender="server",
+                        reason="No graphical entity for uid {}".format(uid))
+                    return
+                gid = self.uidToGid.pop(uid)
+
+                gMessage = messages.RemoveEntity(gid)
+                self.graphics.interfaceMessage(gMessage.serialize())
+
+                # TODO: Remove this.
                 self.graphics.removeObelisk(message.unitId)
             elif isinstance(message, messages.SetPos):
                 self.graphics.moveObelisk(message.unitId, message.pos)

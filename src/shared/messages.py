@@ -143,6 +143,7 @@ AddEntity     = defineMessageType("add_entity",
 Click         = defineMessageType("click",
                                   [("button", intArg),
                                    ("pos", gPosArg)])
+RemoveEntity  = defineMessageType("remove_entity", [("gid", graphicsIdArg)])
 # TODO[#34]: Remove RequestUnitAt and SelectUnits entirely.
 RequestUnitAt = defineMessageType("request_unit_at", [("pos", gPosArg)])
 RequestQuit   = defineMessageType("request_quit", [])

@@ -37,6 +37,11 @@ class Entity(object):
         self.model   = model
         self.isActor = isActor
 
+    def cleanup(self):
+        if self.isActor:
+            self.model.cleanup()
+        self.model.removeNode()
+
 
 class WartsApp(ShowBase):
     """
@@ -82,6 +87,8 @@ class WartsApp(ShowBase):
         if isinstance(message, messages.AddEntity):
             self.addEntity(message.gid, message.pos, message.modelPath,
                            message.isExample)
+        elif isinstance(message, messages.RemoveEntity):
+            self.removeEntity(message.gid)
         else:
             unhandledInternalMessage(message, log)
 
@@ -108,6 +115,11 @@ class WartsApp(ShowBase):
 
         entity = Entity(gid, model, isExample)
         self.entities[gid] = entity
+
+    def removeEntity(self, gid):
+        log.debug("Removing graphical entity {}".format(gid))
+        entity = self.entities.pop(gid)
+        entity.cleanup()
 
     # TODO[#34]: Just have a generic addModel method. Don't do all this id
     # checking.
