@@ -13,6 +13,9 @@ class TestTokenize:
     def test_basic(self):
         assert TOKEN_DELIM == ' '
 
+        with pytest.raises(InvalidMessageError):
+            tokenize("")
+
         assert tokenize("a")     == ("a", [])
         assert tokenize(" a")    == ("", ["a"])
         assert tokenize("a ")    == ("a", [""])
@@ -31,6 +34,7 @@ class TestTokenize:
         assert START_STRING == '|'
 
         assert tokenize("a |b")    == ("a", ["b"])
+        assert tokenize("a |")     == ("a", [""])
         assert tokenize("a b|")    == ("a", ["b|"])
         assert tokenize("a b|c")   == ("a", ["b|c"])
         assert tokenize("a |b c")  == ("a", ["b c"])

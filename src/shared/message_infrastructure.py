@@ -164,37 +164,25 @@ class ArgumentSpecification:
             assert len(words) == self.count
         return self.decodeFunc(words)
 
-# TODO: We can and should unit-test tokenize and buildMessage.
 # For an arbitrary string command and an arbitrary list of strings args,
 #     tokenize(buildMessage(command, args, lastIsUnsafe=<whatever>))
 # should either return exactly (command, args) or raise an InvalidMessageError.
-#
-# Note: this isn't quite true. buildMessage('', ['']) gives ' ' (one space),
-# but tokenize(' ') returns ('', []), not ('', ['']). This is maybe a bug in
-# tokenize, but really the solution is probably not to allow the empty string
-# as a command or argument.
-
 def tokenize(message):
-    tokens  = []
-    isFirst = True
-    while message:
-        if message.startswith(START_STRING):
-            if isFirst:
-                raise InvalidMessageError(message,
-                                          "Message starts with unsafe string.")
-            tok  = message[len(START_STRING):]
-            rest = ""
-        else:
-            tok, _, rest = message.partition(TOKEN_DELIM)
-        tokens.append(tok)
-        message = rest
-        isFirst = False
-
-    if not tokens:
+    if not message:
         raise InvalidMessageError(message, "Empty message.")
+
+    if message[0] == START_STRING:
+        raise InvalidMessageError(message,
+                                  "Message starts with unsafe string.")
+    index = message.find(TOKEN_DELIM + START_STRING)
+    if index == -1:
+        tokens = message.split(TOKEN_DELIM)
+    else:
+        tokens = message[:index].split(TOKEN_DELIM) + [message[index + 2:]]
 
     return (tokens[0], tokens[1:])
 
+# TODO: We can and should unit-test buildMessage.
 def buildMessage(command, args, lastIsUnsafe=False):
     """
     Build a message from the given command and arguments. The arguments don't
