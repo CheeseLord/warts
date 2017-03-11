@@ -48,10 +48,29 @@ def parseFloat(desc):
         # Note: this isn't really quite right -- the full message isn't desc,
         # but rather something like "set_pos 2 {desc} 1.6" -- but we don't have
         # access to the full message, so this is the best we can do.
+        #
+        # TODO: Is this right? We now do this at a higher level -- any
+        # exceptions raised during deserializeMessage are converted to
+        # InvalidMessageErrors in a standard way. Is this going to mess that
+        # up?
         raise InvalidMessageError(desc, "Could not parse floating-point value")
 
 def isfinite(x):
     return not math.isinf(x) and not math.isnan(x)
+
+
+# Booleans -- encoded using T and F so they don't look like integers.
+
+def encodeBool(b):
+    return "T" if b else "F"
+
+def parseBool(desc):
+    if desc == "T":
+        return True
+    elif desc == "F":
+        return False
+    else:
+        raise ValueError
 
 
 ###############################################################################
@@ -62,8 +81,15 @@ def isfinite(x):
 # example) the three different type of pos args that all boil down to "pair of
 # ints" can be implemented as a single underlying specification.
 intArg       = ArgumentSpecification(1, int)
+boolArg      = ArgumentSpecification(1, parseBool, encodeBool)
 intPairArg   = ArgumentSpecification(2, parseIntPair, encodeIntPair)
 floatPairArg = ArgumentSpecification(2, parseFloatPair, encodeFloatPair)
+
+# FIXME FIXME FIXME [#43]: This is bad!
+# unsafeStringArgs need to make use of the lastIsUnsafe feature of
+# buildMessage, since they might contain any arbitrary character. This is going
+# to come back to bite us if we don't fix it.
+unsafeStringArg = ArgumentSpecification(1, str)
 
 playerIdArg  = intArg
 unitSetArg   = ArgumentSpecification(1, UnitSet.deserialize, UnitSet.serialize)
@@ -79,13 +105,14 @@ gPosArg = floatPairArg  # Graphics position (intra-client messages only)
 # The type of ground on a certain chunk.
 terrainTypeArg = intArg
 
+graphicsIdArg = intArg
+
 
 ###############################################################################
 # The messages themselves
 
-Click         = defineMessageType("click",
-                                  [("button", intArg),
-                                   ("pos", gPosArg)])
+# Messages that are sent between client and server.
+
 DeleteObelisk = defineMessageType("delete_obelisk",
                                   [("unitId", unitIdArg)])
 GroundInfo    = defineMessageType("ground_info",
@@ -98,11 +125,37 @@ OrderDel      = defineMessageType("order_del", [("unitId", unitIdArg)])
 OrderMove     = defineMessageType("order_move", [("unitSet", unitSetArg),
                                                  ("dest", uPosArg)])
 OrderNew      = defineMessageType("order_new", [("pos", uPosArg)])
-RequestUnitAt = defineMessageType("request_unit_at", [("pos", gPosArg)])
-RequestQuit   = defineMessageType("request_quit", [])
-SelectUnits   = defineMessageType("select_units", [("unitSet", unitSetArg)])
 SetPos        = defineMessageType("set_pos",
                                   [("unitId", unitIdArg),
                                    ("pos", uPosArg)])
 YourIdIs      = defineMessageType("your_id_is", [("playerId", playerIdArg)])
+
+
+# Purely intra-client messages.
+
+# TODO[#9]: Get rid of isExample argument; replace with more generic isActor
+# (or hasAnimations?).
+AddEntity       = defineMessageType("add_entity",
+                                    [("gid", graphicsIdArg),
+                                     ("pos", gPosArg),
+                                     ("isExample", boolArg),
+                                     ("modelPath", unsafeStringArg)])
+# TODO: This is getting out of hand. Now there are two of them.
+AddScaledEntity = defineMessageType("add_scaled_entity",
+                                    [("gid", graphicsIdArg),
+                                     ("pos", gPosArg),
+                                     ("isExample", boolArg),
+                                     ("modelPath", unsafeStringArg),
+                                     ("scaleTo", floatPairArg)])
+Click           = defineMessageType("click",
+                                    [("button", intArg),
+                                     ("pos", gPosArg)])
+MoveEntity      = defineMessageType("move_entity",
+                                    [("gid", graphicsIdArg),
+                                     ("pos", gPosArg)])
+RemoveEntity    = defineMessageType("remove_entity", [("gid", graphicsIdArg)])
+# TODO[#34]: Remove RequestUnitAt and SelectUnits entirely.
+RequestUnitAt   = defineMessageType("request_unit_at", [("pos", gPosArg)])
+RequestQuit     = defineMessageType("request_quit", [])
+SelectUnits     = defineMessageType("select_units", [("unitSet", unitSetArg)])
 

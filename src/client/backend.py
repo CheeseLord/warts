@@ -146,6 +146,8 @@ class Backend:
         else:
             unhandledInternalMessage(message, log)
 
+# TODO: Shouldn't these be in the GraphicsInterface if they're going to be
+# with a single component?
 def unitToGraphics(unitCoords):
     """Convert unit (xu,yu) integers tuples to graphics (xg,yg) float tuples
     """

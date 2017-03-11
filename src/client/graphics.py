@@ -26,6 +26,23 @@ log = newLogger(__name__)
 DESIRED_FPS = 60
 
 
+class Entity(object):
+    """
+    Class to represent any sort of thing with a graphical presence in the
+    world: ground, trees, units, structures.
+    """
+
+    def __init__(self, graphicId, model, isActor):
+        self.gid     = graphicId
+        self.model   = model
+        self.isActor = isActor
+
+    def cleanup(self):
+        if self.isActor:
+            self.model.cleanup()
+        self.model.removeNode()
+
+
 class WartsApp(ShowBase):
     """
     The application running all the graphics.
@@ -35,6 +52,9 @@ class WartsApp(ShowBase):
         ShowBase.__init__(self)
 
         self.graphicsInterface = graphicsInterface
+
+        # Mapping from gids to entities.
+        self.entities = {}
 
         # Our playerId.
         # TODO[#34]: Graphics shouldn't even know this.
@@ -59,6 +79,149 @@ class WartsApp(ShowBase):
 
     def cleanup(self):
         pass
+
+    def interfaceMessage(self, data):
+        # Messages from GraphicsInterface to Graphics are always internal
+        # client messages, so no need to catch InvalidMessageError.
+        message = deserializeMessage(data)
+        if isinstance(message, messages.AddEntity):
+            self.addEntity(message.gid, message.pos, message.modelPath,
+                           message.isExample)
+        elif isinstance(message, messages.AddScaledEntity):
+            self.addEntity(message.gid, message.pos, message.modelPath,
+                           message.isExample, scaleTo=message.scaleTo)
+        elif isinstance(message, messages.RemoveEntity):
+            self.removeEntity(message.gid)
+        elif isinstance(message, messages.MoveEntity):
+            self.moveEntity(message.gid, message.pos)
+        else:
+            unhandledInternalMessage(message, log)
+
+    def addEntity(self, gid, pos, modelPath, isExample, scaleTo=None):
+        """
+        pos is given in graphics coordinates.
+
+        scaleTo, if specified, is a pair (width, height) -- the model will be
+        scaled in the xy plane so that it's as large as possible while still
+        fitting within that width and height. Don't pass 0 as the width or the
+        height, because that's just not nice.
+        """
+
+        if gid in self.entities:
+            raise RuntimeError("Already have entity with gid {gid}."
+                               .format(gid=gid))
+
+        log.debug("Adding graphical entity {} at {}".format(gid, pos))
+        x, y = pos
+
+        if isExample:
+            # The example panda from the Panda3D "Hello world" tutorial.
+            # TODO[#9]: Figure out a more general way of specifying animations.
+            model = Actor(modelPath,
+                          {"walk": "models/panda-walk4"})
+            model.setScale(0.004, 0.004, 0.004)
+        else:
+            model = self.loader.loadModel(getModelPath(modelPath))
+        # Put the model in the scene, but don't position it yet.
+        model.reparentTo(self.render)
+
+        # TODO[#34]: Really scaleTo should always be specified. The only reason
+        # it's optional right now is because I haven't yet gotten around to
+        # merging the addGround logic with the other addModel logic. But that's
+        # definitely something we should do.
+        if scaleTo is None:
+            # TODO: Non-ground models need to be raised up. Really <z> just
+            # needs to be part of the graphical position passed in pos.
+            model.setPos(x, y, 0.0)
+        else:
+            # TODO[#34]: I don't think this logic is ready to use with models
+            # that might move. The problem is that we're positioning the
+            # center, not the origin of the model. So if the two differ, then
+            # its position according to Panda won't be the same as the position
+            # passed to addEntity. We could maybe get around this by adding a
+            # node in between the model and the render, or we could just draw
+            # it at its origin and depend on the modelers to put the origin at
+            # the center. (But that seems like it'd be easy to get very
+            # slightly off, in which case things might look wonky.)
+
+            goalCenterX, goalCenterY = x, y
+            goalWidthX,  goalWidthY  = scaleTo
+
+            # For now, all models sit flush against the ground.
+            goalBottomZ = 0.0
+
+            # Calculate the footprint of the tile in its default
+            # position/scale.
+            bound1, bound2 = model.getTightBounds()
+            modelCenterX = 0.5 *    (bound2[0] + bound1[0])
+            modelCenterY = 0.5 *    (bound2[1] + bound1[1])
+            modelWidthX  = 0.5 * abs(bound2[0] - bound1[0])
+            modelWidthY  = 0.5 * abs(bound2[1] - bound1[1])
+            modelBottomZ = min(bound2[2], bound1[2])
+
+            # TODO: Give a graceful error if the tight bounds are zero on
+            # either axis.
+
+            # Scale it to the largest it can be while still fitting within the
+            # goal rect. If the aspect ratio of the goal rect is different from
+            # that of the model, then it'll only fill that rect in one
+            # dimension.
+            scaleFactor = min(goalWidthX / modelWidthX,
+                              goalWidthY / modelWidthY)
+            model.setScale(scaleFactor)
+
+            model.setPos(goalCenterX - modelCenterX,
+                         goalCenterY - modelCenterY,
+                         goalBottomZ - modelBottomZ)
+
+        entity = Entity(gid, model, isExample)
+        self.entities[gid] = entity
+
+    def removeEntity(self, gid):
+        log.debug("Removing graphical entity {}".format(gid))
+        entity = self.entities.pop(gid)
+        entity.cleanup()
+
+    def moveEntity(self, gid, newPos):
+        log.debug("Moving graphical entity {} to {}".format(gid, newPos))
+        entity = self.entities[gid]
+
+        x, y = newPos
+        oldX, oldY, oldZ = entity.model.getPos()
+        z = oldZ
+
+        # Ensure the entity is facing the right direction.
+        heading = math.atan2(y - oldY, x - oldX)
+        heading *= 180.0 / math.pi
+        # Magic angle adjustment needed to stop the panda always facing
+        # sideways.
+        # TODO[#9]: Establish a convention about which way _our_ models face;
+        # figure out whether we need something like this. (Hopefully not?)
+        heading += 90.0
+        entity.model.setHpr(heading, 0, 0)
+
+        moveInterval = entity.model.posInterval(config.TICK_LENGTH, (x, y, z))
+        moveInterval.start()
+
+        if entity.isActor and "walk" in entity.model.getAnimNames():
+            currFrame = entity.model.getCurrentFrame("walk")
+            if currFrame is None:
+                currFrame = 0
+            # Supposedly, it's possible to pass a startFrame and a duration to
+            # actorInterval, instead of calculating the endFrame ourself. But
+            # for some reason, that doesn't seem to work; if I do that, then
+            # the animation just keeps jumping around the early frames and
+            # never gets past frame 5 or so. I'm not sure why. For now at
+            # least, just calculate the endFrame ourselves to work around this.
+            log.debug("Animating entity {} from frame {}/{}"
+                      .format(gid, currFrame,
+                              entity.model.getNumFrames("walk")))
+            frameRate = entity.model.getAnimControl("walk").getFrameRate()
+            endFrame = currFrame + int(math.ceil(frameRate *
+                                                 config.TICK_LENGTH))
+            animInterval = entity.model.actorInterval("walk", loop=1,
+                startFrame=currFrame, endFrame=endFrame)
+            animInterval.start()
 
     # TODO[#34]: Just have a generic addModel method. Don't do all this id
     # checking.
@@ -137,65 +300,65 @@ class WartsApp(ShowBase):
                 startFrame=currFrame, endFrame=endFrame)
             animInterval.start()
 
-    # TODO[#34]: Graphics probably shouldn't know about ground versus units.
-    # Though it may be useful to distinguish fixtures (ground, trees) from
-    # non-fixtures (units, structures). For now, let's just store a metadata
-    # field with each model to prove we can. In short: this method should be
-    # merged into addModel.
-    def addGround(self, cPos, terrainType):
-        modelName = None
-        if terrainType == 0:
-            modelName = "green-ground.egg"
-        elif terrainType == 1:
-            modelName = "red-ground.egg"
-        else:
-            # TODO: We're building a new message rather than using the old one
-            # to avoid passing the message to this function. This is ugly, but
-            # I think it's still slightly less bad than the other solution.
-            invalidMessageArgument(messages.GroundInfo(cPos, terrainType), log,
-                                   reason="Invalid terrain type")
-            # Drop the message.
-            return
+  # # TODO[#34]: Graphics probably shouldn't know about ground versus units.
+  # # Though it may be useful to distinguish fixtures (ground, trees) from
+  # # non-fixtures (units, structures). For now, let's just store a metadata
+  # # field with each model to prove we can. In short: this method should be
+  # # merged into addModel.
+  # def addGround(self, cPos, terrainType):
+  #     modelName = None
+  #     if terrainType == 0:
+  #         modelName = "green-ground.egg"
+  #     elif terrainType == 1:
+  #         modelName = "red-ground.egg"
+  #     else:
+  #         # TODO: We're building a new message rather than using the old one
+  #         # to avoid passing the message to this function. This is ugly, but
+  #         # I think it's still slightly less bad than the other solution.
+  #         invalidMessageArgument(messages.GroundInfo(cPos, terrainType), log,
+  #                                reason="Invalid terrain type")
+  #         # Drop the message.
+  #         return
 
-        # Calculate opposite corners of the ground tile.
-        gPos1 = unitToGraphics(chunkToUnit(cPos))
-        gPos2 = unitToGraphics(chunkToUnit((coord + 1 for coord in cPos)))
+  #     # Calculate opposite corners of the ground tile.
+  #     gPos1 = unitToGraphics(chunkToUnit(cPos))
+  #     gPos2 = unitToGraphics(chunkToUnit((coord + 1 for coord in cPos)))
 
-        # TODO: Put most of the below in a common function, because it'll be
-        # used for adding most models to the world.
+  #     # TODO: Put most of the below in a common function, because it'll be
+  #     # used for adding most models to the world.
 
-        # Figure out where we want the tile.
-        goalCenterX = 0.5 *    (gPos2[0] + gPos1[0])
-        goalCenterY = 0.5 *    (gPos2[1] + gPos1[1])
-        goalWidthX  = 0.5 * abs(gPos2[0] - gPos1[0])
-        goalWidthY  = 0.5 * abs(gPos2[1] - gPos1[1])
-        # For now, all models sit flush against the ground.
-        goalBottomZ = 0.0
+  #     # Figure out where we want the tile.
+  #     goalCenterX = 0.5 *    (gPos2[0] + gPos1[0])
+  #     goalCenterY = 0.5 *    (gPos2[1] + gPos1[1])
+  #     goalWidthX  = 0.5 * abs(gPos2[0] - gPos1[0])
+  #     goalWidthY  = 0.5 * abs(gPos2[1] - gPos1[1])
+  #     # For now, all models sit flush against the ground.
+  #     goalBottomZ = 0.0
 
-        # Put the model in the scene, but don't position it yet.
-        groundTile = self.loader.loadModel(getModelPath(modelName))
-        groundTile.reparentTo(self.render)
+  #     # Put the model in the scene, but don't position it yet.
+  #     groundTile = self.loader.loadModel(getModelPath(modelName))
+  #     groundTile.reparentTo(self.render)
 
-        # Calculate the footprint of the tile in its default position/scale.
-        bound1, bound2 = groundTile.getTightBounds()
-        modelCenterX = 0.5 *    (bound2[0] + bound1[0])
-        modelCenterY = 0.5 *    (bound2[1] + bound1[1])
-        modelWidthX  = 0.5 * abs(bound2[0] - bound1[0])
-        modelWidthY  = 0.5 * abs(bound2[1] - bound1[1])
-        modelBottomZ = min(bound2[2], bound1[2])
+  #     # Calculate the footprint of the tile in its default position/scale.
+  #     bound1, bound2 = groundTile.getTightBounds()
+  #     modelCenterX = 0.5 *    (bound2[0] + bound1[0])
+  #     modelCenterY = 0.5 *    (bound2[1] + bound1[1])
+  #     modelWidthX  = 0.5 * abs(bound2[0] - bound1[0])
+  #     modelWidthY  = 0.5 * abs(bound2[1] - bound1[1])
+  #     modelBottomZ = min(bound2[2], bound1[2])
 
-        # TODO: Give a graceful error if the tight bounds are zero on either
-        # axis.
+  #     # TODO: Give a graceful error if the tight bounds are zero on either
+  #     # axis.
 
-        # Scale it to the largest it can be while still fitting within the goal
-        # rect. If the aspect ratio of the goal rect is different from that of
-        # the model, then it'll only fill that rect in one dimension.
-        scaleFactor = min(goalWidthX / modelWidthX, goalWidthY / modelWidthY)
-        groundTile.setScale(scaleFactor)
+  #     # Scale it to the largest it can be while still fitting within the goal
+  #     # rect. If the aspect ratio of the goal rect is different from that of
+  #     # the model, then it'll only fill that rect in one dimension.
+  #     scaleFactor = min(goalWidthX / modelWidthX, goalWidthY / modelWidthY)
+  #     groundTile.setScale(scaleFactor)
 
-        groundTile.setPos(goalCenterX - modelCenterX,
-                          goalCenterY - modelCenterY,
-                          goalBottomZ - modelBottomZ)
+  #     groundTile.setPos(goalCenterX - modelCenterX,
+  #                       goalCenterY - modelCenterY,
+  #                       goalBottomZ - modelBottomZ)
 
     def setCameraCustom(self):
         """
@@ -299,12 +462,12 @@ class WartsApp(ShowBase):
     # <y> coordinates", but figuring out <x> and <y> is up to the
     # graphicsInterface.
     def centerViewOnSelf(self):
-        if self.myId not in self.obelisks:
-            return
-
         # This code is commented out as we need to have a selection algorithm
         # of identifying the unit to focus the camera on
         pass
+
+        # if self.myId not in self.obelisks:
+        #     return
 
         ##_, _, z = self.cameraHolder.getPos()
         ##x, y, _ = self.obelisks[playerToUnit(self.myId)].getPos()
