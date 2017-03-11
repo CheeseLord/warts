@@ -135,17 +135,24 @@ YourIdIs      = defineMessageType("your_id_is", [("playerId", playerIdArg)])
 
 # TODO[#9]: Get rid of isExample argument; replace with more generic isActor
 # (or hasAnimations?).
-AddEntity     = defineMessageType("add_entity",
-                                  [("gid", graphicsIdArg),
-                                   ("pos", gPosArg),
-                                   ("isExample", boolArg),
-                                   ("modelPath", unsafeStringArg)])
-Click         = defineMessageType("click",
-                                  [("button", intArg),
-                                   ("pos", gPosArg)])
-RemoveEntity  = defineMessageType("remove_entity", [("gid", graphicsIdArg)])
+AddEntity       = defineMessageType("add_entity",
+                                    [("gid", graphicsIdArg),
+                                     ("pos", gPosArg),
+                                     ("isExample", boolArg),
+                                     ("modelPath", unsafeStringArg)])
+# TODO: This is getting out of hand. Now there are two of them.
+AddScaledEntity = defineMessageType("add_scaled_entity",
+                                    [("gid", graphicsIdArg),
+                                     ("pos", gPosArg),
+                                     ("isExample", boolArg),
+                                     ("modelPath", unsafeStringArg),
+                                     ("scaleTo", floatPairArg)])
+Click           = defineMessageType("click",
+                                    [("button", intArg),
+                                     ("pos", gPosArg)])
+RemoveEntity    = defineMessageType("remove_entity", [("gid", graphicsIdArg)])
 # TODO[#34]: Remove RequestUnitAt and SelectUnits entirely.
-RequestUnitAt = defineMessageType("request_unit_at", [("pos", gPosArg)])
-RequestQuit   = defineMessageType("request_quit", [])
-SelectUnits   = defineMessageType("select_units", [("unitSet", unitSetArg)])
+RequestUnitAt   = defineMessageType("request_unit_at", [("pos", gPosArg)])
+RequestQuit     = defineMessageType("request_quit", [])
+SelectUnits     = defineMessageType("select_units", [("unitSet", unitSetArg)])
 

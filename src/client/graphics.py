@@ -87,12 +87,24 @@ class WartsApp(ShowBase):
         if isinstance(message, messages.AddEntity):
             self.addEntity(message.gid, message.pos, message.modelPath,
                            message.isExample)
+        elif isinstance(message, messages.AddScaledEntity):
+            self.addEntity(message.gid, message.pos, message.modelPath,
+                           message.isExample, scaleTo=message.scaleTo)
         elif isinstance(message, messages.RemoveEntity):
             self.removeEntity(message.gid)
         else:
             unhandledInternalMessage(message, log)
 
-    def addEntity(self, gid, pos, modelPath, isExample):
+    def addEntity(self, gid, pos, modelPath, isExample, scaleTo=None):
+        """
+        pos is given in graphics coordinates.
+
+        scaleTo, if specified, is a pair (width, height) -- the model will be
+        scaled in the xy plane so that it's as large as possible while still
+        fitting within that width and height. Don't pass 0 as the width or the
+        height, because that's just not nice.
+        """
+
         if gid in self.entities:
             raise RuntimeError("Already have entity with gid {gid}."
                                .format(gid=gid))
@@ -108,10 +120,57 @@ class WartsApp(ShowBase):
             model.setScale(0.004, 0.004, 0.004)
         else:
             model = self.loader.loadModel(getModelPath(modelPath))
+        # Put the model in the scene, but don't position it yet.
         model.reparentTo(self.render)
-        # TODO: Non-ground models need to be raised up. Really <z> just needs
-        # to be part of the graphical position passed in pos.
-        model.setPos(x, y, 0.0)
+
+        # TODO[#34]: Really scaleTo should always be specified. The only reason
+        # it's optional right now is because I haven't yet gotten around to
+        # merging the addGround logic with the other addModel logic. But that's
+        # definitely something we should do.
+        if scaleTo is None:
+            # TODO: Non-ground models need to be raised up. Really <z> just
+            # needs to be part of the graphical position passed in pos.
+            model.setPos(x, y, 0.0)
+        else:
+            # TODO[#34]: I don't think this logic is ready to use with models
+            # that might move. The problem is that we're positioning the
+            # center, not the origin of the model. So if the two differ, then
+            # its position according to Panda won't be the same as the position
+            # passed to addEntity. We could maybe get around this by adding a
+            # node in between the model and the render, or we could just draw
+            # it at its origin and depend on the modelers to put the origin at
+            # the center. (But that seems like it'd be easy to get very
+            # slightly off, in which case things might look wonky.)
+
+            goalCenterX, goalCenterY = x, y
+            goalWidthX,  goalWidthY  = scaleTo
+
+            # For now, all models sit flush against the ground.
+            goalBottomZ = 0.0
+
+            # Calculate the footprint of the tile in its default
+            # position/scale.
+            bound1, bound2 = model.getTightBounds()
+            modelCenterX = 0.5 *    (bound2[0] + bound1[0])
+            modelCenterY = 0.5 *    (bound2[1] + bound1[1])
+            modelWidthX  = 0.5 * abs(bound2[0] - bound1[0])
+            modelWidthY  = 0.5 * abs(bound2[1] - bound1[1])
+            modelBottomZ = min(bound2[2], bound1[2])
+
+            # TODO: Give a graceful error if the tight bounds are zero on
+            # either axis.
+
+            # Scale it to the largest it can be while still fitting within the
+            # goal rect. If the aspect ratio of the goal rect is different from
+            # that of the model, then it'll only fill that rect in one
+            # dimension.
+            scaleFactor = min(goalWidthX / modelWidthX,
+                              goalWidthY / modelWidthY)
+            model.setScale(scaleFactor)
+
+            model.setPos(goalCenterX - modelCenterX,
+                         goalCenterY - modelCenterY,
+                         goalBottomZ - modelBottomZ)
 
         entity = Entity(gid, model, isExample)
         self.entities[gid] = entity
@@ -203,60 +262,60 @@ class WartsApp(ShowBase):
     # non-fixtures (units, structures). For now, let's just store a metadata
     # field with each model to prove we can. In short: this method should be
     # merged into addModel.
-    def addGround(self, cPos, terrainType):
-        modelName = None
-        if terrainType == 0:
-            modelName = "green-ground.egg"
-        elif terrainType == 1:
-            modelName = "red-ground.egg"
-        else:
-            # TODO: We're building a new message rather than using the old one
-            # to avoid passing the message to this function. This is ugly, but
-            # I think it's still slightly less bad than the other solution.
-            invalidMessageArgument(messages.GroundInfo(cPos, terrainType), log,
-                                   reason="Invalid terrain type")
-            # Drop the message.
-            return
+  # def addGround(self, cPos, terrainType):
+  #     modelName = None
+  #     if terrainType == 0:
+  #         modelName = "green-ground.egg"
+  #     elif terrainType == 1:
+  #         modelName = "red-ground.egg"
+  #     else:
+  #         # TODO: We're building a new message rather than using the old one
+  #         # to avoid passing the message to this function. This is ugly, but
+  #         # I think it's still slightly less bad than the other solution.
+  #         invalidMessageArgument(messages.GroundInfo(cPos, terrainType), log,
+  #                                reason="Invalid terrain type")
+  #         # Drop the message.
+  #         return
 
-        # Calculate opposite corners of the ground tile.
-        gPos1 = unitToGraphics(chunkToUnit(cPos))
-        gPos2 = unitToGraphics(chunkToUnit((coord + 1 for coord in cPos)))
+  #     # Calculate opposite corners of the ground tile.
+  #     gPos1 = unitToGraphics(chunkToUnit(cPos))
+  #     gPos2 = unitToGraphics(chunkToUnit((coord + 1 for coord in cPos)))
 
-        # TODO: Put most of the below in a common function, because it'll be
-        # used for adding most models to the world.
+  #     # TODO: Put most of the below in a common function, because it'll be
+  #     # used for adding most models to the world.
 
-        # Figure out where we want the tile.
-        goalCenterX = 0.5 *    (gPos2[0] + gPos1[0])
-        goalCenterY = 0.5 *    (gPos2[1] + gPos1[1])
-        goalWidthX  = 0.5 * abs(gPos2[0] - gPos1[0])
-        goalWidthY  = 0.5 * abs(gPos2[1] - gPos1[1])
-        # For now, all models sit flush against the ground.
-        goalBottomZ = 0.0
+  #     # Figure out where we want the tile.
+  #     goalCenterX = 0.5 *    (gPos2[0] + gPos1[0])
+  #     goalCenterY = 0.5 *    (gPos2[1] + gPos1[1])
+  #     goalWidthX  = 0.5 * abs(gPos2[0] - gPos1[0])
+  #     goalWidthY  = 0.5 * abs(gPos2[1] - gPos1[1])
+  #     # For now, all models sit flush against the ground.
+  #     goalBottomZ = 0.0
 
-        # Put the model in the scene, but don't position it yet.
-        groundTile = self.loader.loadModel(getModelPath(modelName))
-        groundTile.reparentTo(self.render)
+  #     # Put the model in the scene, but don't position it yet.
+  #     groundTile = self.loader.loadModel(getModelPath(modelName))
+  #     groundTile.reparentTo(self.render)
 
-        # Calculate the footprint of the tile in its default position/scale.
-        bound1, bound2 = groundTile.getTightBounds()
-        modelCenterX = 0.5 *    (bound2[0] + bound1[0])
-        modelCenterY = 0.5 *    (bound2[1] + bound1[1])
-        modelWidthX  = 0.5 * abs(bound2[0] - bound1[0])
-        modelWidthY  = 0.5 * abs(bound2[1] - bound1[1])
-        modelBottomZ = min(bound2[2], bound1[2])
+  #     # Calculate the footprint of the tile in its default position/scale.
+  #     bound1, bound2 = groundTile.getTightBounds()
+  #     modelCenterX = 0.5 *    (bound2[0] + bound1[0])
+  #     modelCenterY = 0.5 *    (bound2[1] + bound1[1])
+  #     modelWidthX  = 0.5 * abs(bound2[0] - bound1[0])
+  #     modelWidthY  = 0.5 * abs(bound2[1] - bound1[1])
+  #     modelBottomZ = min(bound2[2], bound1[2])
 
-        # TODO: Give a graceful error if the tight bounds are zero on either
-        # axis.
+  #     # TODO: Give a graceful error if the tight bounds are zero on either
+  #     # axis.
 
-        # Scale it to the largest it can be while still fitting within the goal
-        # rect. If the aspect ratio of the goal rect is different from that of
-        # the model, then it'll only fill that rect in one dimension.
-        scaleFactor = min(goalWidthX / modelWidthX, goalWidthY / modelWidthY)
-        groundTile.setScale(scaleFactor)
+  #     # Scale it to the largest it can be while still fitting within the goal
+  #     # rect. If the aspect ratio of the goal rect is different from that of
+  #     # the model, then it'll only fill that rect in one dimension.
+  #     scaleFactor = min(goalWidthX / modelWidthX, goalWidthY / modelWidthY)
+  #     groundTile.setScale(scaleFactor)
 
-        groundTile.setPos(goalCenterX - modelCenterX,
-                          goalCenterY - modelCenterY,
-                          goalBottomZ - modelBottomZ)
+  #     groundTile.setPos(goalCenterX - modelCenterX,
+  #                       goalCenterY - modelCenterY,
+  #                       goalBottomZ - modelBottomZ)
 
     def setCameraCustom(self):
         """

@@ -32,6 +32,7 @@ class GraphicsInterface(object):
         self.ready = True
         self.backend.graphicsInterfaceReady(self)
 
+    # TODO: Split this function up; it's gotten too big.
     def backendMessage(self, data):
         try:
             message = deserializeMessage(data)
@@ -74,7 +75,7 @@ class GraphicsInterface(object):
                 gMessage = messages.AddEntity(gid, gPos, isExample, modelPath)
                 self.graphics.interfaceMessage(gMessage.serialize())
 
-                # TODO: Remove this.
+                # TODO[#34]: Remove this.
                 self.graphics.addObelisk(message.unitId, message.pos)
             elif isinstance(message, messages.DeleteObelisk):
                 uid = message.unitId
@@ -88,12 +89,43 @@ class GraphicsInterface(object):
                 gMessage = messages.RemoveEntity(gid)
                 self.graphics.interfaceMessage(gMessage.serialize())
 
-                # TODO: Remove this.
+                # TODO[#34]: Remove this.
                 self.graphics.removeObelisk(message.unitId)
             elif isinstance(message, messages.SetPos):
                 self.graphics.moveObelisk(message.unitId, message.pos)
             elif isinstance(message, messages.GroundInfo):
-                self.graphics.addGround(message.pos, message.terrainType)
+                cPos        = message.pos
+                terrainType = message.terrainType
+
+                if terrainType == 0:
+                    modelName = "green-ground.egg"
+                elif terrainType == 1:
+                    modelName = "red-ground.egg"
+                else:
+                    invalidMessageArgument(message, log, sender="server",
+                        reason="Invalid terrain type")
+                    return
+
+                gid  = self.getNextGid()
+
+                gPos1 = unitToGraphics(chunkToUnit(cPos))
+                gPos2 = unitToGraphics(chunkToUnit((coord + 1
+                                                    for coord in cPos)))
+
+                # Figure out where we want the tile.
+                goalCenterX = 0.5 *    (gPos2[0] + gPos1[0])
+                goalCenterY = 0.5 *    (gPos2[1] + gPos1[1])
+                goalWidthX  = 0.5 * abs(gPos2[0] - gPos1[0])
+                goalWidthY  = 0.5 * abs(gPos2[1] - gPos1[1])
+
+                gPos    = (goalCenterX, goalCenterY)
+                scaleTo = (goalWidthX,  goalWidthY)
+
+                gMessage = messages.AddScaledEntity(gid, gPos, False,
+                        modelName, scaleTo)
+                self.graphics.interfaceMessage(gMessage.serialize())
+
+                # self.graphics.addGround(message.pos, message.terrainType)
             elif isinstance(message, messages.RequestUnitAt):
                 unitSet = self.graphics.unitAt(message.pos)
                 self.backend.graphicsMessage(
