@@ -150,6 +150,9 @@ AddScaledEntity = defineMessageType("add_scaled_entity",
 Click           = defineMessageType("click",
                                     [("button", intArg),
                                      ("pos", gPosArg)])
+MoveEntity      = defineMessageType("move_entity",
+                                    [("gid", graphicsIdArg),
+                                     ("pos", gPosArg)])
 RemoveEntity    = defineMessageType("remove_entity", [("gid", graphicsIdArg)])
 # TODO[#34]: Remove RequestUnitAt and SelectUnits entirely.
 RequestUnitAt   = defineMessageType("request_unit_at", [("pos", gPosArg)])

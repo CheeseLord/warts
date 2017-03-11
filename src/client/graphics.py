@@ -92,6 +92,8 @@ class WartsApp(ShowBase):
                            message.isExample, scaleTo=message.scaleTo)
         elif isinstance(message, messages.RemoveEntity):
             self.removeEntity(message.gid)
+        elif isinstance(message, messages.MoveEntity):
+            self.moveEntity(message.gid, message.pos)
         else:
             unhandledInternalMessage(message, log)
 
@@ -179,6 +181,47 @@ class WartsApp(ShowBase):
         log.debug("Removing graphical entity {}".format(gid))
         entity = self.entities.pop(gid)
         entity.cleanup()
+
+    def moveEntity(self, gid, newPos):
+        log.debug("Moving graphical entity {} to {}".format(gid, newPos))
+        entity = self.entities[gid]
+
+        x, y = newPos
+        oldX, oldY, oldZ = entity.model.getPos()
+        z = oldZ
+
+        # Ensure the entity is facing the right direction.
+        heading = math.atan2(y - oldY, x - oldX)
+        heading *= 180.0 / math.pi
+        # Magic angle adjustment needed to stop the panda always facing
+        # sideways.
+        # TODO[#9]: Establish a convention about which way _our_ models face;
+        # figure out whether we need something like this. (Hopefully not?)
+        heading += 90.0
+        entity.model.setHpr(heading, 0, 0)
+
+        moveInterval = entity.model.posInterval(config.TICK_LENGTH, (x, y, z))
+        moveInterval.start()
+
+        if entity.isActor and "walk" in entity.model.getAnimNames():
+            currFrame = entity.model.getCurrentFrame("walk")
+            if currFrame is None:
+                currFrame = 0
+            # Supposedly, it's possible to pass a startFrame and a duration to
+            # actorInterval, instead of calculating the endFrame ourself. But
+            # for some reason, that doesn't seem to work; if I do that, then
+            # the animation just keeps jumping around the early frames and
+            # never gets past frame 5 or so. I'm not sure why. For now at
+            # least, just calculate the endFrame ourselves to work around this.
+            log.debug("Animating entity {} from frame {}/{}"
+                      .format(gid, currFrame,
+                              entity.model.getNumFrames("walk")))
+            frameRate = entity.model.getAnimControl("walk").getFrameRate()
+            endFrame = currFrame + int(math.ceil(frameRate *
+                                                 config.TICK_LENGTH))
+            animInterval = entity.model.actorInterval("walk", loop=1,
+                startFrame=currFrame, endFrame=endFrame)
+            animInterval.start()
 
     # TODO[#34]: Just have a generic addModel method. Don't do all this id
     # checking.
