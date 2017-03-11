@@ -300,11 +300,11 @@ class WartsApp(ShowBase):
                 startFrame=currFrame, endFrame=endFrame)
             animInterval.start()
 
-    # TODO[#34]: Graphics probably shouldn't know about ground versus units.
-    # Though it may be useful to distinguish fixtures (ground, trees) from
-    # non-fixtures (units, structures). For now, let's just store a metadata
-    # field with each model to prove we can. In short: this method should be
-    # merged into addModel.
+  # # TODO[#34]: Graphics probably shouldn't know about ground versus units.
+  # # Though it may be useful to distinguish fixtures (ground, trees) from
+  # # non-fixtures (units, structures). For now, let's just store a metadata
+  # # field with each model to prove we can. In short: this method should be
+  # # merged into addModel.
   # def addGround(self, cPos, terrainType):
   #     modelName = None
   #     if terrainType == 0:
@@ -462,12 +462,12 @@ class WartsApp(ShowBase):
     # <y> coordinates", but figuring out <x> and <y> is up to the
     # graphicsInterface.
     def centerViewOnSelf(self):
-        if self.myId not in self.obelisks:
-            return
-
         # This code is commented out as we need to have a selection algorithm
         # of identifying the unit to focus the camera on
         pass
+
+        # if self.myId not in self.obelisks:
+        #     return
 
         ##_, _, z = self.cameraHolder.getPos()
         ##x, y, _ = self.obelisks[playerToUnit(self.myId)].getPos()
