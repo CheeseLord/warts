@@ -1,5 +1,10 @@
 from collections import namedtuple
 
+from logconfig import newLogger
+
+log = newLogger(__name__)
+
+
 # Normal delimiter; separates tokens in messages.
 TOKEN_DELIM  = " "
 
@@ -170,15 +175,18 @@ class ArgumentSpecification:
 def tokenize(message):
     if not message:
         raise InvalidMessageError(message, "Empty message.")
-
     if message[0] == START_STRING:
         raise InvalidMessageError(message,
                                   "Message starts with unsafe string.")
+
     index = message.find(TOKEN_DELIM + START_STRING)
     if index == -1:
         tokens = message.split(TOKEN_DELIM)
     else:
         tokens = message[:index].split(TOKEN_DELIM) + [message[index + 2:]]
+
+    if not all(tokens):
+        log.warning("Empty token in {}.".format(tokens))
 
     return (tokens[0], tokens[1:])
 
