@@ -39,10 +39,7 @@ class GraphicsInterface(object):
             if isinstance(message, messages.YourIdIs):
                 if self.myId >= 0:
                     raise RuntimeError("ID already set; can't change it now.")
-                if self.graphics.myId >= 0:
-                    raise RuntimeError("ID already set; can't change it now.")
                 self.myId          = message.playerId
-                self.graphics.myId = message.playerId
             elif isinstance(message, messages.NewObelisk):
                 uid  = message.unitId
                 uPos = message.pos
