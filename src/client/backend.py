@@ -1,7 +1,7 @@
 import logging
 
 from src.shared import messages
-from src.shared.ident import UnitId
+from src.shared.ident import UnitId, unitToPlayer
 from src.shared.logconfig import newLogger
 from src.shared.unit_set import UnitSet
 from src.shared.message_infrastructure import deserializeMessage, \
@@ -27,6 +27,9 @@ class Backend:
         self.allReady = False
 
         self.myId = -1
+
+        # TODO: Maintain a full GameState.
+        self.unitPositions = {}
 
         # FIXME[#16]: Make sure an empty UnitSet doesn't serialize to the empty
         # string before trying to issue orders to it.
@@ -100,17 +103,7 @@ class Backend:
         if self.allReady:
             try:
                 message = deserializeMessage(messageStr)
-                if isinstance(message, messages.YourIdIs):
-                    if self.myId >= 0:
-                        raise RuntimeError("ID already set; can't change it "
-                                           "now.")
-                    self.myId = message.playerId
-                    log.info("Your id is {id}.".format(id=self.myId))
-
-                    # FIXME[#16]: This might be a nonexistent id. We shouldn't
-                    # issue orders to it unless that unit id actually exists.
-                    firstId = UnitId(self.myId, 0)
-                    self.unitSelection = UnitSet([firstId])
+                self.tryToHandleNetworkMessage(message)
             except InvalidMessageError as error:
                 illFormedMessage(error, log, sender="server")
 
@@ -123,15 +116,64 @@ class Backend:
             log.warning("Server message '{}' ignored; client not " \
                 "initialized yet.".format(messageStr))
 
+    def tryToHandleNetworkMessage(self, message):
+        if isinstance(message, messages.YourIdIs):
+            if self.myId >= 0:
+                raise RuntimeError("ID already set; can't change it now.")
+            self.myId = message.playerId
+            log.info("Your id is {id}.".format(id=self.myId))
+
+            # FIXME[#16]: This might be a nonexistent id. We shouldn't issue
+            # orders to it unless that unit id actually exists.
+            firstId = UnitId(self.myId, 0)
+            self.unitSelection = UnitSet([firstId])
+        elif isinstance(message, messages.NewObelisk):
+            uid = message.unitId
+            pos = message.pos
+            if uid in self.unitPositions:
+                invalidMessageArgument(message, log, sender="server",
+                    reason="uid {} already in use".format(uid))
+                return
+            self.unitPositions[uid] = pos
+        elif isinstance(message, messages.DeleteObelisk):
+            uid = message.unitId
+            if uid not in self.unitPositions:
+                invalidMessageArgument(message, log, sender="server",
+                    reason="No such uid: {}".format(uid))
+                return
+            del self.unitPositions[uid]
+        elif isinstance(message, messages.SetPos):
+            uid = message.unitId
+            pos = message.pos
+            if uid not in self.unitPositions:
+                invalidMessageArgument(message, log, sender="server",
+                    reason="No such uid: {}".format(uid))
+                return
+            self.unitPositions[uid] = pos
+        else:
+            # It's okay if we aren't able to handle a message from the
+            # server; maybe the GraphicsInterface will handle it.
+            pass
+
     def graphicsMessage(self, messageStr):
         message = deserializeMessage(messageStr)
         if isinstance(message, messages.Click):
             # TODO: Have Click indicate "left" or "right", rather than just a
             # numerical button.
+            # TODO: GraphicsInterface should probably translate Click.pos to a
+            # uPos before passing it to the backend.
             if message.button == 1:
                 # Left mouse button
-                newMsg = messages.RequestUnitAt(message.pos)
-                self.graphicsInterface.backendMessage(newMsg.serialize())
+                gPos = message.pos
+                uPos = graphicsToUnit(gPos)
+                chosenUnit = self.getUnitAt(uPos)
+                if chosenUnit is None:
+                    self.unitSelection = UnitSet()
+                else:
+                    self.unitSelection = UnitSet([chosenUnit])
+                # TODO[#34]: Remove entirely.
+                # newMsg = messages.RequestUnitAt(message.pos)
+                # self.graphicsInterface.backendMessage(newMsg.serialize())
             elif message.button == 3:
                 # Right mouse button
                 newMsg = messages.OrderMove(self.unitSelection,
@@ -142,9 +184,35 @@ class Backend:
                 component.cleanup()
             self.done.callback(None)
         elif isinstance(message, messages.SelectUnits):
+            log.warn("Use of select_units message is deprecated.")
             self.unitSelection = message.unitSet
         else:
             unhandledInternalMessage(message, log)
+
+    def getUnitAt(self, targetUPos):
+        targetX, targetY = targetUPos
+
+        # TODO[#3]: Make this a real constant somewhere. Or take into account
+        # the size of the unit? This could get ugly.
+        MAX_DISTANCE = 30**2
+
+        nearest = None
+        # TODO: Compute the diameter of the world in unit coordinates when we
+        # first load the map, have the server send that to the client, save
+        # that+1 as UPOS_INFINITY or some such, and use that here instead of a
+        # float.
+        nearestDistance = float('inf')
+        for (uid, uPos) in self.unitPositions.iteritems():
+            if unitToPlayer(uid) != self.myId:
+                continue
+
+            x, y = uPos
+            distance = (x - targetX)**2 + (y - targetY)**2
+            if distance < nearestDistance and distance < MAX_DISTANCE:
+                nearest         = uid
+                nearestDistance = distance
+
+        return nearest
 
 # TODO: Shouldn't these be in the GraphicsInterface if they're going to be
 # with a single component?
