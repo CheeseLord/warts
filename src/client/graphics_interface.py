@@ -141,10 +141,6 @@ class GraphicsInterface(object):
 
                 # TODO[#34]: Remove this.
                 self.graphics.moveObelisk(message.unitId, message.pos)
-            elif isinstance(message, messages.RequestUnitAt):
-                unitSet = self.graphics.unitAt(message.pos)
-                self.backend.graphicsMessage(
-                    messages.SelectUnits(unitSet).serialize())
             else:
                 # TODO: This is going to bite us later. It hardcodes two
                 # different assumptions, both of which are probably going to be

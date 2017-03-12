@@ -171,9 +171,6 @@ class Backend:
                     self.unitSelection = UnitSet()
                 else:
                     self.unitSelection = UnitSet([chosenUnit])
-                # TODO[#34]: Remove entirely.
-                # newMsg = messages.RequestUnitAt(message.pos)
-                # self.graphicsInterface.backendMessage(newMsg.serialize())
             elif message.button == 3:
                 # Right mouse button
                 newMsg = messages.OrderMove(self.unitSelection,
@@ -183,9 +180,6 @@ class Backend:
             for component in self.allComponents:
                 component.cleanup()
             self.done.callback(None)
-        elif isinstance(message, messages.SelectUnits):
-            log.warn("Use of select_units message is deprecated.")
-            self.unitSelection = message.unitSet
         else:
             unhandledInternalMessage(message, log)
 
