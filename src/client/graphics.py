@@ -223,82 +223,82 @@ class WartsApp(ShowBase):
                 startFrame=currFrame, endFrame=endFrame)
             animInterval.start()
 
-    # TODO[#34]: Just have a generic addModel method. Don't do all this id
-    # checking.
-    def addObelisk(self, unitId, pos):
-        if self.myId < 0:
-            raise RuntimeError("Must set ID before adding obelisks.")
-        if unitId in self.obelisks:
-            raise RuntimeError("Already have obelisk with id {id}."
-                               .format(id=unitId))
+  # # TODO[#34]: Just have a generic addModel method. Don't do all this id
+  # # checking.
+  # def addObelisk(self, unitId, pos):
+  #     if self.myId < 0:
+  #         raise RuntimeError("Must set ID before adding obelisks.")
+  #     if unitId in self.obelisks:
+  #         raise RuntimeError("Already have obelisk with id {id}."
+  #                            .format(id=unitId))
 
-        log.info("Adding obelisk {} at {}".format(unitId, pos))
-        x, y = unitToGraphics(pos)
+  #     log.info("Adding obelisk {} at {}".format(unitId, pos))
+  #     x, y = unitToGraphics(pos)
 
-        if unitToPlayer(unitId) == self.myId:
-            # The example panda from the Panda3D "Hello world" tutorial.
-            obelisk = Actor("models/panda-model",
-                            {"walk": "models/panda-walk4"})
-            obelisk.setScale(0.004, 0.004, 0.004)
-        else:
-            obelisk = self.loader.loadModel(getModelPath("other-obelisk.egg"))
-        obelisk.reparentTo(self.render)
-        obelisk.setPos(x, y, 2.5)
+  #     if unitToPlayer(unitId) == self.myId:
+  #         # The example panda from the Panda3D "Hello world" tutorial.
+  #         obelisk = Actor("models/panda-model",
+  #                         {"walk": "models/panda-walk4"})
+  #         obelisk.setScale(0.004, 0.004, 0.004)
+  #     else:
+  #         obelisk = self.loader.loadModel(getModelPath("other-obelisk.egg"))
+  #     obelisk.reparentTo(self.render)
+  #     obelisk.setPos(x, y, 2.5)
 
-        self.obelisks[unitId] = obelisk
+  #     self.obelisks[unitId] = obelisk
 
-    # TODO[#34]: Replace with removeModel.
-    def removeObelisk(self, unitId):
-        log.info("Removing obelisk {}".format(unitId))
-        obeliskActor = self.obelisks.pop(unitId)
-        # TODO [#30]: The obelisk isn't actually an actor, so it doesn't
-        # have a cleanup() method.
-        try:
-            obeliskActor.cleanup()
-        except AttributeError:
-            pass
-        obeliskActor.removeNode()
+  # # TODO[#34]: Replace with removeModel.
+  # def removeObelisk(self, unitId):
+  #     log.info("Removing obelisk {}".format(unitId))
+  #     obeliskActor = self.obelisks.pop(unitId)
+  #     # TODO [#30]: The obelisk isn't actually an actor, so it doesn't
+  #     # have a cleanup() method.
+  #     try:
+  #         obeliskActor.cleanup()
+  #     except AttributeError:
+  #         pass
+  #     obeliskActor.removeNode()
 
-    # TODO[#34]: Replace with moveModel. And figure out how animation factors
-    # into that?
-    def moveObelisk(self, unitId, pos):
-        if unitId not in self.obelisks:
-            raise RuntimeError("There is no obelisk with id {id}."
-                               .format(id=unitId))
-        log.debug("Moving obelisk {} to {}".format(unitId, pos))
-        x,y = unitToGraphics(pos)
-        obeliskActor = self.obelisks[unitId]
-        oldX, oldY, oldZ = obeliskActor.getPos()
-        z = oldZ
-        moveInterval = obeliskActor.posInterval(config.TICK_LENGTH, (x, y, z))
-        moveInterval.start()
+  # # TODO[#34]: Replace with moveModel. And figure out how animation factors
+  # # into that?
+  # def moveObelisk(self, unitId, pos):
+  #     if unitId not in self.obelisks:
+  #         raise RuntimeError("There is no obelisk with id {id}."
+  #                            .format(id=unitId))
+  #     log.debug("Moving obelisk {} to {}".format(unitId, pos))
+  #     x,y = unitToGraphics(pos)
+  #     obeliskActor = self.obelisks[unitId]
+  #     oldX, oldY, oldZ = obeliskActor.getPos()
+  #     z = oldZ
+  #     moveInterval = obeliskActor.posInterval(config.TICK_LENGTH, (x, y, z))
+  #     moveInterval.start()
 
-        if unitToPlayer(unitId) == self.myId:
-            # Ensure the panda is facing the right direction.
-            heading = math.atan2(y - oldY, x - oldX)
-            heading *= 180.0 / math.pi
-            # Magic angle adjustment needed to stop the panda always facing
-            # sideways.
-            heading += 90.0
-            obeliskActor.setHpr(heading, 0, 0)
+  #     if unitToPlayer(unitId) == self.myId:
+  #         # Ensure the panda is facing the right direction.
+  #         heading = math.atan2(y - oldY, x - oldX)
+  #         heading *= 180.0 / math.pi
+  #         # Magic angle adjustment needed to stop the panda always facing
+  #         # sideways.
+  #         heading += 90.0
+  #         obeliskActor.setHpr(heading, 0, 0)
 
-            currFrame = obeliskActor.getCurrentFrame("walk")
-            if currFrame is None:
-                currFrame = 0
-            # Supposedly, it's possible to pass a startFrame and a duration to
-            # actorInterval, instead of calculating the endFrame ourself. But
-            # for some reason, that doesn't seem to work; if I do that, then
-            # the animation just keeps jumping around the early frames and
-            # never gets past frame 5 or so. I'm not sure why. For now at
-            # least, just calculate the endFrame ourselves to work around this.
-            log.debug("Animating panda from frame {}/{}"
-                      .format(currFrame, obeliskActor.getNumFrames("walk")))
-            frameRate = obeliskActor.getAnimControl("walk").getFrameRate()
-            endFrame = currFrame + int(math.ceil(frameRate *
-                                                 config.TICK_LENGTH))
-            animInterval = obeliskActor.actorInterval("walk", loop=1,
-                startFrame=currFrame, endFrame=endFrame)
-            animInterval.start()
+  #         currFrame = obeliskActor.getCurrentFrame("walk")
+  #         if currFrame is None:
+  #             currFrame = 0
+  #         # Supposedly, it's possible to pass a startFrame and a duration to
+  #         # actorInterval, instead of calculating the endFrame ourself. But
+  #         # for some reason, that doesn't seem to work; if I do that, then
+  #         # the animation just keeps jumping around the early frames and
+  #         # never gets past frame 5 or so. I'm not sure why. For now at
+  #         # least, just calculate the endFrame ourselves to work around this.
+  #         log.debug("Animating panda from frame {}/{}"
+  #                   .format(currFrame, obeliskActor.getNumFrames("walk")))
+  #         frameRate = obeliskActor.getAnimControl("walk").getFrameRate()
+  #         endFrame = currFrame + int(math.ceil(frameRate *
+  #                                              config.TICK_LENGTH))
+  #         animInterval = obeliskActor.actorInterval("walk", loop=1,
+  #             startFrame=currFrame, endFrame=endFrame)
+  #         animInterval.start()
 
   # # TODO[#34]: Graphics probably shouldn't know about ground versus units.
   # # Though it may be useful to distinguish fixtures (ground, trees) from

@@ -76,7 +76,7 @@ class GraphicsInterface(object):
                 self.graphics.interfaceMessage(gMessage.serialize())
 
                 # TODO[#34]: Remove this.
-                self.graphics.addObelisk(message.unitId, message.pos)
+                # self.graphics.addObelisk(message.unitId, message.pos)
             elif isinstance(message, messages.GroundInfo):
                 cPos        = message.pos
                 terrainType = message.terrainType
@@ -123,7 +123,7 @@ class GraphicsInterface(object):
                 self.graphics.interfaceMessage(gMessage.serialize())
 
                 # TODO[#34]: Remove this.
-                self.graphics.removeObelisk(message.unitId)
+                # self.graphics.removeObelisk(message.unitId)
             elif isinstance(message, messages.SetPos):
                 uid  = message.unitId
                 uPos = message.pos
@@ -140,7 +140,7 @@ class GraphicsInterface(object):
                 self.graphics.interfaceMessage(gMessage.serialize())
 
                 # TODO[#34]: Remove this.
-                self.graphics.moveObelisk(message.unitId, message.pos)
+                # self.graphics.moveObelisk(message.unitId, message.pos)
             else:
                 # TODO: This is going to bite us later. It hardcodes two
                 # different assumptions, both of which are probably going to be
