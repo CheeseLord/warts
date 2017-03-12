@@ -146,6 +146,14 @@ class GraphicsInterface(object):
                 self.backend.graphicsMessage(
                     messages.SelectUnits(unitSet).serialize())
             else:
+                # TODO: This is going to bite us later. It hardcodes two
+                # different assumptions, both of which are probably going to be
+                # invalidated at some point.
+                #   1. Every backend -> clientInterface message originates from
+                #      the server.
+                #   2. Every message that the backend forwards from the server
+                #      to the graphicsInterface is something that the
+                #      graphicsInterface will be able to handle.
                 unhandledMessageCommand(message, log, sender="server")
         except InvalidMessageError as error:
             illFormedMessage(error, log, sender="server")
