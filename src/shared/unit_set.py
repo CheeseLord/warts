@@ -11,6 +11,9 @@ class UnitSet(object):
         self.addMany(units)
 
     def serialize(self):
+        if not self.units:
+            return "0:0"
+
         desc = ""
         isFirst = True
         for playerId in sorted(self.units.keys()):
