@@ -111,7 +111,7 @@ class WartsApp(ShowBase):
             # TODO[#9]: Figure out a more general way of specifying animations.
             model = Actor(modelPath,
                           {"walk": "models/panda-walk4"})
-            model.setScale(0.004, 0.004, 0.004)
+            # model.setScale(0.004, 0.004, 0.004)
         else:
             model = self.loader.loadModel(getModelPath(modelPath))
         # Put the model in the scene, but don't position it yet.
@@ -142,17 +142,9 @@ class WartsApp(ShowBase):
             # For now, all models sit flush against the ground.
             goalBottomZ = 0.0
 
-            # Calculate the footprint of the tile in its default
-            # position/scale.
             bound1, bound2 = model.getTightBounds()
-            modelCenterX = 0.5 *    (bound2[0] + bound1[0])
-            modelCenterY = 0.5 *    (bound2[1] + bound1[1])
-            modelWidthX  = 0.5 * abs(bound2[0] - bound1[0])
-            modelWidthY  = 0.5 * abs(bound2[1] - bound1[1])
-            modelBottomZ = min(bound2[2], bound1[2])
-
-            # TODO: Give a graceful error if the tight bounds are zero on
-            # either axis.
+            modelWidthX  = abs(bound2[0] - bound1[0])
+            modelWidthY  = abs(bound2[1] - bound1[1])
 
             # Scale it to the largest it can be while still fitting within the
             # goal rect. If the aspect ratio of the goal rect is different from
@@ -161,6 +153,17 @@ class WartsApp(ShowBase):
             scaleFactor = min(goalWidthX / modelWidthX,
                               goalWidthY / modelWidthY)
             model.setScale(scaleFactor)
+
+            # Calculate the center of the tile after scaling. Note that we need
+            # to recalculate the tight bounds because the center after scaling
+            # may not be the same as the center before scaling.
+            bound1, bound2 = model.getTightBounds()
+            modelCenterX = 0.5 *    (bound2[0] + bound1[0])
+            modelCenterY = 0.5 *    (bound2[1] + bound1[1])
+            modelBottomZ = min(bound2[2], bound1[2])
+
+            # TODO: Give a graceful error if the tight bounds are zero on
+            # either axis.
 
             model.setPos(goalCenterX - modelCenterX,
                          goalCenterY - modelCenterY,
