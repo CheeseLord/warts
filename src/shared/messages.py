@@ -85,11 +85,7 @@ boolArg      = ArgumentSpecification(1, parseBool, encodeBool)
 intPairArg   = ArgumentSpecification(2, parseIntPair, encodeIntPair)
 floatPairArg = ArgumentSpecification(2, parseFloatPair, encodeFloatPair)
 
-# FIXME FIXME FIXME [#43]: This is bad!
-# unsafeStringArgs need to make use of the lastIsUnsafe feature of
-# buildMessage, since they might contain any arbitrary character. This is going
-# to come back to bite us if we don't fix it.
-unsafeStringArg = ArgumentSpecification(1, str)
+modelPathArg = ArgumentSpecification(1, str, unsafe=True)
 
 playerIdArg  = intArg
 unitSetArg   = ArgumentSpecification(1, UnitSet.deserialize, UnitSet.serialize)
@@ -139,14 +135,14 @@ AddEntity       = defineMessageType("add_entity",
                                     [("gid", graphicsIdArg),
                                      ("pos", gPosArg),
                                      ("isExample", boolArg),
-                                     ("modelPath", unsafeStringArg)])
+                                     ("modelPath", modelPathArg)])
 # TODO: This is getting out of hand. Now there are two of them.
 AddScaledEntity = defineMessageType("add_scaled_entity",
                                     [("gid", graphicsIdArg),
                                      ("pos", gPosArg),
                                      ("isExample", boolArg),
                                      ("scaleTo", floatPairArg),
-                                     ("modelPath", unsafeStringArg)])
+                                     ("modelPath", modelPathArg)])
 Click           = defineMessageType("click",
                                     [("button", intArg),
                                      ("pos", gPosArg)])

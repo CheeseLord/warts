@@ -32,6 +32,7 @@ def defineMessageType(commandWord, argNamesAndSpecs):
     if commandWord in messagesByCommand:
         raise ValueError("Message command {0!r} is already taken."
                          .format(commandWord))
+    assert not any(nameSpec[1].unsafe for nameSpec in argNamesAndSpecs[:-1])
 
     # TODO: snake_case to BigCamelCase?
     # Ideally we'd choose this name so that it matches the actual message class
@@ -60,7 +61,8 @@ def serializeMessage(message):
         if argSpec.count == 1:
             argWords = (argWords,)
         argStrings.extend(argWords)
-    return buildMessage(message.command, argStrings)
+    lastIsUnsafe = message.argSpecs[-1].unsafe if message.argSpecs else False
+    return buildMessage(message.command, argStrings, lastIsUnsafe=lastIsUnsafe)
 
 # Note: errorOnFail might never be passed as False; currently all callers that
 # don't want to crash still pass errorOnFail=True and just handle
@@ -141,7 +143,7 @@ class ArgumentSpecification:
     position is encoded as two words, one for each coordinate.
     """
 
-    def __init__(self, numWords, decodeFunc, encodeFunc=None):
+    def __init__(self, numWords, decodeFunc, encodeFunc=None, unsafe=False):
         """
         Initialize an ArgumentSpecification.
           - numWords is the number of words used to encode this argument in a
@@ -153,6 +155,7 @@ class ArgumentSpecification:
             of strings if numWords > 1, else a single string. If numWords == 1,
             then encodeFunc may be omitted, in which case the argument will
             just be str()ed.
+          - unsafe is a boolean for whether this argument is an unsafe string.
         """
 
         self.count      = numWords
@@ -164,6 +167,8 @@ class ArgumentSpecification:
             self.encodeFunc = str
         else:
             self.encodeFunc = encodeFunc
+
+        self.unsafe = unsafe
 
     def encode(self, arg):
         """
@@ -259,6 +264,7 @@ def buildMessage(command, args, lastIsUnsafe=False):
         if TOKEN_DELIM in token:
             raise InvalidMessageError(message, "{0} may not contain {1!r}"
                                                .format(tokenDesc, TOKEN_DELIM))
+        # TODO [#45]: Validate this.
         if command.startswith(START_STRING):
             raise InvalidMessageError(message, "{0} may not start with {0!r}"
                                                .format(tokenDesc,
