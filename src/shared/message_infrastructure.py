@@ -1,4 +1,5 @@
 from collections import namedtuple
+import traceback
 
 from logconfig import newLogger
 
@@ -87,7 +88,8 @@ def deserializeMessage(data, errorOnFail=True):
             raise InvalidMessageError(data, "Too many arguments for command.")
 
         return messageType(*args)
-    except StandardError, exc:
+    except StandardError:
+        log.debug(traceback.format_exc())
         raise
 
 class Message(object):
