@@ -126,25 +126,16 @@ class WartsApp(ShowBase):
             # needs to be part of the graphical position passed in pos.
             model.setPos(x, y, 0.0)
         else:
-            # TODO[#34]: I don't think this logic is ready to use with models
-            # that might move. The problem is that we're positioning the
-            # center, not the origin of the model. So if the two differ, then
-            # its position according to Panda won't be the same as the position
-            # passed to addEntity. We could maybe get around this by adding a
-            # node in between the model and the render, or we could just draw
-            # it at its origin and depend on the modelers to put the origin at
-            # the center. (But that seems like it'd be easy to get very
-            # slightly off, in which case things might look wonky.)
+            # Rescale the model about its origin. The x and y coordinates of
+            # the model's origin should be chosen as wherever it looks like the
+            # model's center of mass is, so that rotation about the origin (in
+            # the xy plane) feels natural.
 
-            goalCenterX, goalCenterY = x, y
-            goalWidthX,  goalWidthY  = scaleTo
-
-            # For now, all models sit flush against the ground.
-            goalBottomZ = 0.0
+            goalWidthX, goalWidthY  = scaleTo
 
             bound1, bound2 = model.getTightBounds()
-            modelWidthX  = abs(bound2[0] - bound1[0])
-            modelWidthY  = abs(bound2[1] - bound1[1])
+            modelWidthX = abs(bound2[0] - bound1[0])
+            modelWidthY = abs(bound2[1] - bound1[1])
 
             # Scale it to the largest it can be while still fitting within the
             # goal rect. If the aspect ratio of the goal rect is different from
@@ -154,20 +145,18 @@ class WartsApp(ShowBase):
                               goalWidthY / modelWidthY)
             model.setScale(scaleFactor)
 
-            # Calculate the center of the tile after scaling. Note that we need
-            # to recalculate the tight bounds because the center after scaling
-            # may not be the same as the center before scaling.
-            bound1, bound2 = model.getTightBounds()
-            modelCenterX = 0.5 *    (bound2[0] + bound1[0])
-            modelCenterY = 0.5 *    (bound2[1] + bound1[1])
-            modelBottomZ = min(bound2[2], bound1[2])
+            # TODO: Warn if the aspect ratio is off by more than some small
+            # tolerance.
 
             # TODO: Give a graceful error if the tight bounds are zero on
             # either axis.
 
-            model.setPos(goalCenterX - modelCenterX,
-                         goalCenterY - modelCenterY,
-                         goalBottomZ - modelBottomZ)
+            # Place the model at z=0. The model's origin should be placed so
+            # that this looks natural -- for most units this means it should
+            # be right at the bottom of the model, but if we add any units that
+            # are intended to float above the ground, then this can be
+            # accomplished by just positioning the model above its origin.
+            model.setPos(x, y, 0.0)
 
         entity = Entity(gid, model, isExample)
         self.entities[gid] = entity
