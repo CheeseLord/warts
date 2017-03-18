@@ -77,6 +77,9 @@ class WartsApp(ShowBase):
         # client messages, so no need to catch InvalidMessageError.
         message = deserializeMessage(data)
         if isinstance(message, messages.AddEntity):
+            # TODO: Remove this entirely; rename AddScaledEntity to AddEntity.
+            log.warn("Use of add_entity message is deprecated; use "
+                     "add_scaled_entity instead.")
             self.addEntity(message.gid, message.pos, message.modelPath,
                            message.isExample)
         elif isinstance(message, messages.AddScaledEntity):
@@ -111,21 +114,15 @@ class WartsApp(ShowBase):
             # TODO[#9]: Figure out a more general way of specifying animations.
             model = Actor(modelPath,
                           {"walk": "models/panda-walk4"})
-            # model.setScale(0.004, 0.004, 0.004)
         else:
             model = self.loader.loadModel(getModelPath(modelPath))
         # Put the model in the scene, but don't position it yet.
         model.reparentTo(self.render)
 
-        # TODO[#34]: Really scaleTo should always be specified. The only reason
-        # it's optional right now is because I haven't yet gotten around to
-        # merging the addGround logic with the other addModel logic. But that's
-        # definitely something we should do.
-        if scaleTo is None:
-            # TODO: Non-ground models need to be raised up. Really <z> just
-            # needs to be part of the graphical position passed in pos.
-            model.setPos(x, y, 0.0)
-        else:
+        # TODO[#34]: scaleTo should always be specified. Once we've merged
+        # AddEntity and AddScaledEntity, make it a mandatory argument and
+        # remove this check.
+        if scaleTo is not None:
             # Rescale the model about its origin. The x and y coordinates of
             # the model's origin should be chosen as wherever it looks like the
             # model's center of mass is, so that rotation about the origin (in
@@ -151,12 +148,12 @@ class WartsApp(ShowBase):
             # TODO: Give a graceful error if the tight bounds are zero on
             # either axis.
 
-            # Place the model at z=0. The model's origin should be placed so
-            # that this looks natural -- for most units this means it should
-            # be right at the bottom of the model, but if we add any units that
-            # are intended to float above the ground, then this can be
-            # accomplished by just positioning the model above its origin.
-            model.setPos(x, y, 0.0)
+        # Place the model at z=0. The model's origin should be placed so that
+        # this looks natural -- for most units this means it should be right at
+        # the bottom of the model, but if we add any units that are intended to
+        # float above the ground, then this can be accomplished by just
+        # positioning the model above its origin.
+        model.setPos(x, y, 0.0)
 
         entity = Entity(gid, model, isExample)
         self.entities[gid] = entity
