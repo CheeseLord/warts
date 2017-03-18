@@ -71,9 +71,6 @@ class GraphicsInterface(object):
 
                 gMessage = messages.AddEntity(gid, gPos, isExample, modelPath)
                 self.graphics.interfaceMessage(gMessage.serialize())
-
-                # TODO[#34]: Remove this.
-                # self.graphics.addObelisk(message.unitId, message.pos)
             elif isinstance(message, messages.GroundInfo):
                 cPos        = message.pos
                 terrainType = message.terrainType
@@ -118,9 +115,6 @@ class GraphicsInterface(object):
 
                 gMessage = messages.RemoveEntity(gid)
                 self.graphics.interfaceMessage(gMessage.serialize())
-
-                # TODO[#34]: Remove this.
-                # self.graphics.removeObelisk(message.unitId)
             elif isinstance(message, messages.SetPos):
                 uid  = message.unitId
                 uPos = message.pos
@@ -135,11 +129,8 @@ class GraphicsInterface(object):
 
                 gMessage = messages.MoveEntity(gid, gPos)
                 self.graphics.interfaceMessage(gMessage.serialize())
-
-                # TODO[#34]: Remove this.
-                # self.graphics.moveObelisk(message.unitId, message.pos)
             else:
-                # TODO: This is going to bite us later. It hardcodes two
+                # TODO[#40]: This is going to bite us later. It hardcodes two
                 # different assumptions, both of which are probably going to be
                 # invalidated at some point.
                 #   1. Every backend -> clientInterface message originates from
