@@ -77,15 +77,9 @@ class WartsApp(ShowBase):
         # Messages from GraphicsInterface to Graphics are always internal
         # client messages, so no need to catch InvalidMessageError.
         message = deserializeMessage(data)
-        if isinstance(message, messages.AddEntity):
-            # TODO: Remove this entirely; rename AddScaledEntity to AddEntity.
-            log.warn("Use of add_entity message is deprecated; use "
-                     "add_scaled_entity instead.")
+        if isinstance(message, messages.AddScaledEntity):
             self.addEntity(message.gid, message.pos, message.modelPath,
-                           message.isExample)
-        elif isinstance(message, messages.AddScaledEntity):
-            self.addEntity(message.gid, message.pos, message.modelPath,
-                           message.isExample, scaleTo=message.scaleTo)
+                           message.isExample, message.scaleTo)
         elif isinstance(message, messages.RemoveEntity):
             self.removeEntity(message.gid)
         elif isinstance(message, messages.MoveEntity):
@@ -93,7 +87,7 @@ class WartsApp(ShowBase):
         else:
             unhandledInternalMessage(message, log)
 
-    def addEntity(self, gid, pos, modelPath, isExample, scaleTo=None):
+    def addEntity(self, gid, pos, modelPath, isExample, scaleTo):
         """
         pos is given in graphics coordinates.
 
@@ -120,49 +114,46 @@ class WartsApp(ShowBase):
         # Put the model in the scene, but don't position it yet.
         model.reparentTo(self.render)
 
-        # TODO[#34]: scaleTo should always be specified. Once we've merged
-        # AddEntity and AddScaledEntity, make it a mandatory argument and
-        # remove this check.
-        if scaleTo is not None:
-            # Rescale the model about its origin. The x and y coordinates of
-            # the model's origin should be chosen as wherever it looks like the
-            # model's center of mass is, so that rotation about the origin (in
-            # the xy plane) feels natural.
+        # Rescale the model about its origin. The x and y coordinates of the
+        # model's origin should be chosen as wherever it looks like the model's
+        # center of mass is, so that rotation about the origin (in the xy
+        # plane) feels natural.
 
-            goalWidthX, goalWidthY  = scaleTo
+        goalWidthX, goalWidthY  = scaleTo
 
-            bound1, bound2 = model.getTightBounds()
-            modelWidthX = abs(bound2[0] - bound1[0])
-            modelWidthY = abs(bound2[1] - bound1[1])
+        bound1, bound2 = model.getTightBounds()
+        modelWidthX = abs(bound2[0] - bound1[0])
+        modelWidthY = abs(bound2[1] - bound1[1])
 
-            xScale = goalWidthX / modelWidthX
-            yScale = goalWidthY / modelWidthY
+        xScale = goalWidthX / modelWidthX
+        yScale = goalWidthY / modelWidthY
 
-            # Scale it to the largest it can be while still fitting within the
-            # goal rect. If the aspect ratio of the goal rect is different from
-            # that of the model, then it'll only fill that rect in one
-            # dimension. altScaleFactor is used for sanity checks below.
-            scaleFactor, altScaleFactor = minmax(goalWidthX / modelWidthX,
-                                                 goalWidthY / modelWidthY)
+        # Scale it to the largest it can be while still fitting within the goal
+        # rect. If the aspect ratio of the goal rect is different from that of
+        # the model, then it'll only fill that rect in one dimension.
+        # altScaleFactor is used for sanity checks below.
+        scaleFactor, altScaleFactor = minmax(goalWidthX / modelWidthX,
+                                             goalWidthY / modelWidthY)
 
-            if scaleFactor <= 0.0:
-                if scaleFactor == 0.0:
-                    log.warn("Graphical entity {} will be scaled negatively!"
-                             .format(gid))
-                else:
-                    log.warn("Graphical entity {} will be scaled to zero size."
-                             .format(gid))
+        # Sanity check the scale factor.
+        if scaleFactor <= 0.0:
+            if scaleFactor == 0.0:
+                log.warn("Graphical entity {} will be scaled negatively!"
+                         .format(gid))
             else:
-                # TODO[#9]: Currently the example panda triggers this warning.
-                # TODO[#3]: Magic numbers bad.
-                if altScaleFactor / scaleFactor > 1.001:
-                    log.warn("Graphical entity {} has different aspect ratio "
-                             "than its model: model of size {:.3g} x {:.3g} "
-                             "being scaled into {:.3g} x {:.3g}."
-                             .format(gid, modelWidthX, modelWidthY,
-                                     goalWidthX, goalWidthY))
+                log.warn("Graphical entity {} will be scaled to zero size."
+                         .format(gid))
+        else:
+            # TODO[#9]: Currently the example panda triggers this warning.
+            # TODO[#3]: Magic numbers bad.
+            if altScaleFactor / scaleFactor > 1.001:
+                log.warn("Graphical entity {} has different aspect ratio "
+                         "than its model: model of size {:.3g} x {:.3g} "
+                         "being scaled into {:.3g} x {:.3g}."
+                         .format(gid, modelWidthX, modelWidthY,
+                                 goalWidthX, goalWidthY))
 
-            model.setScale(scaleFactor)
+        model.setScale(scaleFactor)
 
         # Place the model at z=0. The model's origin should be placed so that
         # this looks natural -- for most units this means it should be right at

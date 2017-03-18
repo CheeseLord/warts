@@ -131,12 +131,6 @@ YourIdIs      = defineMessageType("your_id_is", [("playerId", playerIdArg)])
 
 # TODO[#9]: Get rid of isExample argument; replace with more generic isActor
 # (or hasAnimations?).
-AddEntity       = defineMessageType("add_entity",
-                                    [("gid", graphicsIdArg),
-                                     ("pos", gPosArg),
-                                     ("isExample", boolArg),
-                                     ("modelPath", modelPathArg)])
-# TODO: This is getting out of hand. Now there are two of them.
 AddScaledEntity = defineMessageType("add_scaled_entity",
                                     [("gid", graphicsIdArg),
                                      ("pos", gPosArg),
