@@ -155,7 +155,8 @@ class ArgumentSpecification:
             of strings if numWords > 1, else a single string. If numWords == 1,
             then encodeFunc may be omitted, in which case the argument will
             just be str()ed.
-          - unsafe is a boolean for whether this argument is an unsafe string.
+          - unsafe indicates whether the last word of this argument is an
+            unsafe string.
         """
 
         self.count      = numWords
