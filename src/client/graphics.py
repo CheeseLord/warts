@@ -77,7 +77,7 @@ class WartsApp(ShowBase):
         # Messages from GraphicsInterface to Graphics are always internal
         # client messages, so no need to catch InvalidMessageError.
         message = deserializeMessage(data)
-        if isinstance(message, messages.AddScaledEntity):
+        if isinstance(message, messages.AddEntity):
             self.addEntity(message.gid, message.pos, message.modelPath,
                            message.isExample, message.scaleTo)
         elif isinstance(message, messages.RemoveEntity):

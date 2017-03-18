@@ -77,7 +77,7 @@ class GraphicsInterface(object):
                 # Actually use one of those functions here.
                 goalGSize = tuple(float(x)/GRAPHICS_SCALE for x in goalUSize)
 
-                gMessage = messages.AddScaledEntity(gid, gPos, isExample,
+                gMessage = messages.AddEntity(gid, gPos, isExample,
                     goalGSize, modelPath)
                 self.graphics.interfaceMessage(gMessage.serialize())
             elif isinstance(message, messages.GroundInfo):
@@ -108,7 +108,7 @@ class GraphicsInterface(object):
                 gPos    = (goalCenterX, goalCenterY)
                 scaleTo = (goalWidthX,  goalWidthY)
 
-                gMessage = messages.AddScaledEntity(gid, gPos, False, scaleTo,
+                gMessage = messages.AddEntity(gid, gPos, False, scaleTo,
                         modelName)
                 self.graphics.interfaceMessage(gMessage.serialize())
             elif isinstance(message, messages.DeleteObelisk):
