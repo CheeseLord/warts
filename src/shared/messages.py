@@ -145,8 +145,8 @@ AddScaledEntity = defineMessageType("add_scaled_entity",
                                     [("gid", graphicsIdArg),
                                      ("pos", gPosArg),
                                      ("isExample", boolArg),
-                                     ("modelPath", unsafeStringArg),
-                                     ("scaleTo", floatPairArg)])
+                                     ("scaleTo", floatPairArg),
+                                     ("modelPath", unsafeStringArg)])
 Click           = defineMessageType("click",
                                     [("button", intArg),
                                      ("pos", gPosArg)])

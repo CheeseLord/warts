@@ -99,8 +99,8 @@ class GraphicsInterface(object):
                 gPos    = (goalCenterX, goalCenterY)
                 scaleTo = (goalWidthX,  goalWidthY)
 
-                gMessage = messages.AddScaledEntity(gid, gPos, False,
-                        modelName, scaleTo)
+                gMessage = messages.AddScaledEntity(gid, gPos, False, scaleTo,
+                        modelName)
                 self.graphics.interfaceMessage(gMessage.serialize())
 
                 # self.graphics.addGround(message.pos, message.terrainType)
