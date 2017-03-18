@@ -1,4 +1,5 @@
 from collections import namedtuple
+import sys
 import traceback
 
 from logconfig import newLogger
@@ -89,7 +90,26 @@ def deserializeMessage(data, errorOnFail=True):
 
         return messageType(*args)
     except StandardError, exc:
-        log.debug(traceback.format_exc())
+        # Log the full traceback, noting where we are, much like what Twisted
+        # does for an uncaught exception.
+        stackBelow = traceback.format_exception(sys.exc_type, sys.exc_value,
+                                                sys.exc_traceback)
+        stackAbove = traceback.format_stack()
+        # Remove the last stack entry from stackAbove, because that's the call
+        # to format_stack() which isn't part of the exception's traceback.
+        stackAbove = stackAbove[:-1]
+        # Remove the first entry from stackBelow, because that's the "Traceback
+        # (most recent call last)" line which we want at the top of the
+        # traceback, rather than the middle.
+        headerLine = stackBelow[0]
+        stackBelow = stackBelow[1:]
+        # Add an extra entry in the middle noting that this is where we caught
+        # the exception.
+        midLine = "--- <exception caught here> ---\n"
+        fullStack = [headerLine] + stackAbove + [midLine] + stackBelow
+        log.debug("Caught exception in deserializeMessage.\n" +
+                  "".join(fullStack))
+
         if errorOnFail:
             # Reraise the exception, but converted (if necessary) to an
             # InvalidMessageError. This ensures that it'll be handled correctly
