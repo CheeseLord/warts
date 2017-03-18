@@ -1,4 +1,5 @@
 from collections import namedtuple
+import traceback
 
 from logconfig import newLogger
 
@@ -88,6 +89,7 @@ def deserializeMessage(data, errorOnFail=True):
 
         return messageType(*args)
     except StandardError, exc:
+        log.debug(traceback.format_exc())
         if errorOnFail:
             # Reraise the exception, but converted (if necessary) to an
             # InvalidMessageError. This ensures that it'll be handled correctly
