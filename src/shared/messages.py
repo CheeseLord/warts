@@ -135,7 +135,7 @@ AddEntity    = defineMessageType("add_entity",
                                  [("gid", graphicsIdArg),
                                   ("pos", gPosArg),
                                   ("isExample", boolArg),
-                                  ("scaleTo", floatPairArg),
+                                  ("goalSize", floatPairArg),
                                   ("modelPath", modelPathArg)])
 Click        = defineMessageType("click",
                                  [("button", intArg),

@@ -77,8 +77,8 @@ class GraphicsInterface(object):
                 # Actually use one of those functions here.
                 goalGSize = tuple(float(x)/GRAPHICS_SCALE for x in goalUSize)
 
-                gMessage = messages.AddEntity(gid, gPos, isExample,
-                    goalGSize, modelPath)
+                gMessage = messages.AddEntity(gid, gPos, isExample, goalGSize,
+                                              modelPath)
                 self.graphics.interfaceMessage(gMessage.serialize())
             elif isinstance(message, messages.GroundInfo):
                 cPos        = message.pos
@@ -105,11 +105,11 @@ class GraphicsInterface(object):
                 goalWidthX  =    abs(gPos2[0] - gPos1[0])
                 goalWidthY  =    abs(gPos2[1] - gPos1[1])
 
-                gPos    = (goalCenterX, goalCenterY)
-                scaleTo = (goalWidthX,  goalWidthY)
+                gPos      = (goalCenterX, goalCenterY)
+                goalGSize = (goalWidthX,  goalWidthY)
 
-                gMessage = messages.AddEntity(gid, gPos, False, scaleTo,
-                        modelName)
+                gMessage = messages.AddEntity(gid, gPos, False, goalGSize,
+                                              modelName)
                 self.graphics.interfaceMessage(gMessage.serialize())
             elif isinstance(message, messages.DeleteObelisk):
                 uid = message.unitId

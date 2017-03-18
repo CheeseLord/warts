@@ -79,7 +79,7 @@ class WartsApp(ShowBase):
         message = deserializeMessage(data)
         if isinstance(message, messages.AddEntity):
             self.addEntity(message.gid, message.pos, message.modelPath,
-                           message.isExample, message.scaleTo)
+                           message.isExample, message.goalSize)
         elif isinstance(message, messages.RemoveEntity):
             self.removeEntity(message.gid)
         elif isinstance(message, messages.MoveEntity):
@@ -87,11 +87,11 @@ class WartsApp(ShowBase):
         else:
             unhandledInternalMessage(message, log)
 
-    def addEntity(self, gid, pos, modelPath, isExample, scaleTo):
+    def addEntity(self, gid, pos, modelPath, isExample, goalSize):
         """
         pos is given in graphics coordinates.
 
-        scaleTo, if specified, is a pair (width, height) -- the model will be
+        goalSize, if specified, is a pair (width, height) -- the model will be
         scaled in the xy plane so that it's as large as possible while still
         fitting within that width and height. Don't pass 0 as the width or the
         height, because that's just not nice.
@@ -119,7 +119,7 @@ class WartsApp(ShowBase):
         # center of mass is, so that rotation about the origin (in the xy
         # plane) feels natural.
 
-        goalWidthX, goalWidthY  = scaleTo
+        goalWidthX, goalWidthY = goalSize
 
         bound1, bound2 = model.getTightBounds()
         modelWidthX = abs(bound2[0] - bound1[0])
