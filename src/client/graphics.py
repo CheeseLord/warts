@@ -17,6 +17,7 @@ from src.shared.message_infrastructure import deserializeMessage, \
     illFormedMessage, unhandledMessageCommand, invalidMessageArgument, \
     InvalidMessageError
 from src.shared.unit_set import UnitSet
+from src.shared.utils import minmax
 from src.client.backend import unitToGraphics, GRAPHICS_SCALE
 
 log = newLogger(__name__)
@@ -77,6 +78,9 @@ class WartsApp(ShowBase):
         # client messages, so no need to catch InvalidMessageError.
         message = deserializeMessage(data)
         if isinstance(message, messages.AddEntity):
+            # TODO: Remove this entirely; rename AddScaledEntity to AddEntity.
+            log.warn("Use of add_entity message is deprecated; use "
+                     "add_scaled_entity instead.")
             self.addEntity(message.gid, message.pos, message.modelPath,
                            message.isExample)
         elif isinstance(message, messages.AddScaledEntity):
@@ -111,60 +115,61 @@ class WartsApp(ShowBase):
             # TODO[#9]: Figure out a more general way of specifying animations.
             model = Actor(modelPath,
                           {"walk": "models/panda-walk4"})
-            model.setScale(0.004, 0.004, 0.004)
         else:
             model = self.loader.loadModel(getModelPath(modelPath))
         # Put the model in the scene, but don't position it yet.
         model.reparentTo(self.render)
 
-        # TODO[#34]: Really scaleTo should always be specified. The only reason
-        # it's optional right now is because I haven't yet gotten around to
-        # merging the addGround logic with the other addModel logic. But that's
-        # definitely something we should do.
-        if scaleTo is None:
-            # TODO: Non-ground models need to be raised up. Really <z> just
-            # needs to be part of the graphical position passed in pos.
-            model.setPos(x, y, 0.0)
-        else:
-            # TODO[#34]: I don't think this logic is ready to use with models
-            # that might move. The problem is that we're positioning the
-            # center, not the origin of the model. So if the two differ, then
-            # its position according to Panda won't be the same as the position
-            # passed to addEntity. We could maybe get around this by adding a
-            # node in between the model and the render, or we could just draw
-            # it at its origin and depend on the modelers to put the origin at
-            # the center. (But that seems like it'd be easy to get very
-            # slightly off, in which case things might look wonky.)
+        # TODO[#34]: scaleTo should always be specified. Once we've merged
+        # AddEntity and AddScaledEntity, make it a mandatory argument and
+        # remove this check.
+        if scaleTo is not None:
+            # Rescale the model about its origin. The x and y coordinates of
+            # the model's origin should be chosen as wherever it looks like the
+            # model's center of mass is, so that rotation about the origin (in
+            # the xy plane) feels natural.
 
-            goalCenterX, goalCenterY = x, y
-            goalWidthX,  goalWidthY  = scaleTo
+            goalWidthX, goalWidthY  = scaleTo
 
-            # For now, all models sit flush against the ground.
-            goalBottomZ = 0.0
-
-            # Calculate the footprint of the tile in its default
-            # position/scale.
             bound1, bound2 = model.getTightBounds()
-            modelCenterX = 0.5 *    (bound2[0] + bound1[0])
-            modelCenterY = 0.5 *    (bound2[1] + bound1[1])
-            modelWidthX  = 0.5 * abs(bound2[0] - bound1[0])
-            modelWidthY  = 0.5 * abs(bound2[1] - bound1[1])
-            modelBottomZ = min(bound2[2], bound1[2])
+            modelWidthX = abs(bound2[0] - bound1[0])
+            modelWidthY = abs(bound2[1] - bound1[1])
 
-            # TODO: Give a graceful error if the tight bounds are zero on
-            # either axis.
+            xScale = goalWidthX / modelWidthX
+            yScale = goalWidthY / modelWidthY
 
             # Scale it to the largest it can be while still fitting within the
             # goal rect. If the aspect ratio of the goal rect is different from
             # that of the model, then it'll only fill that rect in one
-            # dimension.
-            scaleFactor = min(goalWidthX / modelWidthX,
-                              goalWidthY / modelWidthY)
+            # dimension. altScaleFactor is used for sanity checks below.
+            scaleFactor, altScaleFactor = minmax(goalWidthX / modelWidthX,
+                                                 goalWidthY / modelWidthY)
+
+            if scaleFactor <= 0.0:
+                if scaleFactor == 0.0:
+                    log.warn("Graphical entity {} will be scaled negatively!"
+                             .format(gid))
+                else:
+                    log.warn("Graphical entity {} will be scaled to zero size."
+                             .format(gid))
+            else:
+                # TODO[#9]: Currently the example panda triggers this warning.
+                # TODO[#3]: Magic numbers bad.
+                if altScaleFactor / scaleFactor > 1.001:
+                    log.warn("Graphical entity {} has different aspect ratio "
+                             "than its model: model of size {:.3g} x {:.3g} "
+                             "being scaled into {:.3g} x {:.3g}."
+                             .format(gid, modelWidthX, modelWidthY,
+                                     goalWidthX, goalWidthY))
+
             model.setScale(scaleFactor)
 
-            model.setPos(goalCenterX - modelCenterX,
-                         goalCenterY - modelCenterY,
-                         goalBottomZ - modelBottomZ)
+        # Place the model at z=0. The model's origin should be placed so that
+        # this looks natural -- for most units this means it should be right at
+        # the bottom of the model, but if we add any units that are intended to
+        # float above the ground, then this can be accomplished by just
+        # positioning the model above its origin.
+        model.setPos(x, y, 0.0)
 
         entity = Entity(gid, model, isExample)
         self.entities[gid] = entity

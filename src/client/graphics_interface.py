@@ -69,7 +69,16 @@ class GraphicsInterface(object):
                     isExample = False
                     modelPath = "other-obelisk.egg"
 
-                gMessage = messages.AddEntity(gid, gPos, isExample, modelPath)
+                # TODO[#3]: Magic numbers bad
+                goalUSize = (10, 10)
+
+                # TODO: Organize all the coordinate conversion functions. Make
+                # sure we have functions to convert both positions and sizes.
+                # Actually use one of those functions here.
+                goalGSize = tuple(float(x)/GRAPHICS_SCALE for x in goalUSize)
+
+                gMessage = messages.AddScaledEntity(gid, gPos, isExample,
+                    goalGSize, modelPath)
                 self.graphics.interfaceMessage(gMessage.serialize())
             elif isinstance(message, messages.GroundInfo):
                 cPos        = message.pos
@@ -91,10 +100,10 @@ class GraphicsInterface(object):
                                                     for coord in cPos)))
 
                 # Figure out where we want the tile.
-                goalCenterX = 0.5 *    (gPos2[0] + gPos1[0])
-                goalCenterY = 0.5 *    (gPos2[1] + gPos1[1])
-                goalWidthX  = 0.5 * abs(gPos2[0] - gPos1[0])
-                goalWidthY  = 0.5 * abs(gPos2[1] - gPos1[1])
+                goalCenterX = 0.5 * (gPos2[0] + gPos1[0])
+                goalCenterY = 0.5 * (gPos2[1] + gPos1[1])
+                goalWidthX  =    abs(gPos2[0] - gPos1[0])
+                goalWidthY  =    abs(gPos2[1] - gPos1[1])
 
                 gPos    = (goalCenterX, goalCenterY)
                 scaleTo = (goalWidthX,  goalWidthY)
@@ -102,8 +111,6 @@ class GraphicsInterface(object):
                 gMessage = messages.AddScaledEntity(gid, gPos, False, scaleTo,
                         modelName)
                 self.graphics.interfaceMessage(gMessage.serialize())
-
-                # self.graphics.addGround(message.pos, message.terrainType)
             elif isinstance(message, messages.DeleteObelisk):
                 uid = message.unitId
 
