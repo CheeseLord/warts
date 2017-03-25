@@ -420,9 +420,16 @@ class WartsApp(ShowBase):
         # TODO: Make sure this is always the right mouse button.
         self.accept("mouse3", self.handleMouseClick, [3])
 
+        # Let's just see if these work.
+        self.accept("shift-mouse1",   self.logEvent, ["shift-mouse1"])
+        self.accept("control-mouse1", self.logEvent, ["control-mouse1"])
+
         # Handle window close request (clicking the X, Alt-F4, etc.)
         self.win.set_close_request_event("window-close")
         self.accept("window-close", self.handleWindowClose)
+
+    def logEvent(self, eventName):
+        log.info("Received event {0!r}".format(eventName))
 
 
 def getModelPath(modelName):
