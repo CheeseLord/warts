@@ -33,15 +33,17 @@ class Entity(object):
     world: ground, trees, units, structures.
     """
 
-    def __init__(self, graphicId, model, isActor):
-        self.gid     = graphicId
-        self.model   = model
-        self.isActor = isActor
+    def __init__(self, graphicId, model, rootNode, isActor):
+        self.gid      = graphicId
+        self.model    = model
+        self.rootNode = rootNode
+        self.isActor  = isActor
 
     def cleanup(self):
         if self.isActor:
             self.model.cleanup()
         self.model.removeNode()
+        self.rootNode.removeNode()
 
 
 class WartsApp(ShowBase):
@@ -111,8 +113,10 @@ class WartsApp(ShowBase):
                           {"walk": "models/panda-walk4"})
         else:
             model = self.loader.loadModel(getModelPath(modelPath))
+
         # Put the model in the scene, but don't position it yet.
-        model.reparentTo(self.render)
+        rootNode = render.attachNewNode("")
+        model.reparentTo(rootNode)
 
         # Rescale the model about its origin. The x and y coordinates of the
         # model's origin should be chosen as wherever it looks like the model's
@@ -160,9 +164,9 @@ class WartsApp(ShowBase):
         # the bottom of the model, but if we add any units that are intended to
         # float above the ground, then this can be accomplished by just
         # positioning the model above its origin.
-        model.setPos(x, y, 0.0)
+        rootNode.setPos(x, y, 0.0)
 
-        entity = Entity(gid, model, isExample)
+        entity = Entity(gid, model, rootNode, isExample)
         self.entities[gid] = entity
 
     def removeEntity(self, gid):
@@ -175,7 +179,7 @@ class WartsApp(ShowBase):
         entity = self.entities[gid]
 
         x, y = newPos
-        oldX, oldY, oldZ = entity.model.getPos()
+        oldX, oldY, oldZ = entity.rootNode.getPos()
         z = oldZ
 
         # Ensure the entity is facing the right direction.
@@ -186,9 +190,10 @@ class WartsApp(ShowBase):
         # TODO[#9]: Establish a convention about which way _our_ models face;
         # figure out whether we need something like this. (Hopefully not?)
         heading += 90.0
-        entity.model.setHpr(heading, 0, 0)
+        entity.rootNode.setHpr(heading, 0, 0)
 
-        moveInterval = entity.model.posInterval(config.TICK_LENGTH, (x, y, z))
+        moveInterval = entity.rootNode.posInterval(config.TICK_LENGTH,
+                                                   (x, y, z))
         moveInterval.start()
 
         if entity.isActor and "walk" in entity.model.getAnimNames():
