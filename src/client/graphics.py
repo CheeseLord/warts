@@ -17,7 +17,7 @@ from src.shared.message_infrastructure import deserializeMessage, \
     illFormedMessage, unhandledMessageCommand, invalidMessageArgument, \
     InvalidMessageError
 from src.shared.unit_set import UnitSet
-from src.shared.utils import minmax
+from src.shared.utils import minmax, thisShouldNeverHappen
 from src.client.backend import unitToGraphics, GRAPHICS_SCALE
 
 log = newLogger(__name__)
@@ -334,7 +334,7 @@ class WartsApp(ShowBase):
 
         ##self.cameraHolder.setPos(x, y, z)
 
-    def handleMouseClick(self, button):
+    def handleMouseClick(self, button, modifiers):
         # Make sure the mouse is inside the screen
         if self.mouseWatcherNode.hasMouse():
             # Get the screen coordinates of the mouse, normalized to [-1, 1].
@@ -347,19 +347,31 @@ class WartsApp(ShowBase):
             # Check each object in the node tree for collision with the mouse.
             self.mouseClickTraverser.traverse(self.render)
             for entry in self.mouseClickHandler.getEntries():
-                if entry.hasInto():
-                    # Check if each intersection is with the ground.
-                    if entry.getIntoNodePath() == self.groundPlaneNodePath:
-                        if self.usingCustomCamera:
-                            clickedPoint = entry.getSurfacePoint(self.render)
-                            x, y, z = clickedPoint
-                            # TODO: This component should take care of decoding
-                            # the click as far as "left" or "right"; we
-                            # shouldn't send a numerical button id to the
-                            # graphicsInterface.
-                            message = messages.Click(button, (x, y))
-                            self.graphicsInterface.graphicsMessage(
-                                message.serialize())
+                if not entry.hasInto():
+                    continue
+                # Check if each intersection is with the ground.
+                if entry.getIntoNodePath() != self.groundPlaneNodePath:
+                    continue
+                if not self.usingCustomCamera:
+                    continue
+
+                clickedPoint = entry.getSurfacePoint(self.render)
+                x, y, z = clickedPoint
+
+                if modifiers == []:
+                    # TODO: This component should take care of decoding the
+                    # click as far as "left" or "right"; we shouldn't send a
+                    # numerical button id to the graphicsInterface.
+                    message = messages.Click(button, (x, y))
+                elif modifiers == ["shift"]:
+                    message = messages.ShiftClick((x, y))
+                elif modifiers == ["control"]:
+                    message = messages.ControlClick((x, y))
+                else:
+                    thisShouldNeverHappen(
+                        "Unhandled modifiers for click: {}".format(modifiers))
+
+                self.graphicsInterface.graphicsMessage(message.serialize())
 
     def handleWindowClose(self):
         log.info("Window close requested -- shutting down client.")
@@ -416,13 +428,13 @@ class WartsApp(ShowBase):
         self.accept("wheel_down", self.zoomCamera, [False])
 
         # Handle clicking.
-        self.accept("mouse1", self.handleMouseClick, [1])
+        self.accept("mouse1", self.handleMouseClick, [1, []])
         # TODO: Make sure this is always the right mouse button.
-        self.accept("mouse3", self.handleMouseClick, [3])
+        self.accept("mouse3", self.handleMouseClick, [3, []])
 
-        # Let's just see if these work.
-        self.accept("shift-mouse1",   self.logEvent, ["shift-mouse1"])
-        self.accept("control-mouse1", self.logEvent, ["control-mouse1"])
+        # Handle clicking with modifier keys.
+        self.accept("shift-mouse1",   self.handleMouseClick, [1, ["shift"]])
+        self.accept("control-mouse1", self.handleMouseClick, [1, ["control"]])
 
         # Handle window close request (clicking the X, Alt-F4, etc.)
         self.win.set_close_request_event("window-close")

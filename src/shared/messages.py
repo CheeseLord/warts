@@ -140,6 +140,10 @@ AddEntity    = defineMessageType("add_entity",
 Click        = defineMessageType("click",
                                  [("button", intArg),
                                   ("pos", gPosArg)])
+ShiftClick   = defineMessageType("shift_click",
+                                 [("pos", gPosArg)])
+ControlClick = defineMessageType("control_click",
+                                 [("pos", gPosArg)])
 MoveEntity   = defineMessageType("move_entity",
                                  [("gid", graphicsIdArg),
                                   ("pos", gPosArg)])

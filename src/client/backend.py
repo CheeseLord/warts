@@ -176,6 +176,18 @@ class Backend:
                 newMsg = messages.OrderMove(self.unitSelection,
                                             graphicsToUnit(message.pos))
                 self.network.backendMessage(newMsg.serialize())
+        elif isinstance(message, messages.ShiftClick):
+            gPos = message.pos
+            uPos = graphicsToUnit(gPos)
+            chosenUnit = self.getUnitAt(uPos)
+            if chosenUnit is not None:
+                self.unitSelection.add(chosenUnit)
+        elif isinstance(message, messages.ControlClick):
+            gPos = message.pos
+            uPos = graphicsToUnit(gPos)
+            chosenUnit = self.getUnitAt(uPos)
+            if chosenUnit is not None and chosenUnit in self.unitSelection:
+                self.unitSelection.remove(chosenUnit)
         elif isinstance(message, messages.RequestQuit):
             for component in self.allComponents:
                 component.cleanup()
