@@ -131,22 +131,29 @@ YourIdIs      = defineMessageType("your_id_is", [("playerId", playerIdArg)])
 
 # TODO[#9]: Get rid of isExample argument; replace with more generic isActor
 # (or hasAnimations?).
-AddEntity    = defineMessageType("add_entity",
-                                 [("gid", graphicsIdArg),
-                                  ("pos", gPosArg),
-                                  ("isExample", boolArg),
-                                  ("goalSize", floatPairArg),
-                                  ("modelPath", modelPathArg)])
-Click        = defineMessageType("click",
-                                 [("button", intArg),
-                                  ("pos", gPosArg)])
-ShiftClick   = defineMessageType("shift_click",
-                                 [("pos", gPosArg)])
-ControlClick = defineMessageType("control_click",
-                                 [("pos", gPosArg)])
-MoveEntity   = defineMessageType("move_entity",
-                                 [("gid", graphicsIdArg),
-                                  ("pos", gPosArg)])
-RemoveEntity = defineMessageType("remove_entity", [("gid", graphicsIdArg)])
-RequestQuit  = defineMessageType("request_quit", [])
+AddEntity          = defineMessageType("add_entity",
+                                       [("gid", graphicsIdArg),
+                                        ("pos", gPosArg),
+                                        ("isExample", boolArg),
+                                        ("goalSize", floatPairArg),
+                                        ("modelPath", modelPathArg)])
+Click              = defineMessageType("click",
+                                       [("button", intArg),
+                                        ("pos", gPosArg)])
+ShiftClick         = defineMessageType("shift_click",
+                                       [("pos", gPosArg)])
+ControlClick       = defineMessageType("control_click",
+                                       [("pos", gPosArg)])
+MarkEntitySelected = defineMessageType("mark_entity_selected",
+                                       [("gid", graphicsIdArg),
+                                        ("isSelected", boolArg)])
+MarkUnitSelected   = defineMessageType("mark_unit_selected",
+                                       [("unitId", unitIdArg),
+                                        ("isSelected", boolArg)])
+MoveEntity         = defineMessageType("move_entity",
+                                       [("gid", graphicsIdArg),
+                                        ("pos", gPosArg)])
+RemoveEntity       = defineMessageType("remove_entity",
+                                       [("gid", graphicsIdArg)])
+RequestQuit        = defineMessageType("request_quit", [])
 

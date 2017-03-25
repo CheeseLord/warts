@@ -136,6 +136,14 @@ class GraphicsInterface(object):
 
                 gMessage = messages.MoveEntity(gid, gPos)
                 self.graphics.interfaceMessage(gMessage.serialize())
+            elif isinstance(message, messages.MarkUnitSelected):
+                # FIXME[#40]: See below. This is not from the server.
+                # On the bright side, that means we don't need to sanitize the
+                # uid.
+                uid = message.unitId
+                gid = self.uidToGid[uid]
+                msg = messages.MarkEntitySelected(gid, message.isSelected)
+                self.graphics.interfaceMessage(msg.serialize())
             else:
                 # TODO[#40]: This is going to bite us later. It hardcodes two
                 # different assumptions, both of which are probably going to be

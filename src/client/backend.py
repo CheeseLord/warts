@@ -167,10 +167,9 @@ class Backend:
                 gPos = message.pos
                 uPos = graphicsToUnit(gPos)
                 chosenUnit = self.getUnitAt(uPos)
-                if chosenUnit is None:
-                    self.unitSelection = UnitSet()
-                else:
-                    self.unitSelection = UnitSet([chosenUnit])
+                self.clearSelection()
+                if chosenUnit is not None:
+                    self.addToSelection(chosenUnit)
             elif message.button == 3:
                 # Right mouse button
                 newMsg = messages.OrderMove(self.unitSelection,
@@ -181,13 +180,13 @@ class Backend:
             uPos = graphicsToUnit(gPos)
             chosenUnit = self.getUnitAt(uPos)
             if chosenUnit is not None:
-                self.unitSelection.add(chosenUnit)
+                self.addToSelection(chosenUnit)
         elif isinstance(message, messages.ControlClick):
             gPos = message.pos
             uPos = graphicsToUnit(gPos)
             chosenUnit = self.getUnitAt(uPos)
             if chosenUnit is not None and chosenUnit in self.unitSelection:
-                self.unitSelection.remove(chosenUnit)
+                self.removeFromSelection(chosenUnit)
         elif isinstance(message, messages.RequestQuit):
             for component in self.allComponents:
                 component.cleanup()
@@ -219,6 +218,22 @@ class Backend:
                 nearestDistance = distance
 
         return nearest
+
+    def addToSelection(self, unitId):
+        self.unitSelection.add(unitId)
+        msg = messages.MarkUnitSelected(unitId, True)
+        self.graphicsInterface.backendMessage(msg.serialize())
+
+    def removeFromSelection(self, unitId):
+        self.unitSelection.remove(unitId)
+        msg = messages.MarkUnitSelected(unitId, False)
+        self.graphicsInterface.backendMessage(msg.serialize())
+
+    def clearSelection(self):
+        for unitId in self.unitSelection:
+            msg = messages.MarkUnitSelected(unitId, False)
+            self.graphicsInterface.backendMessage(msg.serialize())
+        self.unitSelection = UnitSet()
 
 # TODO: Shouldn't these be in the GraphicsInterface if they're going to be
 # with a single component?

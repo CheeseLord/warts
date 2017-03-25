@@ -86,6 +86,8 @@ class WartsApp(ShowBase):
             self.removeEntity(message.gid)
         elif isinstance(message, messages.MoveEntity):
             self.moveEntity(message.gid, message.pos)
+        elif isinstance(message, messages.MarkEntitySelected):
+            self.markSelected(message.gid, message.isSelected)
         else:
             unhandledInternalMessage(message, log)
 
@@ -215,6 +217,14 @@ class WartsApp(ShowBase):
             animInterval = entity.model.actorInterval("walk", loop=1,
                 startFrame=currFrame, endFrame=endFrame)
             animInterval.start()
+
+    def markSelected(self, gid, isSelected):
+        log.debug("Marking graphical entity {} as {}selected" \
+            .format(gid, "" if isSelected else "not "))
+        entity = self.entities[gid]
+
+        z = 5 if isSelected else 0
+        entity.model.setPos(0, 0, z)
 
     def setCameraCustom(self):
         """
