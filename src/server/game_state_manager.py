@@ -30,6 +30,24 @@ class GameStateManager(object):
         # TODO[#10]: Why is this in GameStateManager?
         self.messageCounts = defaultdict(int)
 
+        # TODO[#10]: Why is this in GameStateManager?
+        self.stdio = None
+
+    # TODO[#10]: Why is this in GameStateManager?
+    def stdioReady(self, stdioComponent):
+        assert self.stdio is None
+        self.stdio = stdioComponent
+        assert self.stdio is not None
+
+    # TODO[#10]: Why is this in GameStateManager?
+    def stdioMessage(self, message):
+        if message == "dump":
+            # TODO: Do something sensible.
+            log.info("User asked for data dump.")
+        else:
+            # TODO: Do something sensible.
+            log.info("Don't know how to handle \"{}\".".format(message))
+
     # TODO[#10]: Why is this in GameStateManager?
     def handshake(self, playerId):
         # Send ground info.

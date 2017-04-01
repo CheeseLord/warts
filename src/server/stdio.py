@@ -8,8 +8,8 @@ from src.shared.logconfig import newLogger
 log = newLogger(__name__)
 
 
-def setupStdio(backend):
-    twistedStdio.StandardIO(StdioHandler(backend))
+def setupStdio(gameStateManager):
+    twistedStdio.StandardIO(StdioHandler(gameStateManager))
 
 
 class StdioHandler(LineReceiver):
@@ -21,19 +21,15 @@ class StdioHandler(LineReceiver):
     # change this to '\n'.
     delimiter = os.linesep
 
-    def __init__(self, backend):
+    def __init__(self, gameStateManager):
         # For some reason calling LineReceiver.__init__ doesn't work??
 
-        self.backend = backend
-        self.backend.stdioReady(self)
+        self.gameStateManager = gameStateManager
+        self.gameStateManager.stdioReady(self)
 
     def cleanup(self):
         pass
 
     def lineReceived(self, line):
-        self.backend.stdioMessage(line)
-
-    def backendMessage(self, message):
-        # Do we want to use this?
-        self.sendLine(message)
+        self.gameStateManager.stdioMessage(line)
 
