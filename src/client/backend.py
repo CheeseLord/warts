@@ -8,7 +8,7 @@ from src.shared.message_infrastructure import deserializeMessage, \
     unhandledInternalMessage, InvalidMessageError
 
 # Constants
-GRAPHICS_SCALE=3
+GRAPHICS_SCALE = 3
 
 # Logging
 log = newLogger(__name__)
@@ -93,11 +93,21 @@ class Backend:
 
     def stdioMessage(self, message):
         if self.allReady:
-            self.network.backendMessage(message)
+            self.handleUserInput(message)
         else:
             # TODO: Buffer messages until ready? Don't just drop them....
             log.warning("Input '{}' ignored; client not initialized yet." \
                 .format(message))
+
+    def handleUserInput(self, message):
+        assert not message.endswith('\n')
+
+        if message == "dump":
+            # FIXME: Write this.
+            log.info("Unit positions: {}".format(self.unitPositions))
+            log.info("Unit selection: {}".format(self.unitSelection))
+        else:
+            self.network.backendMessage(message)
 
     def networkMessage(self, messageStr):
         if self.allReady:
