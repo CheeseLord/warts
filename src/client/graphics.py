@@ -379,9 +379,9 @@ class WartsApp(ShowBase):
                     # numerical button id to the graphicsInterface.
                     message = messages.Click(button, (x, y))
                 elif modifiers == ["shift"]:
-                    message = messages.ShiftClick((x, y))
+                    message = messages.ShiftLClick((x, y))
                 elif modifiers == ["control"]:
-                    message = messages.ControlClick((x, y))
+                    message = messages.ControlLClick((x, y))
                 else:
                     thisShouldNeverHappen(
                         "Unhandled modifiers for click: {}".format(modifiers))

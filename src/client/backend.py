@@ -175,13 +175,13 @@ class Backend:
                 newMsg = messages.OrderMove(self.unitSelection,
                                             graphicsToUnit(message.pos))
                 self.network.backendMessage(newMsg.serialize())
-        elif isinstance(message, messages.ShiftClick):
+        elif isinstance(message, messages.ShiftLClick):
             gPos = message.pos
             uPos = graphicsToUnit(gPos)
             chosenUnit = self.getUnitAt(uPos)
             if chosenUnit is not None:
                 self.addToSelection(chosenUnit)
-        elif isinstance(message, messages.ControlClick):
+        elif isinstance(message, messages.ControlLClick):
             gPos = message.pos
             uPos = graphicsToUnit(gPos)
             chosenUnit = self.getUnitAt(uPos)

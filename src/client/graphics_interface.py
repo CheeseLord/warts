@@ -158,6 +158,8 @@ class GraphicsInterface(object):
             illFormedMessage(error, log, sender="server")
 
     def graphicsMessage(self, messageStr):
+        # TODO: Actually handle things here, and abstract them a little better
+        # before sending them to the backend.
         self.backend.graphicsMessage(messageStr)
 
     def cleanup(self):
