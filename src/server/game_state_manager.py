@@ -3,7 +3,7 @@ from collections import defaultdict
 from src.shared.exceptions import NoPathToTargetError
 from src.shared.game_state import GameState
 from src.shared.geometry import findPath
-from src.shared.ident import unitToPlayer
+from src.shared.ident import unitToPlayer, getUnitSubId
 from src.shared.logconfig import newLogger
 from src.shared.message_infrastructure import deserializeMessage, \
     invalidMessageArgument, illFormedMessage, unhandledMessageCommand, \
@@ -41,9 +41,17 @@ class GameStateManager(object):
 
     # TODO[#10]: Why is this in GameStateManager?
     def stdioMessage(self, message):
+        # TODO[#48]: Use a real message here.
         if message == "dump":
-            # TODO: Do something sensible.
-            log.info("User asked for data dump.")
+            log.info("Dumping all unit info...")
+            for uid in sorted(self.gameState.positions.keys()):
+                pos = self.gameState.positions[uid]
+                log.info("    {player:>2}: {subId:>3} @ {x:>4}, {y:>4}"
+                         .format(player = unitToPlayer(uid),
+                                 subId  = getUnitSubId(uid),
+                                 x      = pos[0],
+                                 y      = pos[1]))
+            log.info("End unit dump.")
         else:
             # TODO: Do something sensible.
             log.info("Don't know how to handle \"{}\".".format(message))
