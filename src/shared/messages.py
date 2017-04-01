@@ -144,6 +144,10 @@ ShiftLClick        = defineMessageType("shift_left_click",
                                        [("pos", gPosArg)])
 ControlLClick      = defineMessageType("control_left_click",
                                        [("pos", gPosArg)])
+ShiftRClick        = defineMessageType("shift_right_click",
+                                       [("pos", gPosArg)])
+ControlRClick      = defineMessageType("control_right_click",
+                                       [("pos", gPosArg)])
 MarkEntitySelected = defineMessageType("mark_entity_selected",
                                        [("gid", graphicsIdArg),
                                         ("isSelected", boolArg)])

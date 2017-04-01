@@ -378,10 +378,14 @@ class WartsApp(ShowBase):
                     # click as far as "left" or "right"; we shouldn't send a
                     # numerical button id to the graphicsInterface.
                     message = messages.Click(button, (x, y))
-                elif modifiers == ["shift"]:
+                elif button == 1 and modifiers == ["shift"]:
                     message = messages.ShiftLClick((x, y))
-                elif modifiers == ["control"]:
+                elif button == 1 and modifiers == ["control"]:
                     message = messages.ControlLClick((x, y))
+                elif button == 3 and modifiers == ["shift"]:
+                    message = messages.ShiftRClick((x, y))
+                elif button == 3 and modifiers == ["control"]:
+                    message = messages.ControlRClick((x, y))
                 else:
                     thisShouldNeverHappen(
                         "Unhandled modifiers for click: {}".format(modifiers))
@@ -450,6 +454,8 @@ class WartsApp(ShowBase):
         # Handle clicking with modifier keys.
         self.accept("shift-mouse1",   self.handleMouseClick, [1, ["shift"]])
         self.accept("control-mouse1", self.handleMouseClick, [1, ["control"]])
+        self.accept("shift-mouse3",   self.handleMouseClick, [3, ["shift"]])
+        self.accept("control-mouse3", self.handleMouseClick, [3, ["control"]])
 
         # Handle window close request (clicking the X, Alt-F4, etc.)
         self.win.set_close_request_event("window-close")

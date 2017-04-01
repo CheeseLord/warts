@@ -187,6 +187,18 @@ class Backend:
             chosenUnit = self.getUnitAt(uPos)
             if chosenUnit is not None and chosenUnit in self.unitSelection:
                 self.removeFromSelection(chosenUnit)
+        elif isinstance(message, messages.ShiftRClick):
+            newMsg = messages.OrderNew(graphicsToUnit(message.pos))
+            self.network.backendMessage(newMsg.serialize())
+        elif isinstance(message, messages.ControlRClick):
+            gPos = message.pos
+            uPos = graphicsToUnit(gPos)
+            chosenUnit = self.getUnitAt(uPos)
+            if chosenUnit is not None:
+                if chosenUnit in self.unitSelection:
+                    self.removeFromSelection(chosenUnit)
+                newMsg = messages.OrderDel(UnitSet([chosenUnit]))
+                self.network.backendMessage(newMsg.serialize())
         elif isinstance(message, messages.RequestQuit):
             for component in self.allComponents:
                 component.cleanup()
