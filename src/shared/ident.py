@@ -5,11 +5,10 @@ class UnitId:
         self.playerId = playerId
         self.subId    = unitSubId
 
-    def __eq__(self, other):
-        return self.playerId == other.playerId and self.subId == other.subId
-
-    def __ne__(self, other):
-        return not (self == other)
+    def __cmp__(self, other):
+        if self.playerId != other.playerId:
+            return self.playerId - other.playerId
+        return self.subId - other.subId
 
     def __hash__(self):
         return hash((self.playerId, self.subId))

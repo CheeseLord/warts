@@ -1,7 +1,7 @@
 import logging
 
 from src.shared import messages
-from src.shared.ident import UnitId, unitToPlayer
+from src.shared.ident import UnitId, unitToPlayer, getUnitSubId
 from src.shared.logconfig import newLogger
 from src.shared.unit_set import UnitSet
 from src.shared.message_infrastructure import deserializeMessage, \
@@ -103,9 +103,17 @@ class Backend:
         assert not message.endswith('\n')
 
         if message == "dump":
-            # FIXME: Write this.
-            log.info("Unit positions: {}".format(self.unitPositions))
-            log.info("Unit selection: {}".format(self.unitSelection))
+            log.info("Dumping all unit info...")
+            for uid in sorted(self.unitPositions.keys()):
+                pos = self.unitPositions[uid]
+                isSelected = (uid in self.unitSelection)
+                log.info("    {sel:1} {player:>2}: {subId:>3} @ {x:>4}, {y:>4}"
+                         .format(sel    = "*" if isSelected else "",
+                                 player = unitToPlayer(uid),
+                                 subId  = getUnitSubId(uid),
+                                 x      = pos[0],
+                                 y      = pos[1]))
+            log.info("End unit dump.")
         else:
             self.network.backendMessage(message)
 
