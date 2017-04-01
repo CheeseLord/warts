@@ -68,19 +68,19 @@ class GameStateManager(object):
             if isinstance(message, messages.OrderNew):
                 self.unitOrders.createNewUnit(playerId, message.pos)
             elif isinstance(message, messages.OrderDel):
-                unitId = message.unitId
-                # TODO: Factor out this pair of checks? We're probably going to
-                # be doing them a *lot*.
-                if not playerId == unitToPlayer(unitId):
-                    invalidMessageArgument(message, log,
-                        sender="client {id}".format(id=playerId),
-                        reason="Can't delete other player's unit")
-                elif not self.gameState.isUnitIdValid(unitId):
-                    invalidMessageArgument(message, log,
-                        sender="client {id}".format(id=playerId),
-                        reason="No such unit")
-                else:
-                    self.unitOrders.giveOrders(unitId, [DelUnitOrder()])
+                for unitId in message.unitSet:
+                    # TODO: Factor out this pair of checks? We're probably
+                    # going to be doing them a *lot*.
+                    if not playerId == unitToPlayer(unitId):
+                        invalidMessageArgument(message, log,
+                            sender="client {id}".format(id=playerId),
+                            reason="Can't delete other player's unit")
+                    elif not self.gameState.isUnitIdValid(unitId):
+                        invalidMessageArgument(message, log,
+                            sender="client {id}".format(id=playerId),
+                            reason="No such unit")
+                    else:
+                        self.unitOrders.giveOrders(unitId, [DelUnitOrder()])
             elif isinstance(message, messages.OrderMove):
                 unitSet = message.unitSet
                 for unitId in unitSet:

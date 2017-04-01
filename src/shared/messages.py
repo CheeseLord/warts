@@ -117,7 +117,7 @@ GroundInfo    = defineMessageType("ground_info",
 NewObelisk    = defineMessageType("new_obelisk",
                                   [("unitId", unitIdArg),
                                    ("pos", uPosArg)])
-OrderDel      = defineMessageType("order_del", [("unitId", unitIdArg)])
+OrderDel      = defineMessageType("order_del", [("unitSet", unitSetArg)])
 OrderMove     = defineMessageType("order_move", [("unitSet", unitSetArg),
                                                  ("dest", uPosArg)])
 OrderNew      = defineMessageType("order_new", [("pos", uPosArg)])
