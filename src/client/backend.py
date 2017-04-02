@@ -159,6 +159,8 @@ class Backend:
                 invalidMessageArgument(message, log, sender="server",
                     reason="No such uid: {}".format(uid))
                 return
+            if uid in self.unitSelection:
+                self.removeFromSelection(uid)
             del self.unitPositions[uid]
         elif isinstance(message, messages.SetPos):
             uid = message.unitId

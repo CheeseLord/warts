@@ -1,6 +1,9 @@
 from collections import defaultdict
 
 from src.shared.ident import UnitId, unitToPlayer, getUnitSubId
+from src.shared.logconfig import newLogger
+
+log = newLogger(__name__)
 
 class UnitSet(object):
     def __init__(self, units=None):
@@ -55,7 +58,10 @@ class UnitSet(object):
         assert isinstance(unit, UnitId)
         playerId = unitToPlayer(unit)
         subId    = getUnitSubId(unit)
-        self.units[playerId].remove(subId)
+        try:
+            self.units[playerId].remove(subId)
+        except KeyError:
+            log.warn("Can't remove unit {}: No such unit in set.".format(unit))
         if not self.units[playerId]:
             del self.units[playerId]
 
