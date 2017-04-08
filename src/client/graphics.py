@@ -366,6 +366,8 @@ class WartsApp(ShowBase):
         if self.mouseWatcherNode.hasMouse():
             # Get the screen coordinates of the mouse, normalized to [-1, 1].
             mousePos = self.mouseWatcherNode.getMouse()
+            # Set selection rectangle start position
+            self.rectStartPos = mousePos
 
             # Make the ray extend from the camera, in the direction of the
             # mouse.
@@ -403,6 +405,11 @@ class WartsApp(ShowBase):
                         "Unhandled modifiers for click: {}".format(modifiers))
 
                 self.graphicsInterface.graphicsMessage(message.serialize())
+
+    def handleMouseUp(self, button, modifiers):
+        log.info("mouse up")
+        self.rectStartPos = None
+
 
     def handleWindowClose(self):
         log.info("Window close requested -- shutting down client.")
@@ -460,6 +467,7 @@ class WartsApp(ShowBase):
 
         # Handle clicking.
         self.accept("mouse1", self.handleMouseClick, [1, []])
+        self.accept("mouse1-up", self.handleMouseUp, [1,[]])
         # TODO: Make sure this is always the right mouse button.
         self.accept("mouse3", self.handleMouseClick, [3, []])
 
