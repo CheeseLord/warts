@@ -28,25 +28,6 @@ log = newLogger(__name__)
 DESIRED_FPS = 60
 
 
-class Entity(object):
-    """
-    Class to represent any sort of thing with a graphical presence in the
-    world: ground, trees, units, structures.
-    """
-
-    def __init__(self, graphicId, model, rootNode, isActor):
-        self.gid      = graphicId
-        self.model    = model
-        self.rootNode = rootNode
-        self.isActor  = isActor
-
-    def cleanup(self):
-        if self.isActor:
-            self.model.cleanup()
-        self.model.removeNode()
-        self.rootNode.removeNode()
-
-
 class WartsApp(ShowBase):
     """
     The application running all the graphics.
@@ -520,6 +501,25 @@ class WartsApp(ShowBase):
 
     def logEvent(self, eventName):
         log.info("Received event {0!r}".format(eventName))
+
+
+class Entity(object):
+    """
+    Class to represent any sort of thing with a graphical presence in the
+    world: ground, trees, units, structures.
+    """
+
+    def __init__(self, graphicId, model, rootNode, isActor):
+        self.gid      = graphicId
+        self.model    = model
+        self.rootNode = rootNode
+        self.isActor  = isActor
+
+    def cleanup(self):
+        if self.isActor:
+            self.model.cleanup()
+        self.model.removeNode()
+        self.rootNode.removeNode()
 
 
 def getModelPath(modelName):
