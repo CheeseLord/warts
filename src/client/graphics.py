@@ -365,6 +365,7 @@ class WartsApp(ShowBase):
             # mouse.
             self.mouseClickRay.setFromLens(self.camNode, mousePoint)
 
+            # FIXME[#54]: This next part is absurd.
             # Check each object in the node tree for collision with the mouse.
             self.mouseClickTraverser.traverse(self.render)
             for entry in self.mouseClickHandler.getEntries():
