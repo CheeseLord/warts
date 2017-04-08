@@ -6,7 +6,7 @@ from direct.task import Task  # This must be imported first.
 from direct.actor.Actor import Actor
 from direct.showbase.ShowBase import ShowBase
 from panda3d import core
-from panda3d.core import Point3, Mat4, Filename, NodePath
+from panda3d.core import Point3, Mat4, Filename, NodePath, LineSegs
 
 from src.shared import config
 from src.shared import messages
@@ -70,6 +70,15 @@ class WartsApp(ShowBase):
         self.cameraHolder.setPos(0, 0, 100)
         self.prevCameraHpr = (0, -80, 0)
         self.setCameraCustom()
+
+        test = LineSegs("Steve")
+        test.setThickness(5.0)
+        test.setColor(0.0, 1.0, 0.0, 1.0)
+        test.move_to(1,   1,   0)
+        test.draw_to(1,   200, 0)
+        test.draw_to(200, 200, 0)
+        testNode = test.create()
+        render2d.attachNewNode(testNode)
 
         self.graphicsInterface.graphicsReady(self)
 
