@@ -39,7 +39,6 @@ class Entity(object):
         self.model    = model
         self.rootNode = rootNode
         self.isActor  = isActor
-        self.rectStartPos = None
 
     def cleanup(self):
         if self.isActor:
@@ -83,6 +82,8 @@ class WartsApp(ShowBase):
         testNode = test.create()
         render2d.attachNewNode(testNode)
 
+        self.rectStartPos = None
+        self.prevMousePos = None
         self.graphicsInterface.graphicsReady(self)
 
     def cleanup(self):
@@ -262,6 +263,10 @@ class WartsApp(ShowBase):
 
         self.usingCustomCamera = True
 
+        # Need a task to handle mouse-dragging because there doesn't seem to be
+        # a built-in mouseMove event.
+        self.taskMgr.add(self.mouseMoveTask, "MouseMoveTask")
+
     def setCameraDefault(self):
         """
         Change to using the default mouse-based camera controls.
@@ -366,13 +371,15 @@ class WartsApp(ShowBase):
         # Make sure the mouse is inside the screen
         if self.mouseWatcherNode.hasMouse():
             # Get the screen coordinates of the mouse, normalized to [-1, 1].
-            mousePos = self.mouseWatcherNode.getMouse()
-            # Set selection rectangle start position
-            self.rectStartPos = mousePos
+            mousePoint = self.mouseWatcherNode.getMouse()
+            # Set selection rectangle start position. Note that we need to
+            # create a copy of mousePoint rather than storing a reference,
+            # because the referenced object will be modified in place by Panda.
+            self.rectStartPos = (mousePoint.getX(), mousePoint.getY())
 
             # Make the ray extend from the camera, in the direction of the
             # mouse.
-            self.mouseClickRay.setFromLens(self.camNode, mousePos)
+            self.mouseClickRay.setFromLens(self.camNode, mousePoint)
 
             # Check each object in the node tree for collision with the mouse.
             self.mouseClickTraverser.traverse(self.render)
@@ -410,6 +417,36 @@ class WartsApp(ShowBase):
     def handleMouseUp(self, button, modifiers):
         self.rectStartPos = None
 
+    def mouseMoveTask(self, task):
+        """
+        Handle mouse movement.
+        """
+
+        # Check if the mouse is over the window.
+        if base.mouseWatcherNode.hasMouse():
+            # Get the position.
+            # Each coordinate is normalized to the interval [-1, 1].
+            # Create a copy of mousePoint to ensure we don't set
+            # self.prevMousePos to be a reference to it, mousePoint will be
+            # modified in place by Panda.
+            mousePoint = base.mouseWatcherNode.getMouse()
+            mousePos = (mousePoint.getX(), mousePoint.getY())
+            # Don't do anything unless the mouse position has actually changed.
+            if self.prevMousePos is not None:
+                if mousePos != self.prevMousePos:
+                    # Log a click-and-drag if we're clicking and dragging.
+                    if self.rectStartPos is not None:
+                        log.debug("Dragging from {} to {}"
+                            .format(self.rectStartPos, mousePos))
+                    self.prevMousePos = mousePos
+                # If prevMousePos is not None and mousePos == prevMousePos,
+                # don't update it, because that's pointless.
+            else:
+                self.prevMousePos = mousePos
+        else:
+            self.prevMousePos = None
+
+        return Task.cont
 
     def handleWindowClose(self):
         log.info("Window close requested -- shutting down client.")
