@@ -6,6 +6,7 @@ from src.shared.logconfig import newLogger
 from src.shared.unit_set import UnitSet
 from src.shared.message_infrastructure import deserializeMessage, \
     unhandledInternalMessage, InvalidMessageError
+from src.client import messages as cmessages
 
 # Constants
 GRAPHICS_SCALE = 3
@@ -177,7 +178,7 @@ class Backend:
 
     def graphicsMessage(self, messageStr):
         message = deserializeMessage(messageStr)
-        if isinstance(message, messages.Click):
+        if isinstance(message, cmessages.Click):
             # TODO: Have Click indicate "left" or "right", rather than just a
             # numerical button.
             # TODO: GraphicsInterface should probably translate Click.pos to a
@@ -195,22 +196,22 @@ class Backend:
                 newMsg = messages.OrderMove(self.unitSelection,
                                             graphicsToUnit(message.pos))
                 self.network.backendMessage(newMsg.serialize())
-        elif isinstance(message, messages.ShiftLClick):
+        elif isinstance(message, cmessages.ShiftLClick):
             gPos = message.pos
             uPos = graphicsToUnit(gPos)
             chosenUnit = self.getUnitAt(uPos)
             if chosenUnit is not None:
                 self.addToSelection(chosenUnit)
-        elif isinstance(message, messages.ControlLClick):
+        elif isinstance(message, cmessages.ControlLClick):
             gPos = message.pos
             uPos = graphicsToUnit(gPos)
             chosenUnit = self.getUnitAt(uPos)
             if chosenUnit is not None and chosenUnit in self.unitSelection:
                 self.removeFromSelection(chosenUnit)
-        elif isinstance(message, messages.ShiftRClick):
+        elif isinstance(message, cmessages.ShiftRClick):
             newMsg = messages.OrderNew(graphicsToUnit(message.pos))
             self.network.backendMessage(newMsg.serialize())
-        elif isinstance(message, messages.ControlRClick):
+        elif isinstance(message, cmessages.ControlRClick):
             gPos = message.pos
             uPos = graphicsToUnit(gPos)
             chosenUnit = self.getUnitAt(uPos)
@@ -219,7 +220,7 @@ class Backend:
                     self.removeFromSelection(chosenUnit)
                 newMsg = messages.OrderDel(UnitSet([chosenUnit]))
                 self.network.backendMessage(newMsg.serialize())
-        elif isinstance(message, messages.RequestQuit):
+        elif isinstance(message, cmessages.RequestQuit):
             for component in self.allComponents:
                 component.cleanup()
             self.done.callback(None)
@@ -253,17 +254,17 @@ class Backend:
 
     def addToSelection(self, unitId):
         self.unitSelection.add(unitId)
-        msg = messages.MarkUnitSelected(unitId, True)
+        msg = cmessages.MarkUnitSelected(unitId, True)
         self.graphicsInterface.backendMessage(msg.serialize())
 
     def removeFromSelection(self, unitId):
         self.unitSelection.remove(unitId)
-        msg = messages.MarkUnitSelected(unitId, False)
+        msg = cmessages.MarkUnitSelected(unitId, False)
         self.graphicsInterface.backendMessage(msg.serialize())
 
     def clearSelection(self):
         for unitId in self.unitSelection:
-            msg = messages.MarkUnitSelected(unitId, False)
+            msg = cmessages.MarkUnitSelected(unitId, False)
             self.graphicsInterface.backendMessage(msg.serialize())
         self.unitSelection = UnitSet()
 

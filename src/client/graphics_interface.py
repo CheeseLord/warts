@@ -7,6 +7,7 @@ from src.shared.message_infrastructure import deserializeMessage, \
     illFormedMessage, unhandledMessageCommand, invalidMessageArgument, \
     InvalidMessageError
 from src.client.backend import unitToGraphics, GRAPHICS_SCALE
+from src.client import messages as cmessages
 
 log = newLogger(__name__)
 
@@ -77,8 +78,8 @@ class GraphicsInterface(object):
                 # Actually use one of those functions here.
                 goalGSize = tuple(float(x)/GRAPHICS_SCALE for x in goalUSize)
 
-                gMessage = messages.AddEntity(gid, gPos, isExample, goalGSize,
-                                              modelPath)
+                gMessage = cmessages.AddEntity(gid, gPos, isExample, goalGSize,
+                                               modelPath)
                 self.graphics.interfaceMessage(gMessage.serialize())
             elif isinstance(message, messages.GroundInfo):
                 cPos        = message.pos
@@ -108,8 +109,8 @@ class GraphicsInterface(object):
                 gPos      = (goalCenterX, goalCenterY)
                 goalGSize = (goalWidthX,  goalWidthY)
 
-                gMessage = messages.AddEntity(gid, gPos, False, goalGSize,
-                                              modelName)
+                gMessage = cmessages.AddEntity(gid, gPos, False, goalGSize,
+                                               modelName)
                 self.graphics.interfaceMessage(gMessage.serialize())
             elif isinstance(message, messages.DeleteObelisk):
                 uid = message.unitId
@@ -120,7 +121,7 @@ class GraphicsInterface(object):
                     return
                 gid = self.uidToGid.pop(uid)
 
-                gMessage = messages.RemoveEntity(gid)
+                gMessage = cmessages.RemoveEntity(gid)
                 self.graphics.interfaceMessage(gMessage.serialize())
             elif isinstance(message, messages.SetPos):
                 uid  = message.unitId
@@ -134,15 +135,15 @@ class GraphicsInterface(object):
 
                 gPos = unitToGraphics(uPos)
 
-                gMessage = messages.MoveEntity(gid, gPos)
+                gMessage = cmessages.MoveEntity(gid, gPos)
                 self.graphics.interfaceMessage(gMessage.serialize())
-            elif isinstance(message, messages.MarkUnitSelected):
+            elif isinstance(message, cmessages.MarkUnitSelected):
                 # FIXME[#40]: See below. This is not from the server.
                 # On the bright side, that means we don't need to sanitize the
                 # uid.
                 uid = message.unitId
                 gid = self.uidToGid[uid]
-                msg = messages.MarkEntitySelected(gid, message.isSelected)
+                msg = cmessages.MarkEntitySelected(gid, message.isSelected)
                 self.graphics.interfaceMessage(msg.serialize())
             else:
                 # TODO[#40]: This is going to bite us later. It hardcodes two

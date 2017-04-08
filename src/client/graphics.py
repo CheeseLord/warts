@@ -19,6 +19,7 @@ from src.shared.message_infrastructure import deserializeMessage, \
 from src.shared.unit_set import UnitSet
 from src.shared.utils import minmax, thisShouldNeverHappen
 from src.client.backend import unitToGraphics, GRAPHICS_SCALE
+from src.client import messages as cmessages
 
 log = newLogger(__name__)
 
@@ -79,14 +80,14 @@ class WartsApp(ShowBase):
         # Messages from GraphicsInterface to Graphics are always internal
         # client messages, so no need to catch InvalidMessageError.
         message = deserializeMessage(data)
-        if isinstance(message, messages.AddEntity):
+        if isinstance(message, cmessages.AddEntity):
             self.addEntity(message.gid, message.pos, message.modelPath,
                            message.isExample, message.goalSize)
-        elif isinstance(message, messages.RemoveEntity):
+        elif isinstance(message, cmessages.RemoveEntity):
             self.removeEntity(message.gid)
-        elif isinstance(message, messages.MoveEntity):
+        elif isinstance(message, cmessages.MoveEntity):
             self.moveEntity(message.gid, message.pos)
-        elif isinstance(message, messages.MarkEntitySelected):
+        elif isinstance(message, cmessages.MarkEntitySelected):
             self.markSelected(message.gid, message.isSelected)
         else:
             unhandledInternalMessage(message, log)
@@ -377,15 +378,15 @@ class WartsApp(ShowBase):
                     # TODO: This component should take care of decoding the
                     # click as far as "left" or "right"; we shouldn't send a
                     # numerical button id to the graphicsInterface.
-                    message = messages.Click(button, (x, y))
+                    message = cmessages.Click(button, (x, y))
                 elif button == 1 and modifiers == ["shift"]:
-                    message = messages.ShiftLClick((x, y))
+                    message = cmessages.ShiftLClick((x, y))
                 elif button == 1 and modifiers == ["control"]:
-                    message = messages.ControlLClick((x, y))
+                    message = cmessages.ControlLClick((x, y))
                 elif button == 3 and modifiers == ["shift"]:
-                    message = messages.ShiftRClick((x, y))
+                    message = cmessages.ShiftRClick((x, y))
                 elif button == 3 and modifiers == ["control"]:
-                    message = messages.ControlRClick((x, y))
+                    message = cmessages.ControlRClick((x, y))
                 else:
                     thisShouldNeverHappen(
                         "Unhandled modifiers for click: {}".format(modifiers))
@@ -394,7 +395,7 @@ class WartsApp(ShowBase):
 
     def handleWindowClose(self):
         log.info("Window close requested -- shutting down client.")
-        message = messages.RequestQuit()
+        message = cmessages.RequestQuit()
         self.graphicsInterface.graphicsMessage(message.serialize())
 
     def setupMouseHandler(self):
