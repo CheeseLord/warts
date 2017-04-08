@@ -8,7 +8,8 @@ from twisted.internet.defer import Deferred
 
 from src.client.backend import Backend as ClientBackend
 from src.shared.message_infrastructure import deserializeMessage
-from src.shared.messages import YourIdIs, RequestQuit
+from src.shared.messages import YourIdIs
+from src.client.messages import RequestQuit
 
 def test_backend_components():
     testDone = getMainDeferred()
