@@ -39,6 +39,7 @@ class Entity(object):
         self.model    = model
         self.rootNode = rootNode
         self.isActor  = isActor
+        self.rectStartPos = None
 
     def cleanup(self):
         if self.isActor:
@@ -407,7 +408,6 @@ class WartsApp(ShowBase):
                 self.graphicsInterface.graphicsMessage(message.serialize())
 
     def handleMouseUp(self, button, modifiers):
-        log.info("mouse up")
         self.rectStartPos = None
 
 
