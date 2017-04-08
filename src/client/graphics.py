@@ -353,10 +353,13 @@ class WartsApp(ShowBase):
         if self.mouseWatcherNode.hasMouse():
             # Get the screen coordinates of the mouse, normalized to [-1, 1].
             mousePoint = self.mouseWatcherNode.getMouse()
-            # Set selection rectangle start position. Note that we need to
-            # create a copy of mousePoint rather than storing a reference,
-            # because the referenced object will be modified in place by Panda.
-            self.rectStartPos = (mousePoint.getX(), mousePoint.getY())
+
+            if button == 1:
+                # Set selection rectangle start position. Note that we need to
+                # create a copy of mousePoint rather than storing a reference,
+                # because the referenced object will be modified in place by
+                # Panda.
+                self.rectStartPos = (mousePoint.getX(), mousePoint.getY())
 
             # Make the ray extend from the camera, in the direction of the
             # mouse.
