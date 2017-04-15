@@ -437,13 +437,9 @@ class WartsApp(ShowBase):
     def handleMouseClick(self, button, modifiers, pos):
         # Make sure the mouse is inside the screen
         if self.mouseWatcherNode.hasMouse():
-            # Get the screen coordinates of the mouse, normalized to [-1, 1].
-            # TODO: Just use pos instead. Can we pass that to setFromLens?
-            mousePoint = self.mouseWatcherNode.getMouse()
-
-            # Make the ray extend from the camera, in the direction of the
-            # mouse.
-            self.mouseClickRay.setFromLens(self.camNode, mousePoint)
+            # Create a ray extending from the camera, in the direction of the
+            # mouse click.
+            self.mouseClickRay.setFromLens(self.camNode, pos)
 
             # FIXME[#54]: This next part is absurd.
             # Check each object in the node tree for collision with the mouse.
