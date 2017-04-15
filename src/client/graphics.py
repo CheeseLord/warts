@@ -383,15 +383,22 @@ class WartsApp(ShowBase):
 
         mousePos = self.getMousePos()
 
+        # NOTE: We don't handle clicking and dragging at the same time.
         if mousePos is not None and mousePos != self.prevMousePos:
             for (buttonId, state) in self.mouseState.iteritems():
                 if state.hasMoved:
                     self.handleMouseDragMove(buttonId, state.modifiers,
                                              state.pos, mousePos)
                 else:
-                    self.handleMouseDragStart(buttonId, state.modifiers,
-                                              state.pos, mousePos)
-                    state.hasMoved = True
+                    startX, startY = state.pos
+                    mouseX, mouseY = mousePos
+                    distance = math.hypot(mouseX - startX, mouseY - startY)
+                    # TODO[#3]: Magic numbers bad.
+                    # Check if the mouse has moved outside the dead zone.
+                    if distance > 0.0314:
+                        self.handleMouseDragStart(buttonId, state.modifiers,
+                                                  state.pos, mousePos)
+                        state.hasMoved = True
 
         if mousePos != self.prevMousePos:
             self.prevMousePos = mousePos
