@@ -52,19 +52,12 @@ class WartsApp(ShowBase):
         self.prevCameraHpr = (0, -80, 0)
         self.setCameraCustom()
 
-        test = LineSegs("Steve")
-        test.setThickness(3.0)
-        test.setColor(0.0, 1.0, 0.25, 1.0)
-        test.move_to(-0.20, 0,  0.20)
-        test.draw_to( 0.20, 0,  0.20)
-        test.draw_to( 0.20, 0, -0.20)
-        test.draw_to(-0.20, 0, -0.20)
-        test.draw_to(-0.20, 0,  0.20)
-        testNode = test.create()
-        render2d.attachNewNode(testNode)
-
         self.rectStartPos = None
         self.prevMousePos = None
+        self.selectionBox = None
+
+        self.createSelectionBox((-0.2, 0.2), (0.2, -0.2))
+
         self.graphicsInterface.graphicsReady(self)
 
     def cleanup(self):
@@ -220,6 +213,42 @@ class WartsApp(ShowBase):
 
         z = 5 if isSelected else 0
         entity.model.setPos(0, 0, z)
+
+    def createSelectionBox(self, corner1, corner2):
+        assert self.selectionBox is None
+
+        x1, y1 = corner1
+        x2, y2 = corner2
+
+        # TODO[#3]: Magic numbers bad.
+        self.selectionBox = LineSegs("SelectionBox")
+        self.selectionBox.setThickness(3.0)
+        self.selectionBox.setColor(0.0, 1.0, 0.25, 1.0)
+        self.selectionBox.move_to(x1, 0, y1)
+        self.selectionBox.draw_to(x2, 0, y1)
+        self.selectionBox.draw_to(x2, 0, y2)
+        self.selectionBox.draw_to(x1, 0, y2)
+        self.selectionBox.draw_to(x1, 0, y1)
+
+        # TODO: Do we need to store this as well?
+        selectionBoxNode = self.selectionBox.create()
+        render2d.attachNewNode(selectionBoxNode)
+
+    def moveSelectionBox(self, corner1, corner2):
+        assert self.selectionBox is not None
+
+        x1, y1 = corner1
+        x2, y2 = corner2
+
+        self.selectionBox.setVertex(0, x1, 0, y1)
+        self.selectionBox.setVertex(1, x2, 0, y1)
+        self.selectionBox.setVertex(2, x2, 0, y2)
+        self.selectionBox.setVertex(3, x1, 0, y2)
+        self.selectionBox.setVertex(4, x1, 0, y1)
+
+    def removeSelectionBox(self):
+        # TODO: Implement this. And actually call it.
+        NotImplemented
 
     def setCameraCustom(self):
         """
@@ -423,6 +452,7 @@ class WartsApp(ShowBase):
                     if self.rectStartPos is not None:
                         log.debug("Dragging from {} to {}"
                             .format(self.rectStartPos, mousePos))
+                        self.moveSelectionBox(self.rectStartPos, mousePos)
                     self.prevMousePos = mousePos
                 # If prevMousePos is not None and mousePos == prevMousePos,
                 # don't update it, because that's pointless.
