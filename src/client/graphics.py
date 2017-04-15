@@ -42,6 +42,7 @@ class WartsApp(ShowBase):
         self.entities = {}
 
         # Set up event handling.
+        self.mouseState = {}
         self.keys = {}
         self.setupEventHandlers()
         self.setupMouseHandler()
@@ -52,12 +53,9 @@ class WartsApp(ShowBase):
         self.prevCameraHpr = (0, -80, 0)
         self.setCameraCustom()
 
-        self.rectStartPos = None
         self.prevMousePos = None
         self.selectionBox = None
         self.selectionBoxNode = None
-
-        self.createSelectionBox((-0.2, 0.2), (0.2, -0.2))
 
         self.graphicsInterface.graphicsReady(self)
 
@@ -247,8 +245,9 @@ class WartsApp(ShowBase):
         self.selectionBox.setVertex(4, x1, 0, y1)
 
     def removeSelectionBox(self):
-        self.selectionBoxNode.removeNode()
-        self.selectionBox = None
+        # FIXME: This next line doesn't work. How do we remove the box?
+        # self.selectionBoxNode.removeNode()
+        self.selectionBox     = None
         self.selectionBoxNode = None
 
     def setCameraCustom(self):
@@ -383,45 +382,58 @@ class WartsApp(ShowBase):
         Handle mouse movement.
         """
 
-        # Check if the mouse is over the window.
-        if base.mouseWatcherNode.hasMouse():
-            # Get the position.
-            # Each coordinate is normalized to the interval [-1, 1].
-            # Create a copy of mousePoint to ensure we don't set
-            # self.prevMousePos to be a reference to it, mousePoint will be
-            # modified in place by Panda.
-            mousePoint = base.mouseWatcherNode.getMouse()
-            mousePos = (mousePoint.getX(), mousePoint.getY())
-            # Don't do anything unless the mouse position has actually changed.
-            if self.prevMousePos is not None:
-                if mousePos != self.prevMousePos:
-                    # Log a click-and-drag if we're clicking and dragging.
-                    if self.rectStartPos is not None:
-                        log.debug("Dragging from {} to {}"
-                            .format(self.rectStartPos, mousePos))
-                        self.moveSelectionBox(self.rectStartPos, mousePos)
-                    self.prevMousePos = mousePos
-                # If prevMousePos is not None and mousePos == prevMousePos,
-                # don't update it, because that's pointless.
-            else:
-                self.prevMousePos = mousePos
-        else:
-            self.prevMousePos = None
+        mousePos = self.getMousePos()
+
+        if mousePos is not None and mousePos != self.prevMousePos:
+            for (buttonId, state) in self.mouseState.iteritems():
+                if state.hasMoved:
+                    self.handleMouseDragMove(buttonId, state.modifiers,
+                                             state.pos, mousePos)
+                else:
+                    self.handleMouseDragStart(buttonId, state.modifiers,
+                                              state.pos, mousePos)
+                    state.hasMoved = True
+
+        if mousePos != self.prevMousePos:
+            self.prevMousePos = mousePos
 
         return Task.cont
 
-    def handleMouseClick(self, button, modifiers):
+    def pandaEventMouseDown(self, buttonId, modifiers):
+        if buttonId in self.mouseState:
+            # Call pandaEventMouseUp just to clear any state related to the
+            # button being down, so we can handle this buttonDown event as if
+            # it were a fresh press of the button.
+            log.warn("Mouse button {} is already down.".format(buttonId))
+            self.pandaEventMouseUp(buttonId)
+
+        assert buttonId not in self.mouseState
+
+        state = MouseButtonState(modifiers[:], self.getMousePos(), False)
+        self.mouseState[buttonId] = state
+
+    def pandaEventMouseUp(self, buttonId):
+        if buttonId not in self.mouseState:
+            # Drop the event, since there's nothing to do.
+            log.warn("Mouse button {} is already up.".format(buttonId))
+            return
+
+        state = self.mouseState[buttonId]
+
+        if state.hasMoved:
+            self.handleMouseDragEnd(buttonId, state.modifiers,
+                                    state.pos, self.getMousePos())
+        else:
+            self.handleMouseClick(buttonId, state.modifiers, state.pos)
+
+        del self.mouseState[buttonId]
+
+    def handleMouseClick(self, button, modifiers, pos):
         # Make sure the mouse is inside the screen
         if self.mouseWatcherNode.hasMouse():
             # Get the screen coordinates of the mouse, normalized to [-1, 1].
+            # TODO: Just use pos instead. Can we pass that to setFromLens?
             mousePoint = self.mouseWatcherNode.getMouse()
-
-            if button == 1:
-                # Set selection rectangle start position. Note that we need to
-                # create a copy of mousePoint rather than storing a reference,
-                # because the referenced object will be modified in place by
-                # Panda.
-                self.rectStartPos = (mousePoint.getX(), mousePoint.getY())
 
             # Make the ray extend from the camera, in the direction of the
             # mouse.
@@ -461,8 +473,36 @@ class WartsApp(ShowBase):
 
                 self.graphicsInterface.graphicsMessage(message.serialize())
 
-    def handleMouseUp(self, button, modifiers):
-        self.rectStartPos = None
+    def handleMouseDragStart(self, buttonId, modifiers, startPos, endPos):
+        log.debug("Start dragging from {} to {}".format(startPos, endPos))
+
+        if buttonId == 1 and modifiers == []:
+            self.createSelectionBox(startPos, endPos)
+
+    def handleMouseDragMove(self, buttonId, modifiers, startPos, endPos):
+        log.debug("Continue dragging from {} to {}".format(startPos, endPos))
+
+        if buttonId == 1 and modifiers == []:
+            self.moveSelectionBox(startPos, endPos)
+
+    def handleMouseDragEnd(self, buttonId, modifiers, startPos, endPos):
+        log.debug("End dragging from {} to {}".format(startPos, endPos))
+
+        if buttonId == 1 and modifiers == []:
+            self.removeSelectionBox()
+
+    def getMousePos(self):
+        # Check if the mouse is over the window.
+        if base.mouseWatcherNode.hasMouse():
+            # Get the position.
+            # Each coordinate is normalized to the interval [-1, 1].
+            mousePoint = base.mouseWatcherNode.getMouse()
+            # Create a copy of mousePoint rather than returning a reference to
+            # it, because mousePoint will be modified in place by Panda.
+            return (mousePoint.getX(), mousePoint.getY())
+        else:
+            log.debug("getMousePos() called but mouse is not over window.")
+            return None
 
     def handleWindowClose(self):
         log.info("Window close requested -- shutting down client.")
@@ -519,16 +559,21 @@ class WartsApp(ShowBase):
         self.accept("wheel_down", self.zoomCamera, [False])
 
         # Handle clicking.
-        self.accept("mouse1", self.handleMouseClick, [1, []])
-        self.accept("mouse1-up", self.handleMouseUp, [1,[]])
+        self.accept("mouse1",    self.pandaEventMouseDown, [1, []])
+        self.accept("mouse1-up", self.pandaEventMouseUp,   [1])
         # TODO: Make sure this is always the right mouse button.
-        self.accept("mouse3", self.handleMouseClick, [3, []])
+        self.accept("mouse3",    self.pandaEventMouseDown, [3, []])
+        self.accept("mouse3-up", self.pandaEventMouseUp,   [3])
 
         # Handle clicking with modifier keys.
-        self.accept("shift-mouse1",   self.handleMouseClick, [1, ["shift"]])
-        self.accept("control-mouse1", self.handleMouseClick, [1, ["control"]])
-        self.accept("shift-mouse3",   self.handleMouseClick, [3, ["shift"]])
-        self.accept("control-mouse3", self.handleMouseClick, [3, ["control"]])
+        self.accept("shift-mouse1",   self.pandaEventMouseDown,
+                    [1, ["shift"]])
+        self.accept("control-mouse1", self.pandaEventMouseDown,
+                    [1, ["control"]])
+        self.accept("shift-mouse3",   self.pandaEventMouseDown,
+                    [3, ["shift"]])
+        self.accept("control-mouse3", self.pandaEventMouseDown,
+                    [3, ["control"]])
 
         # Handle window close request (clicking the X, Alt-F4, etc.)
         self.win.set_close_request_event("window-close")
@@ -555,6 +600,14 @@ class Entity(object):
             self.model.cleanup()
         self.model.removeNode()
         self.rootNode.removeNode()
+
+
+class MouseButtonState(object):
+    def __init__(self, modifiers, pos, hasMoved):
+        super(MouseButtonState, self).__init__()
+        self.modifiers = modifiers
+        self.pos       = pos
+        self.hasMoved  = hasMoved
 
 
 def getModelPath(modelName):
