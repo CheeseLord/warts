@@ -55,6 +55,7 @@ class WartsApp(ShowBase):
         self.rectStartPos = None
         self.prevMousePos = None
         self.selectionBox = None
+        self.selectionBoxNode = None
 
         self.createSelectionBox((-0.2, 0.2), (0.2, -0.2))
 
@@ -230,9 +231,8 @@ class WartsApp(ShowBase):
         self.selectionBox.draw_to(x1, 0, y2)
         self.selectionBox.draw_to(x1, 0, y1)
 
-        # TODO: Do we need to store this as well?
-        selectionBoxNode = self.selectionBox.create()
-        render2d.attachNewNode(selectionBoxNode)
+        self.selectionBoxNode = self.selectionBox.create()
+        render2d.attachNewNode(self.selectionBoxNode)
 
     def moveSelectionBox(self, corner1, corner2):
         assert self.selectionBox is not None
@@ -247,8 +247,9 @@ class WartsApp(ShowBase):
         self.selectionBox.setVertex(4, x1, 0, y1)
 
     def removeSelectionBox(self):
-        # TODO: Implement this. And actually call it.
-        NotImplemented
+        self.selectionBoxNode.removeNode()
+        self.selectionBox = None
+        self.selectionBoxNode = None
 
     def setCameraCustom(self):
         """
