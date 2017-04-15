@@ -378,6 +378,38 @@ class WartsApp(ShowBase):
 
         ##self.cameraHolder.setPos(x, y, z)
 
+    def mouseMoveTask(self, task):
+        """
+        Handle mouse movement.
+        """
+
+        # Check if the mouse is over the window.
+        if base.mouseWatcherNode.hasMouse():
+            # Get the position.
+            # Each coordinate is normalized to the interval [-1, 1].
+            # Create a copy of mousePoint to ensure we don't set
+            # self.prevMousePos to be a reference to it, mousePoint will be
+            # modified in place by Panda.
+            mousePoint = base.mouseWatcherNode.getMouse()
+            mousePos = (mousePoint.getX(), mousePoint.getY())
+            # Don't do anything unless the mouse position has actually changed.
+            if self.prevMousePos is not None:
+                if mousePos != self.prevMousePos:
+                    # Log a click-and-drag if we're clicking and dragging.
+                    if self.rectStartPos is not None:
+                        log.debug("Dragging from {} to {}"
+                            .format(self.rectStartPos, mousePos))
+                        self.moveSelectionBox(self.rectStartPos, mousePos)
+                    self.prevMousePos = mousePos
+                # If prevMousePos is not None and mousePos == prevMousePos,
+                # don't update it, because that's pointless.
+            else:
+                self.prevMousePos = mousePos
+        else:
+            self.prevMousePos = None
+
+        return Task.cont
+
     def handleMouseClick(self, button, modifiers):
         # Make sure the mouse is inside the screen
         if self.mouseWatcherNode.hasMouse():
@@ -431,38 +463,6 @@ class WartsApp(ShowBase):
 
     def handleMouseUp(self, button, modifiers):
         self.rectStartPos = None
-
-    def mouseMoveTask(self, task):
-        """
-        Handle mouse movement.
-        """
-
-        # Check if the mouse is over the window.
-        if base.mouseWatcherNode.hasMouse():
-            # Get the position.
-            # Each coordinate is normalized to the interval [-1, 1].
-            # Create a copy of mousePoint to ensure we don't set
-            # self.prevMousePos to be a reference to it, mousePoint will be
-            # modified in place by Panda.
-            mousePoint = base.mouseWatcherNode.getMouse()
-            mousePos = (mousePoint.getX(), mousePoint.getY())
-            # Don't do anything unless the mouse position has actually changed.
-            if self.prevMousePos is not None:
-                if mousePos != self.prevMousePos:
-                    # Log a click-and-drag if we're clicking and dragging.
-                    if self.rectStartPos is not None:
-                        log.debug("Dragging from {} to {}"
-                            .format(self.rectStartPos, mousePos))
-                        self.moveSelectionBox(self.rectStartPos, mousePos)
-                    self.prevMousePos = mousePos
-                # If prevMousePos is not None and mousePos == prevMousePos,
-                # don't update it, because that's pointless.
-            else:
-                self.prevMousePos = mousePos
-        else:
-            self.prevMousePos = None
-
-        return Task.cont
 
     def handleWindowClose(self):
         log.info("Window close requested -- shutting down client.")
