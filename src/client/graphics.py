@@ -229,8 +229,8 @@ class WartsApp(ShowBase):
         self.selectionBox.draw_to(x1, 0, y2)
         self.selectionBox.draw_to(x1, 0, y1)
 
-        self.selectionBoxNode = self.selectionBox.create()
-        render2d.attachNewNode(self.selectionBoxNode)
+        self.selectionBoxNode = render2d.attachNewNode(
+            self.selectionBox.create())
 
     def moveSelectionBox(self, corner1, corner2):
         assert self.selectionBox is not None
@@ -245,8 +245,7 @@ class WartsApp(ShowBase):
         self.selectionBox.setVertex(4, x1, 0, y1)
 
     def removeSelectionBox(self):
-        # FIXME: This next line doesn't work. How do we remove the box?
-        # self.selectionBoxNode.removeNode()
+        self.selectionBoxNode.removeNode()
         self.selectionBox     = None
         self.selectionBoxNode = None
 
