@@ -436,6 +436,7 @@ class WartsApp(ShowBase):
 
     def handleMouseClick(self, button, modifiers, pos):
         # Make sure the mouse is inside the screen
+        # TODO: Move this check to pandaEventMouseUp?
         if self.mouseWatcherNode.hasMouse():
             # Create a ray extending from the camera, in the direction of the
             # mouse click.
