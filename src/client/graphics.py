@@ -569,12 +569,16 @@ class WartsApp(ShowBase):
         log.info("Received event {0!r}".format(eventName))
 
     def coord3dToScreen(self, coord3d):
-        ret = Point2()
+        screenCoord = Point2()
         camLens = self.camNode.getLens()
-        if not camLens.project(coord3d, ret):
+        if not camLens.project(coord3d, screenCoord):
             log.debug("Attempting 3d-to-screen conversion on point outside of "
                       "camera's viewing frustum.")
-        return ret
+
+        # Convert to a tuple to ensure no one else is keeping a reference
+        # around.
+        x, y = screenCoord
+        return (x, y)
 
     def coordScreenTo3d(self, screenCoord):
         # Create a ray extending from the camera, in the direction of the
@@ -591,7 +595,10 @@ class WartsApp(ShowBase):
             if entry.getIntoNodePath() != self.groundPlaneNodePath:
                 continue
 
-            return entry.getSurfacePoint(self.render)
+            # Convert to a tuple to ensure no one else is keeping a reference
+            # around.
+            x, y, z = entry.getSurfacePoint(self.render)
+            return (x, y, z)
 
         # The ray didn't intersect the ground. This is almost certainly going
         # to happen at some point; all you have to do is find a way to aim the
