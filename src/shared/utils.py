@@ -10,3 +10,8 @@ def thisShouldNeverHappen(reason=None):
         reason = "This should never happen"
     assert False, reason
 
+def thisIsNotHandled(reason=None):
+    if reason == None:
+        reason = "This case is not handled"
+    assert False, reason
+

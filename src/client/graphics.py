@@ -17,7 +17,7 @@ from src.shared.message_infrastructure import deserializeMessage, \
     illFormedMessage, unhandledMessageCommand, invalidMessageArgument, \
     InvalidMessageError
 from src.shared.unit_set import UnitSet
-from src.shared.utils import minmax, thisShouldNeverHappen
+from src.shared.utils import minmax, thisShouldNeverHappen, thisIsNotHandled
 from src.client.backend import unitToGraphics, GRAPHICS_SCALE
 from src.client import messages as cmessages
 
@@ -438,43 +438,26 @@ class WartsApp(ShowBase):
         # Make sure the mouse is inside the screen
         # TODO: Move this check to pandaEventMouseUp?
         if self.mouseWatcherNode.hasMouse():
-            # Create a ray extending from the camera, in the direction of the
-            # mouse click.
-            self.mouseClickRay.setFromLens(self.camNode, pos)
+            x, y, z = self.coordScreenTo3d(pos)
 
-            # FIXME[#54]: This next part is absurd.
-            # Check each object in the node tree for collision with the mouse.
-            self.mouseClickTraverser.traverse(self.render)
-            for entry in self.mouseClickHandler.getEntries():
-                if not entry.hasInto():
-                    continue
-                # Check if each intersection is with the ground.
-                if entry.getIntoNodePath() != self.groundPlaneNodePath:
-                    continue
-                if not self.usingCustomCamera:
-                    continue
+            if modifiers == []:
+                # TODO: This component should take care of decoding the
+                # click as far as "left" or "right"; we shouldn't send a
+                # numerical button id to the graphicsInterface.
+                message = cmessages.Click(button, (x, y))
+            elif button == 1 and modifiers == ["shift"]:
+                message = cmessages.ShiftLClick((x, y))
+            elif button == 1 and modifiers == ["control"]:
+                message = cmessages.ControlLClick((x, y))
+            elif button == 3 and modifiers == ["shift"]:
+                message = cmessages.ShiftRClick((x, y))
+            elif button == 3 and modifiers == ["control"]:
+                message = cmessages.ControlRClick((x, y))
+            else:
+                thisShouldNeverHappen(
+                    "Unhandled modifiers for click: {}".format(modifiers))
 
-                clickedPoint = entry.getSurfacePoint(self.render)
-                x, y, z = clickedPoint
-
-                if modifiers == []:
-                    # TODO: This component should take care of decoding the
-                    # click as far as "left" or "right"; we shouldn't send a
-                    # numerical button id to the graphicsInterface.
-                    message = cmessages.Click(button, (x, y))
-                elif button == 1 and modifiers == ["shift"]:
-                    message = cmessages.ShiftLClick((x, y))
-                elif button == 1 and modifiers == ["control"]:
-                    message = cmessages.ControlLClick((x, y))
-                elif button == 3 and modifiers == ["shift"]:
-                    message = cmessages.ShiftRClick((x, y))
-                elif button == 3 and modifiers == ["control"]:
-                    message = cmessages.ControlRClick((x, y))
-                else:
-                    thisShouldNeverHappen(
-                        "Unhandled modifiers for click: {}".format(modifiers))
-
-                self.graphicsInterface.graphicsMessage(message.serialize())
+            self.graphicsInterface.graphicsMessage(message.serialize())
 
     def handleMouseDragStart(self, buttonId, modifiers, startPos, endPos):
         log.debug("Start dragging from {} to {}".format(startPos, endPos))
@@ -584,6 +567,35 @@ class WartsApp(ShowBase):
 
     def logEvent(self, eventName):
         log.info("Received event {0!r}".format(eventName))
+
+    def coord3dToScreen(self, coord3d):
+        NotImplemented
+
+    def coordScreenTo3d(self, coord3d):
+        # Create a ray extending from the camera, in the direction of the
+        # mouse click.
+        self.mouseClickRay.setFromLens(self.camNode, coord3d)
+
+        # FIXME[#54]: This next part is absurd.
+        # Check each object in the node tree for collision with the mouse.
+        self.mouseClickTraverser.traverse(self.render)
+        for entry in self.mouseClickHandler.getEntries():
+            if not entry.hasInto():
+                continue
+            # Check if each intersection is with the ground.
+            if entry.getIntoNodePath() != self.groundPlaneNodePath:
+                continue
+            if not self.usingCustomCamera:
+                continue
+
+            return entry.getSurfacePoint(self.render)
+
+        # The ray didn't intersect the ground. This is almost certainly going
+        # to happen; all you have to do is find a way to aim the camera (or
+        # manipulate the screen coordinate) so that the ray points
+        # horizontally. But we don't have code to handle it, so for now just
+        # abort.
+        thisIsNotHandled()
 
 
 class Entity(object):
