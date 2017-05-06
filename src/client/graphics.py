@@ -437,7 +437,7 @@ class WartsApp(ShowBase):
     def handleMouseClick(self, button, modifiers, pos):
         # Make sure the mouse is inside the screen
         # TODO: Move this check to pandaEventMouseUp?
-        if self.mouseWatcherNode.hasMouse():
+        if self.mouseWatcherNode.hasMouse() and self.usingCustomCamera:
             x, y, z = self.coordScreenTo3d(pos)
 
             if modifiers == []:
@@ -510,17 +510,17 @@ class WartsApp(ShowBase):
         self.groundPlaneNodePath.node().addSolid(groundCollisionPlane)
 
         # Find the ray defined by the mouse click.
-        mouseClickNode = core.CollisionNode("mouseRay")
-        self.mouseClickNodePath = self.camera.attachNewNode(mouseClickNode)
-        # TODO: Do we need to mouseClickNode.setFromCollideMask() here?
-        self.mouseClickRay = core.CollisionRay()
-        mouseClickNode.addSolid(self.mouseClickRay)
+        camRayColNode = core.CollisionNode("cameraRayNode")
+        self.camRayColNodePath = self.camera.attachNewNode(camRayColNode)
+        # TODO: Do we need to camRayColNode.setFromCollideMask() here?
+        self.camRayColRay = core.CollisionRay()
+        camRayColNode.addSolid(self.camRayColRay)
 
         # Create objects to traverse the node tree to find collisions.
-        self.mouseClickHandler = core.CollisionHandlerQueue()
-        self.mouseClickTraverser = core.CollisionTraverser("mouse click")
-        self.mouseClickTraverser.addCollider(self.mouseClickNodePath,
-                                             self.mouseClickHandler)
+        self.camRayColHandler   = core.CollisionHandlerQueue()
+        self.camRayColTraverser = core.CollisionTraverser("cameraRayTraverser")
+        self.camRayColTraverser.addCollider(self.camRayColNodePath,
+                                            self.camRayColHandler)
 
     def setupEventHandlers(self):
         def pushKey(key, value):
@@ -574,25 +574,23 @@ class WartsApp(ShowBase):
     def coordScreenTo3d(self, coord3d):
         # Create a ray extending from the camera, in the direction of the
         # mouse click.
-        self.mouseClickRay.setFromLens(self.camNode, coord3d)
+        self.camRayColRay.setFromLens(self.camNode, coord3d)
 
         # FIXME[#54]: This next part is absurd.
         # Check each object in the node tree for collision with the mouse.
-        self.mouseClickTraverser.traverse(self.render)
-        for entry in self.mouseClickHandler.getEntries():
+        self.camRayColTraverser.traverse(self.render)
+        for entry in self.camRayColHandler.getEntries():
             if not entry.hasInto():
                 continue
             # Check if each intersection is with the ground.
             if entry.getIntoNodePath() != self.groundPlaneNodePath:
                 continue
-            if not self.usingCustomCamera:
-                continue
 
             return entry.getSurfacePoint(self.render)
 
         # The ray didn't intersect the ground. This is almost certainly going
-        # to happen; all you have to do is find a way to aim the camera (or
-        # manipulate the screen coordinate) so that the ray points
+        # to happen at some point; all you have to do is find a way to aim the
+        # camera (or manipulate the screen coordinate) so that the ray points
         # horizontally. But we don't have code to handle it, so for now just
         # abort.
         thisIsNotHandled()
