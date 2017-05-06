@@ -571,10 +571,10 @@ class WartsApp(ShowBase):
     def coord3dToScreen(self, coord3d):
         NotImplemented
 
-    def coordScreenTo3d(self, coord3d):
+    def coordScreenTo3d(self, screenCoord):
         # Create a ray extending from the camera, in the direction of the
         # mouse click.
-        self.camRayColRay.setFromLens(self.camNode, coord3d)
+        self.camRayColRay.setFromLens(self.camNode, screenCoord)
 
         # FIXME[#54]: This next part is absurd.
         # Check each object in the node tree for collision with the mouse.
