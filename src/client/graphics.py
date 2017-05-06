@@ -569,7 +569,12 @@ class WartsApp(ShowBase):
         log.info("Received event {0!r}".format(eventName))
 
     def coord3dToScreen(self, coord3d):
-        NotImplemented
+        ret = Point2()
+        camLens = self.camNode.getLens()
+        if not camLens.project(coord3d, ret):
+            log.debug("Attempting 3d-to-screen conversion on point outside of "
+                      "camera's viewing frustum.")
+        return ret
 
     def coordScreenTo3d(self, screenCoord):
         # Create a ray extending from the camera, in the direction of the
