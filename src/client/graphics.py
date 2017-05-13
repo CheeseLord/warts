@@ -216,10 +216,16 @@ class WartsApp(ShowBase):
         entity.model.setPos(0, 0, z)
 
     def createSelectionBox(self, corner1, corner2):
+        """
+        Create a selection "box" given the coordinates of two opposite corners.
+        The corners are given in world coordinates (well, 3d graphics
+        coordinates).
+        """
+
         assert self.selectionBox is None
 
-        x1, y1 = corner1
-        x2, y2 = corner2
+        x1, y1 = self.coord3dToScreen(corner1)
+        x2, y2 = self.coord3dToScreen(corner2)
 
         # TODO[#3]: Magic numbers bad.
         self.selectionBox = LineSegs("SelectionBox")
@@ -237,8 +243,8 @@ class WartsApp(ShowBase):
     def moveSelectionBox(self, corner1, corner2):
         assert self.selectionBox is not None
 
-        x1, y1 = corner1
-        x2, y2 = corner2
+        x1, y1 = self.coord3dToScreen(corner1)
+        x2, y2 = self.coord3dToScreen(corner2)
 
         self.selectionBox.setVertex(0, x1, 0, y1)
         self.selectionBox.setVertex(1, x2, 0, y1)
@@ -465,16 +471,16 @@ class WartsApp(ShowBase):
         log.debug("Start dragging from {} to {}".format(startPos, endPos))
 
         if buttonId == 1 and modifiers == []:
-            startPos = self.coord3dToScreen(self.coordScreenTo3d(startPos))
-            endPos = self.coord3dToScreen(self.coordScreenTo3d(endPos))
+            startPos = self.coordScreenTo3d(startPos)
+            endPos   = self.coordScreenTo3d(endPos)
             self.createSelectionBox(startPos, endPos)
 
     def handleMouseDragMove(self, buttonId, modifiers, startPos, endPos):
         log.debug("Continue dragging from {} to {}".format(startPos, endPos))
 
         if buttonId == 1 and modifiers == []:
-            startPos = self.coord3dToScreen(self.coordScreenTo3d(startPos))
-            endPos = self.coord3dToScreen(self.coordScreenTo3d(endPos))
+            startPos = self.coordScreenTo3d(startPos)
+            endPos   = self.coordScreenTo3d(endPos)
             self.moveSelectionBox(startPos, endPos)
 
     def handleMouseDragEnd(self, buttonId, modifiers, startPos, endPos):
