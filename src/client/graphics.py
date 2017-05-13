@@ -225,6 +225,8 @@ class WartsApp(ShowBase):
 
         assert self.selectionBox is None
 
+        # Note: corner1 and corner2 could have nonzero z because floating-point
+        # calculations, but they should at least be close.
         x1, y1 = self.coord3dToScreen(corner1)
         x2, y2 = self.coord3dToScreen(corner2)
 
@@ -244,6 +246,8 @@ class WartsApp(ShowBase):
     def moveSelectionBox(self, corner1, corner2):
         assert self.selectionBox is not None
 
+        # Note: corner1 and corner2 could have nonzero z because floating-point
+        # calculations, but they should at least be close.
         x1, y1 = self.coord3dToScreen(corner1)
         x2, y2 = self.coord3dToScreen(corner2)
 
@@ -498,17 +502,11 @@ class WartsApp(ShowBase):
             self.removeSelectionBox()
 
     def updateSelectionBox(self):
-        if self.isDragging():
+        if self.selectionBoxOrigin is not None:
             mousePos = self.getMousePos()
             if mousePos is not None:
                 endPos = self.coordScreenTo3d(mousePos)
                 self.moveSelectionBox(self.selectionBoxOrigin, endPos)
-
-    def isDragging(self):
-        for (buttonId, state) in self.mouseState.iteritems():
-            if state.hasMoved:
-                return True
-        return False
 
     def getMousePos(self):
         # Check if the mouse is over the window.
