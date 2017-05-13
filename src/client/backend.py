@@ -245,7 +245,6 @@ class Backend:
             centroid = (totalX // len(self.unitSelection),
                         totalY // len(self.unitSelection))
             # FIXME: Write this.
-            log.critical(centroid)
         elif isinstance(message, cmessages.RequestQuit):
             for component in self.allComponents:
                 component.cleanup()
