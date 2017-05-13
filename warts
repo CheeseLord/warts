@@ -1,9 +1,20 @@
 #!/bin/bash
 
-VIRTUALENV=venv
 my_dir="$(dirname "$0")"
+VENV_PYTHON="$my_dir/venv/bin/python"
 
-"$my_dir/$VIRTUALENV/bin/python" -m src.main "$@"
+# Ideally we'd call make every time and the Makefile would take care of this
+# sort of dependency resolution. But I think some of the dependencies are
+# "query the network to find out if a newer version of package XYZ is
+# available", so we'd need to create a separate make mode for "build the venv
+# if necessary, but don't check for updates". For now, let's just check in the
+# warts script if the venv python exists and then call make if necessary.
+if ! [ -e "$VENV_PYTHON" ]; then
+    echo "No Python executable found at '$VENV_PYTHON'; rebuilding."
+    (cd "$my_dir" && make)
+fi
+
+"$VENV_PYTHON" -m src.main "$@"
 
 
 
