@@ -45,7 +45,6 @@ class WartsApp(ShowBase):
         self.mouseState = {}
         self.keys = {}
         self.setupEventHandlers()
-        self.setupMouseHandler()
 
         # Set up camera control.
         self.cameraHolder = self.render.attachNewNode('CameraHolder')
@@ -56,6 +55,9 @@ class WartsApp(ShowBase):
         self.prevMousePos = None
         self.selectionBox = None
         self.selectionBoxNode = None
+
+        # Define the ground plane by a normal (+z) and a point (the origin).
+        self.groundPlane = core.Plane(core.Vec3(0, 0, 1), core.Point3(0, 0, 0))
 
         self.graphicsInterface.graphicsReady(self)
 
@@ -499,33 +501,6 @@ class WartsApp(ShowBase):
         message = cmessages.RequestQuit()
         self.graphicsInterface.graphicsMessage(message.serialize())
 
-    def setupMouseHandler(self):
-        """
-        Handle mouse clicks.
-        """
-
-        # Define the ground plane by a normal and a point.
-        groundCollisionPlane = core.CollisionPlane(core.LPlanef(
-            core.Vec3(0, 0, 1), core.Point3(0, 0, 0)))
-
-        # Create a node path for the ground.
-        self.groundPlaneNodePath = self.render.attachNewNode(
-            core.CollisionNode("groundCollisionNode"))
-        self.groundPlaneNodePath.node().addSolid(groundCollisionPlane)
-
-        # Find the ray defined by the mouse click.
-        camRayColNode = core.CollisionNode("cameraRayNode")
-        self.camRayColNodePath = self.camera.attachNewNode(camRayColNode)
-        # TODO: Do we need to camRayColNode.setFromCollideMask() here?
-        self.camRayColRay = core.CollisionRay()
-        camRayColNode.addSolid(self.camRayColRay)
-
-        # Create objects to traverse the node tree to find collisions.
-        self.camRayColHandler   = core.CollisionHandlerQueue()
-        self.camRayColTraverser = core.CollisionTraverser("cameraRayTraverser")
-        self.camRayColTraverser.addCollider(self.camRayColNodePath,
-                                            self.camRayColHandler)
-
     def setupEventHandlers(self):
         def pushKey(key, value):
             self.keys[key] = value
@@ -591,23 +566,32 @@ class WartsApp(ShowBase):
         return (x, y)
 
     def coordScreenTo3d(self, screenCoord):
-        # Create a ray extending from the camera, in the direction of the
-        # mouse click.
-        self.camRayColRay.setFromLens(self.camNode, screenCoord)
+        x, y = screenCoord
+        screenPoint = Point2(x, y)
 
-        # FIXME[#54]: This next part is absurd.
-        # Check each object in the node tree for collision with the mouse.
-        self.camRayColTraverser.traverse(self.render)
-        for entry in self.camRayColHandler.getEntries():
-            if not entry.hasInto():
-                continue
-            # Check if each intersection is with the ground.
-            if entry.getIntoNodePath() != self.groundPlaneNodePath:
-                continue
+        # Do this calculation using simple geometry, rather than the absurd
+        # collision-traversal nonsense we used to use. Thanks to
+        #     https://www.panda3d.org/forums/viewtopic.php?t=5409
+        # for pointing us at the right methods to make this work.
 
+        # Get two points along the ray extending from the camera, in the
+        # direction of the mouse click.
+        nearPoint = Point3()
+        farPoint = Point3()
+        self.camLens.extrude(screenPoint, nearPoint, farPoint)
+
+        # These points are relative to the camera, so need to be converted to
+        # be relative to the render. Thanks to the example code (see link
+        # above) for saving us probably some hours of debugging figuring that
+        # one out again :)
+        nearPoint = self.render.getRelativePoint(self.camera, nearPoint)
+        farPoint  = self.render.getRelativePoint(self.camera, farPoint)
+
+        intersection = Point3()
+        if self.groundPlane.intersectsLine(intersection, nearPoint, farPoint):
             # Convert to a tuple to ensure no one else is keeping a reference
             # around.
-            x, y, z = entry.getSurfacePoint(self.render)
+            x, y, z = intersection
             return (x, y, z)
 
         # The ray didn't intersect the ground. This is almost certainly going
