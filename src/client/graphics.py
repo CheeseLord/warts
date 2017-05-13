@@ -225,19 +225,20 @@ class WartsApp(ShowBase):
 
         assert self.selectionBox is None
 
-        # Note: corner1 and corner2 could have nonzero z because floating-point
-        # calculations, but they should at least be close.
-        x1, y1 = self.coord3dToScreen(corner1)
-        x2, y2 = self.coord3dToScreen(corner2)
+        p1, p2, p3, p4 = self.convert3dBoxToScreen(corner1, corner2)
+        x1, y1 = p1
+        x2, y2 = p2
+        x3, y3 = p3
+        x4, y4 = p4
 
         # TODO[#3]: Magic numbers bad.
         self.selectionBox = LineSegs("SelectionBox")
         self.selectionBox.setThickness(3.0)
         self.selectionBox.setColor(0.0, 1.0, 0.25, 1.0)
         self.selectionBox.move_to(x1, 0, y1)
-        self.selectionBox.draw_to(x2, 0, y1)
         self.selectionBox.draw_to(x2, 0, y2)
-        self.selectionBox.draw_to(x1, 0, y2)
+        self.selectionBox.draw_to(x3, 0, y3)
+        self.selectionBox.draw_to(x4, 0, y4)
         self.selectionBox.draw_to(x1, 0, y1)
 
         self.selectionBoxNode = render2d.attachNewNode(
@@ -246,21 +247,46 @@ class WartsApp(ShowBase):
     def moveSelectionBox(self, corner1, corner2):
         assert self.selectionBox is not None
 
-        # Note: corner1 and corner2 could have nonzero z because floating-point
-        # calculations, but they should at least be close.
-        x1, y1 = self.coord3dToScreen(corner1)
-        x2, y2 = self.coord3dToScreen(corner2)
+        p1, p2, p3, p4 = self.convert3dBoxToScreen(corner1, corner2)
+        x1, y1 = p1
+        x2, y2 = p2
+        x3, y3 = p3
+        x4, y4 = p4
 
         self.selectionBox.setVertex(0, x1, 0, y1)
-        self.selectionBox.setVertex(1, x2, 0, y1)
-        self.selectionBox.setVertex(2, x2, 0, y2)
-        self.selectionBox.setVertex(3, x1, 0, y2)
+        self.selectionBox.setVertex(1, x2, 0, y2)
+        self.selectionBox.setVertex(2, x3, 0, y3)
+        self.selectionBox.setVertex(3, x4, 0, y4)
         self.selectionBox.setVertex(4, x1, 0, y1)
 
     def removeSelectionBox(self):
         self.selectionBoxNode.removeNode()
         self.selectionBox     = None
         self.selectionBoxNode = None
+
+    def convert3dBoxToScreen(self, corner1, corner3):
+        """
+        Return screen coordinates of the 4 corners of a box, given in 3d
+        coordinates. The box is specified using 2 opposite corners.
+        """
+
+        wx1, wy1, wz1 = corner1
+        wx3, wy3, wz3 = corner3
+
+        wx2, wy2 = (wx1, wy3)
+        wx4, wy4 = (wx3, wy1)
+
+        # Note: corner1 and corner2 could have nonzero z because floating-point
+        # calculations, but they should at least be close. We'll just average
+        # their z and not worry about it.
+        wz2 = wz4 = 0.5 * (wz1 + wz3)
+
+        p1 = self.coord3dToScreen((wx1, wy1, wz1))
+        p2 = self.coord3dToScreen((wx2, wy2, wz2))
+        p3 = self.coord3dToScreen((wx3, wy3, wz3))
+        p4 = self.coord3dToScreen((wx4, wy4, wz4))
+
+        return (p1, p2, p3, p4)
 
     def setCameraCustom(self):
         """
