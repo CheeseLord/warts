@@ -55,6 +55,7 @@ class WartsApp(ShowBase):
         self.prevMousePos = None
         self.selectionBox = None
         self.selectionBoxNode = None
+        self.selectionBoxOrigin = None
 
         # Define the ground plane by a normal (+z) and a point (the origin).
         self.groundPlane = core.Plane(core.Vec3(0, 0, 1), core.Point3(0, 0, 0))
@@ -341,6 +342,9 @@ class WartsApp(ShowBase):
                 forward += 2 * translateSpeed * yPos
         self.cameraHolder.setPos(self.cameraHolder, sideways, forward, 0)
 
+        if sideways != 0 or forward != 0:
+            self.updateSelectionBox()
+
         rotate = rotateSpeed * (self.keys["a"] - self.keys["d"])
         self.cameraHolder.setHpr(self.cameraHolder, rotate, 0, 0)
 
@@ -471,23 +475,40 @@ class WartsApp(ShowBase):
         log.debug("Start dragging from {} to {}".format(startPos, endPos))
 
         if buttonId == 1 and modifiers == []:
-            startPos = self.coordScreenTo3d(startPos)
-            endPos   = self.coordScreenTo3d(endPos)
-            self.createSelectionBox(startPos, endPos)
+            assert self.selectionBoxOrigin is None
+            self.selectionBoxOrigin = self.coordScreenTo3d(startPos)
+            endPos = self.coordScreenTo3d(endPos)
+            self.createSelectionBox(self.selectionBoxOrigin, endPos)
 
     def handleMouseDragMove(self, buttonId, modifiers, startPos, endPos):
         log.debug("Continue dragging from {} to {}".format(startPos, endPos))
 
         if buttonId == 1 and modifiers == []:
-            startPos = self.coordScreenTo3d(startPos)
-            endPos   = self.coordScreenTo3d(endPos)
-            self.moveSelectionBox(startPos, endPos)
+            assert self.selectionBoxOrigin is not None
+            endPos = self.coordScreenTo3d(endPos)
+            self.moveSelectionBox(self.selectionBoxOrigin, endPos)
 
     def handleMouseDragEnd(self, buttonId, modifiers, startPos, endPos):
         log.debug("End dragging from {} to {}".format(startPos, endPos))
 
         if buttonId == 1 and modifiers == []:
+            # endPos = self.coordScreenTo3d(endPos)
+            # TODO[#51]: Select from self.selectionBoxOrigin to endPos.
+            self.selectionBoxOrigin = None
             self.removeSelectionBox()
+
+    def updateSelectionBox(self):
+        if self.isDragging():
+            mousePos = self.getMousePos()
+            if mousePos is not None:
+                endPos = self.coordScreenTo3d(mousePos)
+                self.moveSelectionBox(self.selectionBoxOrigin, endPos)
+
+    def isDragging(self):
+        for (buttonId, state) in self.mouseState.iteritems():
+            if state.hasMoved:
+                return True
+        return False
 
     def getMousePos(self):
         # Check if the mouse is over the window.
