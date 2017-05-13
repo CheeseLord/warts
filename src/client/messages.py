@@ -23,6 +23,8 @@ AddEntity          = defineMessageType("add_entity",
                                         ("isExample", boolArg),
                                         ("goalSize", floatPairArg),
                                         ("modelPath", modelPathArg)])
+CenterCamera       = defineMessageType("center_camera",
+                                       [("pos", gPosArg)])
 Click              = defineMessageType("click",
                                        [("button", intArg),
                                         ("pos", gPosArg)])
@@ -45,5 +47,6 @@ MoveEntity         = defineMessageType("move_entity",
                                         ("pos", gPosArg)])
 RemoveEntity       = defineMessageType("remove_entity",
                                        [("gid", graphicsIdArg)])
+RequestCenter      = defineMessageType("request_center", [])
 RequestQuit        = defineMessageType("request_quit", [])
 

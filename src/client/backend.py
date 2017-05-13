@@ -220,6 +220,19 @@ class Backend:
                     self.removeFromSelection(chosenUnit)
                 newMsg = messages.OrderDel(UnitSet([chosenUnit]))
                 self.network.backendMessage(newMsg.serialize())
+        elif isinstance(message, cmessages.RequestCenter):
+            if not self.unitSelection:
+                # FIXME: Move to center of world.
+                return
+            totalX, totalY = 0, 0
+            for unitId in self.unitSelection:
+                unitX, unitY = self.unitPositions[unitId]
+                totalX += unitX
+                totalY += unitY
+            centroid = (totalX // len(self.unitSelection),
+                        totalY // len(self.unitSelection))
+            # FIXME: Write this.
+            log.critical(centroid)
         elif isinstance(message, cmessages.RequestQuit):
             for component in self.allComponents:
                 component.cleanup()

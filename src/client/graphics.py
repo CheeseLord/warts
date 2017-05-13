@@ -391,32 +391,13 @@ class WartsApp(ShowBase):
         zoom = -zoomSpeed if inward else zoomSpeed
         self.cameraHolder.setPos(self.cameraHolder, 0, 0, zoom)
 
-    # TODO[#34]: The core logic here belongs in graphicsInterface if anywhere.
-    # The graphics shouldn't have any idea where it makes sense to center the
-    # view on. It may make sense to have a message that means "move view to <x>
-    # <y> coordinates", but figuring out <x> and <y> is up to the
-    # graphicsInterface.
-    def centerViewOnSelf(self):
-        # This code is commented out as we need to have a selection algorithm
-        # of identifying the unit to focus the camera on
-        pass
+    def centerView(self):
+        """
+        Center the view sensibly.
+        """
 
-        # if self.myId not in self.obelisks:
-        #     return
-
-        ##_, _, z = self.cameraHolder.getPos()
-        ##x, y, _ = self.obelisks[playerToUnit(self.myId)].getPos()
-
-        # This is a hack.
-        # The camera isn't aimed straight down; it's aimed at a slight angle
-        # (to give some perspective to the scene). Therefore, we don't want to
-        # put the camera directly above the obelisk; we want to put it up and
-        # at an angle. We could (and eventually should) do some geometry on the
-        # camera's HPR to correctly compute that position, but for now I'm just
-        # hardcoding a roughly-correct offset, because it's easier.
-        ##y -= 16
-
-        ##self.cameraHolder.setPos(x, y, z)
+        message = cmessages.RequestCenter()
+        self.graphicsInterface.graphicsMessage(message.serialize())
 
     def mouseMoveTask(self, task):
         """
@@ -568,7 +549,7 @@ class WartsApp(ShowBase):
         self.accept("shift-f3", self.toggleCameraStyle, [])
 
         # Center view.
-        self.accept("space", self.centerViewOnSelf, [])
+        self.accept("space", self.centerView, [])
 
         # Handle mouse wheel.
         self.accept("wheel_up", self.zoomCamera, [True])
