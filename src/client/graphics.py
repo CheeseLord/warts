@@ -503,8 +503,14 @@ class WartsApp(ShowBase):
         log.debug("End dragging from {} to {}".format(startPos, endPos))
 
         if buttonId == 1 and modifiers == []:
-            # endPos = self.coordScreenTo3d(endPos)
-            # TODO[#51]: Select from self.selectionBoxOrigin to endPos.
+            # Actually select the units.
+            endPos = self.coordScreenTo3d(endPos)
+            # TODO[#55]: Use 3d graphics coords in messages so we don't have to
+            # remove the z coordinates everywhere.
+            message = cmessages.DragBox(self.selectionBoxOrigin[:2],
+                                        endPos[:2])
+            self.graphicsInterface.graphicsMessage(message.serialize())
+            # Clear the selection box; we're done dragging.
             self.selectionBoxOrigin = None
             self.removeSelectionBox()
 

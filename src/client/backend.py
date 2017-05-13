@@ -220,6 +220,19 @@ class Backend:
                     self.removeFromSelection(chosenUnit)
                 newMsg = messages.OrderDel(UnitSet([chosenUnit]))
                 self.network.backendMessage(newMsg.serialize())
+        elif isinstance(message, cmessages.DragBox):
+            ux1, uy1 = graphicsToUnit(message.corner1)
+            ux2, uy2 = graphicsToUnit(message.corner2)
+            xMin = min(ux1, ux2)
+            xMax = max(ux1, ux2)
+            yMin = min(uy1, uy2)
+            yMax = max(uy1, uy2)
+            self.clearSelection()
+            for (uid, uPos) in self.unitPositions.iteritems():
+                ux, uy = uPos
+                # TODO: Add a tolerance based on the size of the unit.
+                if xMin <= ux <= xMax and yMin <= uy <= yMax:
+                    self.addToSelection(uid)
         elif isinstance(message, cmessages.RequestCenter):
             if not self.unitSelection:
                 # FIXME: Move to center of world.

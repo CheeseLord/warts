@@ -36,6 +36,9 @@ ShiftRClick        = defineMessageType("shift_right_click",
                                        [("pos", gPosArg)])
 ControlRClick      = defineMessageType("control_right_click",
                                        [("pos", gPosArg)])
+DragBox            = defineMessageType("drag_box",
+                                       [("corner1", gPosArg),
+                                        ("corner2", gPosArg)])
 MarkEntitySelected = defineMessageType("mark_entity_selected",
                                        [("gid", graphicsIdArg),
                                         ("isSelected", boolArg)])
