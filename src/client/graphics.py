@@ -6,7 +6,7 @@ from direct.task import Task  # This must be imported first.
 from direct.actor.Actor import Actor
 from direct.showbase.ShowBase import ShowBase
 from panda3d import core
-from panda3d.core import Point3, Mat4, Filename, NodePath, LineSegs
+from panda3d.core import Point2, Point3, Mat4, Filename, NodePath, LineSegs
 
 from src.shared import config
 from src.shared import messages
@@ -463,12 +463,16 @@ class WartsApp(ShowBase):
         log.debug("Start dragging from {} to {}".format(startPos, endPos))
 
         if buttonId == 1 and modifiers == []:
+            startPos = self.coord3dToScreen(self.coordScreenTo3d(startPos))
+            endPos = self.coord3dToScreen(self.coordScreenTo3d(endPos))
             self.createSelectionBox(startPos, endPos)
 
     def handleMouseDragMove(self, buttonId, modifiers, startPos, endPos):
         log.debug("Continue dragging from {} to {}".format(startPos, endPos))
 
         if buttonId == 1 and modifiers == []:
+            startPos = self.coord3dToScreen(self.coordScreenTo3d(startPos))
+            endPos = self.coord3dToScreen(self.coordScreenTo3d(endPos))
             self.moveSelectionBox(startPos, endPos)
 
     def handleMouseDragEnd(self, buttonId, modifiers, startPos, endPos):
@@ -569,9 +573,15 @@ class WartsApp(ShowBase):
         log.info("Received event {0!r}".format(eventName))
 
     def coord3dToScreen(self, coord3d):
+        # Empirically, Lens.project takes coordinates in the *camera*'s
+        # coordinate system, not its parent or the render. This was not very
+        # clear from the documentation, and you'd be surprised how long it took
+        # us to figure this out. Anyway, we need to convert the point to be
+        # relative to self.camera here; otherwise we'll get bizarre,
+        # nonsensical, and hard-to-debug results.
+        coord3d = self.camera.getRelativePoint(self.render, coord3d)
         screenCoord = Point2()
-        camLens = self.camNode.getLens()
-        if not camLens.project(coord3d, screenCoord):
+        if not self.camLens.project(coord3d, screenCoord):
             log.debug("Attempting 3d-to-screen conversion on point outside of "
                       "camera's viewing frustum.")
 
