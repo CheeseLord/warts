@@ -30,7 +30,7 @@ class Backend:
 
         self.myId = -1
 
-        # FIXME [#3]: Magic numbers very bad!! >:(
+        # FIXME [#62]: Get the size from the server! Magic numbers very bad!!
         self.gameState = GameState((10, 5))
         self.unitSelection = UnitSet()
 
