@@ -168,6 +168,12 @@ class Backend:
                     reason="No such uid: {}".format(uid))
                 return
             self.gameState.positions[uid] = pos
+        elif isinstance(message, messages.GroundInfo):
+            # Note: this isn't used in any way right now. I think it's right,
+            # but it's definitely possible we transposed something, or worse.
+            x, y        = message.pos
+            terrainType = message.terrainType
+            self.gameState.groundTypes[x][y] = terrainType
         else:
             # It's okay if we aren't able to handle a message from the
             # server; maybe the GraphicsInterface will handle it.
