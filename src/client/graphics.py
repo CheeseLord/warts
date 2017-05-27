@@ -531,7 +531,6 @@ class WartsApp(ShowBase):
             # it, because mousePoint will be modified in place by Panda.
             return (mousePoint.getX(), mousePoint.getY())
         else:
-            log.debug("getMousePos() called but mouse is not over window.")
             return None
 
     def handleWindowClose(self):
