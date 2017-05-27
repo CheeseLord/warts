@@ -3,27 +3,18 @@ import math
 from src.shared.ident import UnitId, unitToPlayer, getUnitSubId
 
 class GameState:
-    def __init__(self, groundTypes=None):
+    def __init__(self, mapSize):
         self.positions = {}
 
-        self.groundTypes = groundTypes
-        if self.groundTypes is None:
-            # 10x5. Stored [x][y].
-            # TODO [#3]: Magic numbers bad.
-            self.groundTypes = [[0 for y in range(5)] for x in range(10)]
-            self.groundTypes[5][3] = 1
-
-            # Some more impassable squares, to better exercise the pathfinding.
-            self.groundTypes[1][1] = 1
-            self.groundTypes[1][2] = 1
-            self.groundTypes[1][3] = 1
-            self.groundTypes[2][3] = 1
-            self.groundTypes[3][2] = 1
+        self.mapSize = tuple(mapSize)
+        mapWidth, mapHeight = self.mapSize
+        # Reference chunks as [x][y].
+        self.groundTypes = [[0 for y in range(mapHeight)]
+                            for x in range(mapWidth)]
 
     @property
     def sizeInChunks(self):
-        # Note: don't allow a map where either dimension is zero.
-        return (len(self.groundTypes), len(self.groundTypes[0]))
+        return self.mapSize
 
     def chunkInBounds(self, cPos):
         x, y = cPos

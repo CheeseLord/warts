@@ -24,7 +24,7 @@ class GameStateManager(object):
     def __init__(self, connectionManager):
         super(GameStateManager, self).__init__()
 
-        self.gameState = GameState()
+        self.gameState = getDefaultGameState()
         self.unitOrders = UnitOrders()
         self.connectionManager = connectionManager
 
@@ -221,4 +221,21 @@ class GameStateManager(object):
                 raise TypeError("Unrecognized sublass of Order")
             else:
                 raise TypeError("Found non-Order object among orders")
+
+
+
+# TODO[#10]: Why is this in GameStateManager?
+def getDefaultGameState():
+    # TODO [#3]: Magic numbers bad.
+    gameState = GameState((10, 5))
+
+    # Some impassable squares, to better exercise the pathfinding.
+    gameState.groundTypes[5][3] = 1
+    gameState.groundTypes[1][1] = 1
+    gameState.groundTypes[1][2] = 1
+    gameState.groundTypes[1][3] = 1
+    gameState.groundTypes[2][3] = 1
+    gameState.groundTypes[3][2] = 1
+
+    return gameState
 

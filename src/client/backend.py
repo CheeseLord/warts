@@ -30,7 +30,8 @@ class Backend:
 
         self.myId = -1
 
-        self.gameState = GameState()
+        # FIXME [#3]: Magic numbers very bad!! >:(
+        self.gameState = GameState((10, 5))
         self.unitSelection = UnitSet()
 
     @property
