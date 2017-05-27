@@ -1,6 +1,7 @@
 import logging
 
 from src.shared import messages
+from src.shared.game_state import GameState
 from src.shared.ident import UnitId, unitToPlayer, getUnitSubId
 from src.shared.logconfig import newLogger
 from src.shared.unit_set import UnitSet
@@ -29,11 +30,7 @@ class Backend:
 
         self.myId = -1
 
-        # TODO: Maintain a full GameState.
-        self.unitPositions = {}
-
-        # FIXME[#16]: Make sure an empty UnitSet doesn't serialize to the empty
-        # string before trying to issue orders to it.
+        self.gameState = GameState()
         self.unitSelection = UnitSet()
 
     @property
@@ -105,8 +102,8 @@ class Backend:
 
         if message == "dump":
             log.info("Dumping all unit info...")
-            for uid in sorted(self.unitPositions.keys()):
-                pos = self.unitPositions[uid]
+            for uid in sorted(self.gameState.positions):
+                pos = self.gameState.positions[uid]
                 isSelected = (uid in self.unitSelection)
                 log.info("    {sel:1} {player:>2}: {subId:>3} @ {x:>4}, {y:>4}"
                          .format(sel    = "*" if isSelected else "",
@@ -149,28 +146,28 @@ class Backend:
         elif isinstance(message, messages.NewObelisk):
             uid = message.unitId
             pos = message.pos
-            if uid in self.unitPositions:
+            if uid in self.gameState.positions:
                 invalidMessageArgument(message, log, sender="server",
                     reason="uid {} already in use".format(uid))
                 return
-            self.unitPositions[uid] = pos
+            self.gameState.positions[uid] = pos
         elif isinstance(message, messages.DeleteObelisk):
             uid = message.unitId
-            if uid not in self.unitPositions:
+            if uid not in self.gameState.positions:
                 invalidMessageArgument(message, log, sender="server",
                     reason="No such uid: {}".format(uid))
                 return
             if uid in self.unitSelection:
                 self.removeFromSelection(uid)
-            del self.unitPositions[uid]
+            del self.gameState.positions[uid]
         elif isinstance(message, messages.SetPos):
             uid = message.unitId
             pos = message.pos
-            if uid not in self.unitPositions:
+            if uid not in self.gameState.positions:
                 invalidMessageArgument(message, log, sender="server",
                     reason="No such uid: {}".format(uid))
                 return
-            self.unitPositions[uid] = pos
+            self.gameState.positions[uid] = pos
         else:
             # It's okay if we aren't able to handle a message from the
             # server; maybe the GraphicsInterface will handle it.
@@ -228,7 +225,7 @@ class Backend:
             yMin = min(uy1, uy2)
             yMax = max(uy1, uy2)
             self.clearSelection()
-            for (uid, uPos) in self.unitPositions.iteritems():
+            for (uid, uPos) in self.gameState.positions.iteritems():
                 ux, uy = uPos
                 # TODO: Add a tolerance based on the size of the unit.
                 if xMin <= ux <= xMax and yMin <= uy <= yMax:
@@ -239,7 +236,7 @@ class Backend:
                 return
             totalX, totalY = 0, 0
             for unitId in self.unitSelection:
-                unitX, unitY = self.unitPositions[unitId]
+                unitX, unitY = self.gameState.positions[unitId]
                 totalX += unitX
                 totalY += unitY
             centroid = (totalX // len(self.unitSelection),
@@ -265,7 +262,7 @@ class Backend:
         # that+1 as UPOS_INFINITY or some such, and use that here instead of a
         # float.
         nearestDistance = float('inf')
-        for (uid, uPos) in self.unitPositions.iteritems():
+        for (uid, uPos) in self.gameState.positions.iteritems():
             if unitToPlayer(uid) != self.myId:
                 continue
 
