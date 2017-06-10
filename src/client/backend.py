@@ -30,8 +30,7 @@ class Backend:
 
         self.myId = -1
 
-        # FIXME [#62]: Get the size from the server! Magic numbers very bad!!
-        self.gameState = GameState((10, 5))
+        self.gameState     = None
         self.unitSelection = UnitSet()
 
     @property
@@ -172,6 +171,10 @@ class Backend:
             x, y        = message.pos
             terrainType = message.terrainType
             self.gameState.groundTypes[x][y] = terrainType
+        elif isinstance(message, messages.MapSize):
+            if self.gameState is not None:
+                log.warn("Got multiple map_size messages.")
+            self.gameState = GameState(message.size)
         else:
             # It's okay if we aren't able to handle a message from the
             # server; maybe the GraphicsInterface will handle it.

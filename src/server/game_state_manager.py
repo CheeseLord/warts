@@ -59,6 +59,10 @@ class GameStateManager(object):
 
     # TODO[#10]: Why is this in GameStateManager?
     def handshake(self, playerId):
+        # Send map size (must come before ground info).
+        msg = messages.MapSize(self.gameState.sizeInChunks)
+        self.connectionManager.sendMessage(playerId, msg)
+
         # Send ground info.
         for x in range(len(self.gameState.groundTypes)):
             for y in range(len(self.gameState.groundTypes[x])):

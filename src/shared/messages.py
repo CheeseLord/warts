@@ -109,6 +109,8 @@ DeleteObelisk = defineMessageType("delete_obelisk",
 GroundInfo    = defineMessageType("ground_info",
                                   [("pos", cPosArg),
                                    ("terrainType", terrainTypeArg)])
+MapSize       = defineMessageType("map_size",
+                                  [("size", intPairArg)])
 NewObelisk    = defineMessageType("new_obelisk",
                                   [("unitId", unitIdArg),
                                    ("pos", uPosArg)])
