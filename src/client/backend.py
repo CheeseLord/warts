@@ -140,10 +140,7 @@ class Backend:
             self.myId = message.playerId
             log.info("Your id is {id}.".format(id=self.myId))
 
-            # FIXME[#16]: This might be a nonexistent id. We shouldn't issue
-            # orders to it unless that unit id actually exists.
-            firstId = UnitId(self.myId, 0)
-            self.unitSelection = UnitSet([firstId])
+            self.unitSelection = UnitSet([])
         elif isinstance(message, messages.NewObelisk):
             uid = message.unitId
             pos = message.pos
