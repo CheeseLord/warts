@@ -6,7 +6,7 @@ from src.shared.ident import UnitId, unitToPlayer, getUnitSubId
 from src.shared.logconfig import newLogger
 from src.shared.unit_set import UnitSet
 from src.shared.message_infrastructure import deserializeMessage, \
-    unhandledInternalMessage, InvalidMessageError
+    unhandledInternalMessage, illFormedMessage, InvalidMessageError
 from src.client import messages as cmessages
 
 # Constants
