@@ -165,6 +165,10 @@ class Backend:
                     reason="No such uid: {}".format(uid))
                 return
             self.gameState.positions[uid] = pos
+        elif isinstance(message, messages.ResourceAmt):
+            self.gameState.resources[self.myId] = message.amount
+            log.info("I now have {} arbitrary units of resource."
+                     .format(message.amount))
         elif isinstance(message, messages.GroundInfo):
             # Note: this isn't used in any way right now. I think it's right,
             # but it's definitely possible we transposed something, or worse.
