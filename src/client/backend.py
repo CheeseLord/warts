@@ -235,8 +235,9 @@ class Backend:
             for (uid, uPos) in self.gameState.positions.iteritems():
                 ux, uy = uPos
                 # TODO: Add a tolerance based on the size of the unit.
-                if xMin <= ux <= xMax and yMin <= uy <= yMax:
-                    self.addToSelection(uid)
+                if unitToPlayer(uid) == self.myId:
+                    if xMin <= ux <= xMax and yMin <= uy <= yMax:
+                        self.addToSelection(uid)
         elif isinstance(message, cmessages.RequestCenter):
             if not self.unitSelection:
                 # FIXME: Move to center of world.
