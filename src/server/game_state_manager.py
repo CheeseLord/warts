@@ -149,6 +149,11 @@ class GameStateManager(object):
     def tick(self):
         self.applyOrders()
         self.messageCounts.clear()
+        # FIXME: Shouldn't really go in tick(); I just put it here so we could
+        # test handling of ResourceAmt in client.
+        # Hack: just give everyone 42 resources.
+        msg = messages.ResourceAmt(42)
+        self.connectionManager.broadcastMessage(msg)
 
     def applyOrders(self):
         # Create any pending units.
