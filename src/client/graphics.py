@@ -409,18 +409,19 @@ class WartsApp(ShowBase):
         # NOTE: We don't handle clicking and dragging at the same time.
         if mousePos is not None and mousePos != self.prevMousePos:
             for (buttonId, state) in self.mouseState.iteritems():
+                state.lastPos = mousePos
                 if state.hasMoved:
                     self.handleMouseDragMove(buttonId, state.modifiers,
-                                             state.pos, mousePos)
+                                             state.startPos, mousePos)
                 else:
-                    startX, startY = state.pos
+                    startX, startY = state.startPos
                     mouseX, mouseY = mousePos
                     distance = math.hypot(mouseX - startX, mouseY - startY)
                     # TODO[#3]: Magic numbers bad.
                     # Check if the mouse has moved outside the dead zone.
                     if distance > 0.0314:
                         self.handleMouseDragStart(buttonId, state.modifiers,
-                                                  state.pos, mousePos)
+                                                  state.startPos, mousePos)
                         state.hasMoved = True
 
         if mousePos != self.prevMousePos:
@@ -438,7 +439,7 @@ class WartsApp(ShowBase):
 
         assert buttonId not in self.mouseState
 
-        state = MouseButtonState(modifiers[:], self.getMousePos(), False)
+        state = MouseButtonState(modifiers[:], self.getMousePos())
         self.mouseState[buttonId] = state
 
     def pandaEventMouseUp(self, buttonId):
@@ -450,10 +451,13 @@ class WartsApp(ShowBase):
         state = self.mouseState[buttonId]
 
         if state.hasMoved:
+            endPos = self.getMousePos()
+            if endPos is None:
+                endPos = state.lastPos
             self.handleMouseDragEnd(buttonId, state.modifiers,
-                                    state.pos, self.getMousePos())
+                                    state.startPos, endPos)
         else:
-            self.handleMouseClick(buttonId, state.modifiers, state.pos)
+            self.handleMouseClick(buttonId, state.modifiers, state.startPos)
 
         del self.mouseState[buttonId]
 
@@ -659,11 +663,12 @@ class Entity(object):
 
 
 class MouseButtonState(object):
-    def __init__(self, modifiers, pos, hasMoved):
+    def __init__(self, modifiers, pos):
         super(MouseButtonState, self).__init__()
         self.modifiers = modifiers
-        self.pos       = pos
-        self.hasMoved  = hasMoved
+        self.startPos  = pos
+        self.lastPos   = pos
+        self.hasMoved  = False
 
 
 def getModelPath(modelName):
