@@ -1,3 +1,4 @@
+from collections import defaultdict
 import math
 
 from src.shared.ident import UnitId, unitToPlayer, getUnitSubId
@@ -5,6 +6,7 @@ from src.shared.ident import UnitId, unitToPlayer, getUnitSubId
 class GameState:
     def __init__(self, mapSize):
         self.positions = {}
+        self.resources = defaultdict(int)
 
         self.mapSize = tuple(mapSize)
         mapWidth, mapHeight = self.mapSize

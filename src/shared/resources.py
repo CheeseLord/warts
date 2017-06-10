@@ -34,3 +34,4 @@ class ResourcePool(object):
     @property
     def ne(self):
         return (self.east, self.north)
+
