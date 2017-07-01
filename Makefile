@@ -4,7 +4,7 @@
 #     make 'PYTHON=/path/to/alternate/python2.7'
 PYTHON ?= python2.7
 
-VIRTUALENV = venv
+VIRTUALENV = ./venv
 BUILDFILES = build-resources
 
 all: warts
@@ -16,7 +16,10 @@ warts: Makefile $(BUILDFILES)/requirements.txt
 	cp $(BUILDFILES)/panda3d.pth $(VIRTUALENV)/lib/python2.7/site-packages/
 
 test:
-	./$(VIRTUALENV)/bin/tox -e py27
+	$(VIRTUALENV)/bin/tox -e py27
+
+lint:
+	$(VIRTUALENV)/bin/pylint --rcfile=src/.pylintrc src
 
 simplify:
 	rm -rf tests/__pycache__
