@@ -6,7 +6,8 @@ from src.shared.ident import UnitId, unitToPlayer, getUnitSubId
 from src.shared.logconfig import newLogger
 from src.shared.unit_set import UnitSet
 from src.shared.message_infrastructure import deserializeMessage, \
-    unhandledInternalMessage, illFormedMessage, InvalidMessageError
+    badIMessageCommand, illFormedEMessage, InvalidMessageError, \
+    badEMessageCommand, badEMessageArgument
 from src.client import messages as cmessages
 
 # Constants
@@ -132,7 +133,7 @@ class Backend:
                     log.debug("Intentionally not forwarding message to "
                               "graphics interface: {}".format(str(message)))
             except InvalidMessageError as error:
-                illFormedMessage(error, log, sender="server")
+                illFormedEMessage(error, log, sender="server")
         else:
             # TODO: Buffer messages until ready? Don't just drop them....
             log.warning("Server message '{}' ignored; client not " \
@@ -162,7 +163,7 @@ class Backend:
             uid = message.unitId
             pos = message.pos
             if uid in self.gameState.positions:
-                invalidMessageArgument(message, log, sender="server",
+                badEMessageArgument(message, log, sender="server",
                     reason="uid {} already in use".format(uid))
                 return False
             self.gameState.positions[uid] = pos
@@ -178,7 +179,7 @@ class Backend:
         elif isinstance(message, messages.DeleteObelisk):
             uid = message.unitId
             if uid not in self.gameState.positions:
-                invalidMessageArgument(message, log, sender="server",
+                badEMessageArgument(message, log, sender="server",
                     reason="No such uid: {}".format(uid))
                 return False
             if uid in self.unitSelection:
@@ -189,7 +190,7 @@ class Backend:
             uid = message.unitId
             pos = message.pos
             if uid not in self.gameState.positions:
-                invalidMessageArgument(message, log, sender="server",
+                badEMessageArgument(message, log, sender="server",
                     reason="No such uid: {}".format(uid))
                 return False
             self.gameState.positions[uid] = pos
@@ -210,7 +211,7 @@ class Backend:
                 log.warn("Got multiple map_size messages.")
             self.gameState = GameState(message.size)
         else:
-            unhandledMessageCommand(message, log, sender="server")
+            badEMessageCommand(message, log, sender="server")
 
         return forwardToGraphicsInterface
 
@@ -289,7 +290,7 @@ class Backend:
                 component.cleanup()
             self.done.callback(None)
         else:
-            unhandledInternalMessage(message, log)
+            badIMessageCommand(message, log)
 
     def getUnitAt(self, targetUPos):
         targetX, targetY = targetUPos

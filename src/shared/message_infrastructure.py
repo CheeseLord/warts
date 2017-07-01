@@ -284,7 +284,7 @@ def buildMessage(command, args, lastIsUnsafe=False):
     return message
 
 
-def unhandledInternalMessage(message, log):
+def badIMessageCommand(message, log):
     """
     Give an error for when a message originating from an internal source is
     received by a part of the code that doesn't know how to handle that type of
@@ -298,7 +298,7 @@ def unhandledInternalMessage(message, log):
     raise InvalidMessageError(message.serialize(), error)
 
 
-def unhandledMessageCommand(message, log, sender=""):
+def badEMessageCommand(message, log, sender=""):
     """
     Log a warning for a message originating from an external source (ex: sent
     over the network), where the message is well-formed (valid command with the
@@ -313,7 +313,7 @@ def unhandledMessageCommand(message, log, sender=""):
                 .format(sender=sender, command=message.command))
 
 
-def invalidMessageArgument(message, log, sender="", reason=""):
+def badEMessageArgument(message, log, sender="", reason=""):
     """
     Log a warning for a message originating from an external source (ex: sent
     over the network), where the message is well-formed (valid command with the
@@ -331,7 +331,7 @@ def invalidMessageArgument(message, log, sender="", reason=""):
                 .format(sender=sender, message=message, reason=reason))
 
 
-def illFormedMessage(error, log, sender=""):
+def illFormedEMessage(error, log, sender=""):
     """
     Log a warning for when a message string originating from an external source
     could not be parsed into a message, for example because it used a

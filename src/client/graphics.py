@@ -14,8 +14,8 @@ from src.shared.geometry import chunkToUnit
 from src.shared.ident import unitToPlayer
 from src.shared.logconfig import newLogger
 from src.shared.message_infrastructure import deserializeMessage, \
-    illFormedMessage, unhandledMessageCommand, invalidMessageArgument, \
-    InvalidMessageError
+    illFormedEMessage, badEMessageCommand, badEMessageArgument, \
+    InvalidMessageError, badIMessageCommand
 from src.shared.unit_set import UnitSet
 from src.shared.utils import minmax, thisShouldNeverHappen, thisIsNotHandled
 from src.client.backend import unitToGraphics, GRAPHICS_SCALE
@@ -79,7 +79,7 @@ class WartsApp(ShowBase):
         elif isinstance(message, cmessages.MarkEntitySelected):
             self.markSelected(message.gid, message.isSelected)
         else:
-            unhandledInternalMessage(message, log)
+            badIMessageCommand(message, log)
 
     def addEntity(self, gid, pos, modelPath, isExample, goalSize):
         """

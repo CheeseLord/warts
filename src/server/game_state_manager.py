@@ -6,7 +6,7 @@ from src.shared.geometry import findPath
 from src.shared.ident import unitToPlayer, getUnitSubId
 from src.shared.logconfig import newLogger
 from src.shared.message_infrastructure import deserializeMessage, \
-    invalidMessageArgument, illFormedMessage, unhandledMessageCommand, \
+    badEMessageArgument, illFormedEMessage, badEMessageCommand, \
     InvalidMessageError
 from src.shared import messages
 from src.shared.resources import ResourcePool
@@ -103,11 +103,11 @@ class GameStateManager(object):
                     # TODO: Factor out this pair of checks? We're probably
                     # going to be doing them a *lot*.
                     if not playerId == unitToPlayer(unitId):
-                        invalidMessageArgument(message, log,
+                        badEMessageArgument(message, log,
                             sender="client {id}".format(id=playerId),
                             reason="Can't delete other player's unit")
                     elif not self.gameState.isUnitIdValid(unitId):
-                        invalidMessageArgument(message, log,
+                        badEMessageArgument(message, log,
                             sender="client {id}".format(id=playerId),
                             reason="No such unit")
                     else:
@@ -116,11 +116,11 @@ class GameStateManager(object):
                 unitSet = message.unitSet
                 for unitId in unitSet:
                     if not playerId == unitToPlayer(unitId):
-                        invalidMessageArgument(message, log,
+                        badEMessageArgument(message, log,
                             sender="client {id}".format(id=playerId),
                             reason="Can't order other player's unit")
                     elif not self.gameState.isUnitIdValid(unitId):
-                        invalidMessageArgument(message, log,
+                        badEMessageArgument(message, log,
                             sender="client {id}".format(id=playerId),
                             reason="No such unit")
                     else:
@@ -139,10 +139,10 @@ class GameStateManager(object):
                             # the command.
                             pass
             else:
-                unhandledMessageCommand(message, log,
+                badEMessageCommand(message, log,
                     sender="client {id}".format(id=playerId))
         except InvalidMessageError as error:
-            illFormedMessage(error, log,
+            illFormedEMessage(error, log,
                 sender="client {id}".format(id=playerId))
 
     # FIXME[#10]: Why is this in GameStateManager?

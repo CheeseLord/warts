@@ -4,8 +4,8 @@ from src.shared.geometry import chunkToUnit
 from src.shared.ident import unitToPlayer
 from src.shared.logconfig import newLogger
 from src.shared.message_infrastructure import deserializeMessage, \
-    illFormedMessage, unhandledMessageCommand, invalidMessageArgument, \
-    InvalidMessageError
+    illFormedEMessage, badEMessageCommand, badEMessageArgument, \
+    InvalidMessageError, badIMessageCommand
 from src.client.backend import unitToGraphics, GRAPHICS_SCALE
 from src.client import messages as cmessages
 
@@ -56,7 +56,7 @@ class GraphicsInterface(object):
                     # problem in one of its messages then we should really
                     # handle it like a bad message from an internal source.
                     # The same goes for other messages below.
-                    invalidMessageArgument(message, log, sender="server",
+                    badEMessageArgument(message, log, sender="server",
                         reason="uid {} already corresponds to gid {}"
                             .format(uid, gid))
                     # This is probably a bug on our end, so maybe we shouldn't
@@ -97,7 +97,7 @@ class GraphicsInterface(object):
                 elif terrainType == 1:
                     modelName = "red-ground.egg"
                 else:
-                    invalidMessageArgument(message, log, sender="server",
+                    badEMessageArgument(message, log, sender="server",
                         reason="Invalid terrain type")
                     return
 
@@ -123,7 +123,7 @@ class GraphicsInterface(object):
                 uid = message.unitId
 
                 if uid not in self.uidToGid:
-                    invalidMessageArgument(message, log, sender="server",
+                    badEMessageArgument(message, log, sender="server",
                         reason="No graphical entity for uid {}".format(uid))
                     return
                 gid = self.uidToGid.pop(uid)
@@ -135,7 +135,7 @@ class GraphicsInterface(object):
                 uPos = message.pos
 
                 if uid not in self.uidToGid:
-                    invalidMessageArgument(message, log, sender="server",
+                    badEMessageArgument(message, log, sender="server",
                         reason="No graphical entity for uid {}".format(uid))
                     return
                 gid = self.uidToGid[uid]
@@ -150,10 +150,10 @@ class GraphicsInterface(object):
                 msg = cmessages.MarkEntitySelected(gid, message.isSelected)
                 self.graphics.interfaceMessage(msg.serialize())
             else:
-                unhandledInternalMessage(message, log)
+                badIMessageCommand(message, log)
         except InvalidMessageError as error:
-            # TODO: Either use the internal variant of illFormedMessage (if we
-            # add one) or just remove the try/except.
+            # TODO: Either use illFormedIMessage (if we add it) or just remove
+            # the try/except.
             raise
 
     def graphicsMessage(self, messageStr):
