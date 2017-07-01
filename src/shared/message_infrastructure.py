@@ -284,26 +284,31 @@ def buildMessage(command, args, lastIsUnsafe=False):
     return message
 
 
-def badIMessageCommand(message, log):
+# Functions used to report bad messages.
+
+
+def illFormedEMessage(error, log, clientId=None):
     """
-    Give an error for when a message originating from an internal source is
-    received by a part of the code that doesn't know how to handle that type of
-    message.
+    Log a warning for when a message string originating from an external source
+    could not be parsed into a message, for example because it used a
+    nonexistent command or passed the wrong number of arguments.
     """
 
-    error = "Unrecognized command '{command}' in internal message." \
-        .format(command=message.command)
-    log.error(error)
+    # TODO: This logic could probably be factored out I guess.
+    sender = "external source"
+    if clientId is not None:
+        sender = "client {}".format(clientId)
 
-    raise InvalidMessageError(message.serialize(), error)
+    log.warning("Received invalid message from {sender}: {error}"
+                .format(sender=sender, error=error))
 
 
 def badEMessageCommand(message, log, clientId=None):
     """
-    Log a warning for a message originating from an external source (ex: sent
-    over the network), where the message is well-formed (valid command with the
-    right number of arguments) but it was received by a part of the code that
-    doesn't know how to handle that type of message.
+    Log a warning for a message originating from an external source, where the
+    message is well-formed (valid command with the right number of arguments)
+    but it was received by a part of the code that doesn't know how to handle
+    that type of message.
     """
 
     sender = "external source"
@@ -316,11 +321,10 @@ def badEMessageCommand(message, log, clientId=None):
 
 def badEMessageArgument(message, log, clientId=None, reason=""):
     """
-    Log a warning for a message originating from an external source (ex: sent
-    over the network), where the message is well-formed (valid command with the
-    right number of arguments) and was received by a part of the code that
-    knows how to handle that type of message, but one of the arguments to the
-    message is invalid (for example, out of range).
+    Log a warning for a message originating from an external source, where the
+    message is well-formed and was received by a part of the code that knows
+    how to handle that type of message, but one of the arguments to the message
+    is invalid (for example, out of range).
     """
 
     sender = "external source"
@@ -333,24 +337,48 @@ def badEMessageArgument(message, log, clientId=None, reason=""):
                 .format(sender=sender, message=message, reason=reason))
 
 
-def illFormedEMessage(error, log, clientId=None):
+# In this case you should just let error propagate up, rather than catching it
+# at all.
+#
+# def illFormedIMessage(error, log, clientId=None):
+#     """
+#     Give an error for when a message string originating from an internal source
+#     could not be parsed into a message, for example because it used a
+#     nonexistent command or passed the wrong number of arguments.
+#     """
+# 
+#     log.error("Received invalid message: {error}"
+#               .format(sender=sender, error=error))
+#     raise error
+
+
+def badIMessageCommand(message, log):
     """
-    Log a warning for when a message string originating from an external source
-    could not be parsed into a message, for example because it used a
-    nonexistent command or passed the wrong number of arguments.
+    Give an error for when a message originating from an internal source is
+    received by a part of the code that doesn't know how to handle that type of
+    message.
     """
 
-    sender = "external source"
-    if clientId is not None:
-        sender = "client {}".format(clientId)
+    error = "Could not handle message type from internal source: {command}." \
+        .format(command=message.command)
+    log.error(error)
 
-    log.warning("Received invalid message from {sender}: {error}"
-                .format(sender=sender, error=error))
+    raise InvalidMessageError(message.serialize(), error)
 
 
-# Note: if we get a completely invalid message from an internal source,
-# deserializeMessage will already raise an exception, and we'll just let that
-# exception propagate. So we don't need a fourth function for that case.
+def badIMessageArgument(message, log, reason=""):
+    """
+    Give an error for when a message originating from an internal source is
+    received by a part of the code that knows how to handle that type of
+    message, but one of the arguments to the message is invalid (for example,
+    out of range).
+    """
+
+    if reason:
+        reason = "\n    " + reason
+
+    log.warning("Invalid argument in internal message: {message}{reason}"
+                .format(message=message, reason=reason))
 
 
 class InvalidMessageError(StandardError):
