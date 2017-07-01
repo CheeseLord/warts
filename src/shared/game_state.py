@@ -13,6 +13,7 @@ class GameState:
         # Reference chunks as [x][y].
         self.groundTypes = [[0 for y in range(mapHeight)]
                             for x in range(mapWidth)]
+        self.resourcePools = []
 
     @property
     def sizeInChunks(self):
@@ -31,9 +32,6 @@ class GameState:
         unitId = self.createNewUnitId(playerId)
         assert unitId not in self.positions
 
-        # POS_INT_CHECK
-        for k in position:
-            assert type(k) is int
         self.positions[unitId] = position
         return unitId
 
