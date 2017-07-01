@@ -38,6 +38,8 @@ class GraphicsInterface(object):
         try:
             message = deserializeMessage(data)
             if isinstance(message, messages.YourIdIs):
+                # TODO: This should never happen, because the backend already
+                # did the same check.
                 if self.myId >= 0:
                     raise RuntimeError("ID already set; can't change it now.")
                 self.myId          = message.playerId
@@ -49,6 +51,11 @@ class GraphicsInterface(object):
                 gPos = unitToGraphics(uPos)
 
                 if uid in self.uidToGid:
+                    # TODO: The backend no longer forwards unvalidated server
+                    # messages to the graphics interface, so if there's a
+                    # problem in one of its messages then we should really
+                    # handle it like a bad message from an internal source.
+                    # The same goes for other messages below.
                     invalidMessageArgument(message, log, sender="server",
                         reason="uid {} already corresponds to gid {}"
                             .format(uid, gid))
@@ -138,25 +145,16 @@ class GraphicsInterface(object):
                 gMessage = cmessages.MoveEntity(gid, gPos)
                 self.graphics.interfaceMessage(gMessage.serialize())
             elif isinstance(message, cmessages.MarkUnitSelected):
-                # FIXME[#40]: See below. This is not from the server.
-                # On the bright side, that means we don't need to sanitize the
-                # uid.
                 uid = message.unitId
                 gid = self.uidToGid[uid]
                 msg = cmessages.MarkEntitySelected(gid, message.isSelected)
                 self.graphics.interfaceMessage(msg.serialize())
             else:
-                # TODO[#40]: This is going to bite us later. It hardcodes two
-                # different assumptions, both of which are probably going to be
-                # invalidated at some point.
-                #   1. Every backend -> clientInterface message originates from
-                #      the server.
-                #   2. Every message that the backend forwards from the server
-                #      to the graphicsInterface is something that the
-                #      graphicsInterface will be able to handle.
-                unhandledMessageCommand(message, log, sender="server")
+                unhandledInternalMessage(message, log)
         except InvalidMessageError as error:
-            illFormedMessage(error, log, sender="server")
+            # TODO: Either use the internal variant of illFormedMessage (if we
+            # add one) or just remove the try/except.
+            raise
 
     def graphicsMessage(self, messageStr):
         # TODO: Actually handle things here, and abstract them a little better

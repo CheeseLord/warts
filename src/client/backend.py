@@ -119,20 +119,35 @@ class Backend:
         if self.allReady:
             try:
                 message = deserializeMessage(messageStr)
-                self.tryToHandleNetworkMessage(message)
+                if self.tryToHandleNetworkMessage(message):
+                    # Many backend messages are currently also forwarded to the
+                    # graphics interface.
+                    self.graphicsInterface.backendMessage(messageStr)
+                else:
+                    # In fact, so many of them are that we used to just forward
+                    # all of them. We don't anymore, but it's still uncommon
+                    # enough that we *don't* forward a message that let's put a
+                    # log.debug in here, so we can more easily catch if we've
+                    # forgotten to forward a message.
+                    log.debug("Intentionally not forwarding message to "
+                              "graphics interface: {}".format(str(message)))
             except InvalidMessageError as error:
                 illFormedMessage(error, log, sender="server")
-
-            # Regardless of whether we were able to handle it, forward the
-            # message on to the graphicsInterface (which -- at least for now --
-            # also handles the YourIdIs message).
-            self.graphicsInterface.backendMessage(messageStr)
         else:
             # TODO: Buffer messages until ready? Don't just drop them....
             log.warning("Server message '{}' ignored; client not " \
                 "initialized yet.".format(messageStr))
 
     def tryToHandleNetworkMessage(self, message):
+        """
+        Attempt to handle a message received from the server.
+        Return a boolean indicating whether that message should also be
+        forwarded to the graphics interface. If true, it also implies that the
+        message is valid, since invalid external messages shouldn't make it any
+        farther than the backend.
+        """
+
+        forwardToGraphicsInterface = False
         if isinstance(message, messages.YourIdIs):
             if self.myId >= 0:
                 raise RuntimeError("ID already set; can't change it now.")
@@ -140,31 +155,45 @@ class Backend:
             log.info("Your id is {id}.".format(id=self.myId))
 
             self.unitSelection = UnitSet([])
+            # TODO: Does the graphics interface really need to know our id?
+            # Seems like probably not.
+            forwardToGraphicsInterface = True
         elif isinstance(message, messages.NewObelisk):
             uid = message.unitId
             pos = message.pos
             if uid in self.gameState.positions:
                 invalidMessageArgument(message, log, sender="server",
                     reason="uid {} already in use".format(uid))
-                return
+                return False
             self.gameState.positions[uid] = pos
+            # TODO: So the backend needs to keep track of where all the units
+            # are because it manages the main logic. And the graphics does also
+            # need to know that information because it has to actually draw
+            # them. But is this really the best solution? It seems to me that
+            # if we're forwarding to the graphics interface all server messages
+            # related to unit positions, that probably indicates a
+            # poorly-understood division of responsibility between client
+            # backend and graphics interface.
+            forwardToGraphicsInterface = True
         elif isinstance(message, messages.DeleteObelisk):
             uid = message.unitId
             if uid not in self.gameState.positions:
                 invalidMessageArgument(message, log, sender="server",
                     reason="No such uid: {}".format(uid))
-                return
+                return False
             if uid in self.unitSelection:
                 self.removeFromSelection(uid)
             del self.gameState.positions[uid]
+            forwardToGraphicsInterface = True
         elif isinstance(message, messages.SetPos):
             uid = message.unitId
             pos = message.pos
             if uid not in self.gameState.positions:
                 invalidMessageArgument(message, log, sender="server",
                     reason="No such uid: {}".format(uid))
-                return
+                return False
             self.gameState.positions[uid] = pos
+            forwardToGraphicsInterface = True
         elif isinstance(message, messages.ResourceAmt):
             self.gameState.resources[self.myId] = message.amount
             log.info("I now have {} arbitrary units of resource."
@@ -175,14 +204,15 @@ class Backend:
             x, y        = message.pos
             terrainType = message.terrainType
             self.gameState.groundTypes[x][y] = terrainType
+            forwardToGraphicsInterface = True
         elif isinstance(message, messages.MapSize):
             if self.gameState is not None:
                 log.warn("Got multiple map_size messages.")
             self.gameState = GameState(message.size)
         else:
-            # It's okay if we aren't able to handle a message from the
-            # server; maybe the GraphicsInterface will handle it.
-            pass
+            unhandledMessageCommand(message, log, sender="server")
+
+        return forwardToGraphicsInterface
 
     def graphicsMessage(self, messageStr):
         message = deserializeMessage(messageStr)
