@@ -291,14 +291,14 @@ def badIMessageCommand(message, log):
     message.
     """
 
-    error = "Unrecognized command: '{command}'." \
+    error = "Unrecognized command '{command}' in internal message." \
         .format(command=message.command)
     log.error(error)
 
     raise InvalidMessageError(message.serialize(), error)
 
 
-def badEMessageCommand(message, log, sender=""):
+def badEMessageCommand(message, log, clientId=None):
     """
     Log a warning for a message originating from an external source (ex: sent
     over the network), where the message is well-formed (valid command with the
@@ -306,14 +306,15 @@ def badEMessageCommand(message, log, sender=""):
     doesn't know how to handle that type of message.
     """
 
-    if sender:
-        sender = " from " + sender
+    sender = "external source"
+    if clientId is not None:
+        sender = "client {}".format(clientId)
 
-    log.warning("Could not handle message type{sender}: {command}"
+    log.warning("Could not handle message type from {sender}: {command}"
                 .format(sender=sender, command=message.command))
 
 
-def badEMessageArgument(message, log, sender="", reason=""):
+def badEMessageArgument(message, log, clientId=None, reason=""):
     """
     Log a warning for a message originating from an external source (ex: sent
     over the network), where the message is well-formed (valid command with the
@@ -322,26 +323,28 @@ def badEMessageArgument(message, log, sender="", reason=""):
     message is invalid (for example, out of range).
     """
 
-    if sender:
-        sender = " from " + sender
+    sender = "external source"
+    if clientId is not None:
+        sender = "client {}".format(clientId)
     if reason:
         reason = "\n    " + reason
 
-    log.warning("Invalid argument to message{sender}: {message}{reason}"
+    log.warning("Invalid argument to message from {sender}: {message}{reason}"
                 .format(sender=sender, message=message, reason=reason))
 
 
-def illFormedEMessage(error, log, sender=""):
+def illFormedEMessage(error, log, clientId=None):
     """
     Log a warning for when a message string originating from an external source
     could not be parsed into a message, for example because it used a
     nonexistent command or passed the wrong number of arguments.
     """
 
-    if sender:
-        sender = " from " + sender
+    sender = "external source"
+    if clientId is not None:
+        sender = "client {}".format(clientId)
 
-    log.warning("Received invalid message{sender}: {error}"
+    log.warning("Received invalid message from {sender}: {error}"
                 .format(sender=sender, error=error))
 
 

@@ -104,11 +104,11 @@ class GameStateManager(object):
                     # going to be doing them a *lot*.
                     if not playerId == unitToPlayer(unitId):
                         badEMessageArgument(message, log,
-                            sender="client {id}".format(id=playerId),
+                            clientId=playerId,
                             reason="Can't delete other player's unit")
                     elif not self.gameState.isUnitIdValid(unitId):
                         badEMessageArgument(message, log,
-                            sender="client {id}".format(id=playerId),
+                            clientId=playerId,
                             reason="No such unit")
                     else:
                         self.unitOrders.giveOrders(unitId, [DelUnitOrder()])
@@ -117,11 +117,11 @@ class GameStateManager(object):
                 for unitId in unitSet:
                     if not playerId == unitToPlayer(unitId):
                         badEMessageArgument(message, log,
-                            sender="client {id}".format(id=playerId),
+                            clientId=playerId,
                             reason="Can't order other player's unit")
                     elif not self.gameState.isUnitIdValid(unitId):
                         badEMessageArgument(message, log,
-                            sender="client {id}".format(id=playerId),
+                            clientId=playerId,
                             reason="No such unit")
                     else:
                         try:
@@ -139,11 +139,9 @@ class GameStateManager(object):
                             # the command.
                             pass
             else:
-                badEMessageCommand(message, log,
-                    sender="client {id}".format(id=playerId))
+                badEMessageCommand(message, log, clientId=playerId)
         except InvalidMessageError as error:
-            illFormedEMessage(error, log,
-                sender="client {id}".format(id=playerId))
+            illFormedEMessage(error, log, clientId=playerId)
 
     # FIXME[#10]: Why is this in GameStateManager?
     def tick(self):
