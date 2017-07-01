@@ -132,8 +132,13 @@ class Message(object):
     # def __init__(self, *args):
     #     super(Message, self).__init__(*args)
 
+    # For a message that was just deserialized, maybe we should cache the
+    # original string and return it, rather than regenerating it?
     def serialize(self):
         return serializeMessage(self)
+
+    def __str__(self):
+        return self.serialize()
 
 class ArgumentSpecification:
     """
