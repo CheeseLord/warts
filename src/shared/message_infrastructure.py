@@ -140,7 +140,7 @@ class Message(object):
     def __str__(self):
         return self.serialize()
 
-class ArgumentSpecification:
+class ArgumentSpecification(object):
     """
     Class used to describe how one logical argument to a message is encoded and
     decoded. Note that a single logical argument might be encoded as several
@@ -383,6 +383,7 @@ def badIMessageArgument(message, log, reason=""):
 
 class InvalidMessageError(StandardError):
     def __init__(self, badMessage, errorDesc):
+        super(InvalidMessageError, self).__init__()
         self.badMessage = badMessage
         self.errorDesc  = errorDesc
 

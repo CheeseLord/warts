@@ -1,4 +1,4 @@
-class UnitId:
+class UnitId(object):
     def __init__(self, playerId, unitSubId):
         assert playerId  >= 0
         assert unitSubId >= 0

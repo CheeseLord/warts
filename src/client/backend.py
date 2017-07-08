@@ -17,7 +17,7 @@ GRAPHICS_SCALE = 3
 log = newLogger(__name__)
 
 
-class Backend:
+class Backend(object):
     def __init__(self, done):
         # Done is a Twisted Deferred object whose callback can be fired to
         # close down the client cleanly (in theory...).

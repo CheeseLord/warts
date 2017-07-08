@@ -26,7 +26,7 @@ class NetworkConnectionFactory(protocol.Factory):
         return newConnection
 
 
-class ConnectionManager:
+class ConnectionManager(object):
     def __init__(self):
         # Mapping from player indices to connection objects.
         self.connections = {}

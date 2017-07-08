@@ -3,7 +3,7 @@ import math
 
 from src.shared.ident import UnitId, unitToPlayer, getUnitSubId
 
-class GameState:
+class GameState(object):
     def __init__(self, mapSize):
         self.positions = {}
         self.resources = defaultdict(int)
