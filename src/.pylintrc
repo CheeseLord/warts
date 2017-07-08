@@ -61,9 +61,16 @@ confidence=
 # --disable=W"
 # disable=import-star-module-level,old-octal-literal,oct-method,print-statement,unpacking-in-except,parameter-unpacking,backtick,old-raise-syntax,old-ne-operator,long-suffix,dict-view-method,dict-iter-method,metaclass-assignment,next-method-called,raising-string,indexing-exception,raw_input-builtin,long-builtin,file-builtin,execfile-builtin,coerce-builtin,cmp-builtin,buffer-builtin,basestring-builtin,apply-builtin,filter-builtin-not-iterating,using-cmp-argument,useless-suppression,range-builtin-not-iterating,suppressed-message,no-absolute-import,old-division,cmp-method,reload-builtin,zip-builtin-not-iterating,intern-builtin,unichr-builtin,reduce-builtin,standarderror-builtin,unicode-builtin,xrange-builtin,coerce-method,delslice-method,getslice-method,setslice-method,input-builtin,round-builtin,hex-method,nonzero-method,map-builtin-not-iterating
 
+# bad-whitespace: We usually align things, which pylint doesn't want. Just
+#     disable the checking.
 # missing-docstring: We don't put docstrings on everything.
 # fixme: We use TODO and FIXME comments. Deal with it.
-disable=import-star-module-level,old-octal-literal,oct-method,print-statement,unpacking-in-except,parameter-unpacking,backtick,old-raise-syntax,old-ne-operator,long-suffix,dict-view-method,dict-iter-method,metaclass-assignment,next-method-called,raising-string,indexing-exception,raw_input-builtin,long-builtin,file-builtin,execfile-builtin,coerce-builtin,cmp-builtin,buffer-builtin,basestring-builtin,apply-builtin,filter-builtin-not-iterating,using-cmp-argument,useless-suppression,range-builtin-not-iterating,suppressed-message,no-absolute-import,old-division,cmp-method,reload-builtin,zip-builtin-not-iterating,intern-builtin,unichr-builtin,reduce-builtin,standarderror-builtin,unicode-builtin,xrange-builtin,coerce-method,delslice-method,getslice-method,setslice-method,input-builtin,round-builtin,hex-method,nonzero-method,map-builtin-not-iterating,missing-docstring,fixme
+# bad-builtin: We can decide whether map/filter or list comprehensions are
+#     clearer, thank you very much.
+# wrong-import-order: Our chosen import order doesn't match pylint's. If we can
+#     find a way to make it enforce ours, that would be ideal; until then,
+#     let's just disable the check.
+disable=import-star-module-level,old-octal-literal,oct-method,print-statement,unpacking-in-except,parameter-unpacking,backtick,old-raise-syntax,old-ne-operator,long-suffix,dict-view-method,dict-iter-method,metaclass-assignment,next-method-called,raising-string,indexing-exception,raw_input-builtin,long-builtin,file-builtin,execfile-builtin,coerce-builtin,cmp-builtin,buffer-builtin,basestring-builtin,apply-builtin,filter-builtin-not-iterating,using-cmp-argument,useless-suppression,range-builtin-not-iterating,suppressed-message,no-absolute-import,old-division,cmp-method,reload-builtin,zip-builtin-not-iterating,intern-builtin,unichr-builtin,reduce-builtin,standarderror-builtin,unicode-builtin,xrange-builtin,coerce-method,delslice-method,getslice-method,setslice-method,input-builtin,round-builtin,hex-method,nonzero-method,map-builtin-not-iterating,bad-whitespace,missing-docstring,fixme,bad-builtin,wrong-import-order
 
 
 [REPORTS]
@@ -102,7 +109,7 @@ bad-functions=map,filter,input
 good-names=i,j,k,ex,Run,_
 
 # Bad variable names which should always be refused, separated by a comma
-bad-names=foo,bar,baz,toto,tutu,tata
+bad-names=foo,bar,baz,toto,tutu,tata,thing,stuff,steve,Steve
 
 # Colon-delimited sets of names that determine each other's naming style when
 # the name regexes allow several styles.
@@ -155,7 +162,7 @@ class-attribute-rgx=(([a-z][a-z0-9A-Z]{2,30})|(__.*__))$
 
 # Regular expression matching correct inline iteration names
 # inlinevar-rgx=[A-Za-z_][A-Za-z0-9_]*$
-inlinevar-rgx=([a-z][a-z0-9A-Z]{2,30})$
+inlinevar-rgx=([a-z][a-z0-9A-Z]*)$
 
 # Naming hint for inline iteration names
 # inlinevar-name-hint=[A-Za-z_][A-Za-z0-9_]*$
