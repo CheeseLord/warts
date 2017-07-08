@@ -84,7 +84,6 @@ class NetworkConnection(Int16StringReceiver):
         # TODO: Create a common method for doing all these prefixed logs?
         log.info("[%s:%s] <new connection with id %s>",
                  peer.host, peer.port, self.playerId)
-        )
 
     def handshake(self):
         self.sendMessage(messages.YourIdIs(self.playerId))
@@ -95,7 +94,6 @@ class NetworkConnection(Int16StringReceiver):
 
         log.info("[%s:%s] <connection %s lost: %s>",
                  peer.host, peer.port, self.playerId, reason.getErrorMessage())
-        )
 
         self.connections.reportRemainingConnections()
 
