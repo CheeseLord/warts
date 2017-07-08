@@ -6,12 +6,12 @@ def minmax(a, b):
         return (b, a)
 
 def thisShouldNeverHappen(reason=None):
-    if reason == None:
+    if reason is None:
         reason = "This should never happen"
     assert False, reason
 
 def thisIsNotHandled(reason=None):
-    if reason == None:
+    if reason is None:
         reason = "This case is not handled"
     assert False, reason
 

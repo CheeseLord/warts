@@ -75,7 +75,7 @@ class UnitSet(object):
         assert isinstance(unit, UnitId)
         playerId = unitToPlayer(unit)
         subId    = getUnitSubId(unit)
-        return (subId in self.units[playerId])
+        return subId in self.units[playerId]
 
     def __iter__(self):
         for playerId in sorted(self.units.keys()):

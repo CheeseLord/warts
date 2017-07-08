@@ -137,7 +137,6 @@ class GameStateManager(object):
                                       .format(unitId, message.dest))
                             # If the target position is not reachable, just drop
                             # the command.
-                            pass
             else:
                 badEMessageCommand(message, log, clientId=playerId)
         except InvalidMessageError as error:
@@ -228,7 +227,6 @@ class GameStateManager(object):
                 raise TypeError("Unrecognized sublass of Order")
             else:
                 raise TypeError("Found non-Order object among orders")
-
 
 
 # TODO[#10]: Why is this in GameStateManager?

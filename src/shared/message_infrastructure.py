@@ -346,7 +346,7 @@ def badEMessageArgument(message, log, clientId=None, reason=""):
 #     could not be parsed into a message, for example because it used a
 #     nonexistent command or passed the wrong number of arguments.
 #     """
-# 
+#
 #     log.error("Received invalid message: {error}"
 #               .format(sender=sender, error=error))
 #     raise error

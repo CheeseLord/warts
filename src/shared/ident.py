@@ -16,20 +16,25 @@ class UnitId:
     def __repr__(self):
         return repr((self.playerId, self.subId))
 
+
 # TODO: These names sound like they're for coordinate conversions. Need to put
 # an actual noun somewhere in the name.
 def unitToPlayer(unitId):
     return unitId.playerId
 
+
 def getUnitSubId(unitId):
     return unitId.subId
+
 
 # For using UnitIds in messages
 def encodeUnitId(unitId):
     return (str(unitId.playerId), str(unitId.subId))
+
 
 def parseUnitId(words):
     # TODO: Somewhere higher up, handle all exceptions in parsing functions and
     # turn them into InvalidMessageErrors. Do we do this already?
     playerId, subId = map(int, words)
     return UnitId(playerId, subId)
+
