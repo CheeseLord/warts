@@ -3,6 +3,11 @@ import math
 
 from src.shared.ident import UnitId, unitToPlayer, getUnitSubId
 
+# Maximum distance (in unit coords) a unit can move in one tick.
+# TODO: Take in elapsed ticks; have an actual speed, rather than a constant
+# "move amount per update".
+MAX_SPEED = 3.0
+
 class GameState:
     def __init__(self, mapSize):
         self.positions = {}
@@ -40,10 +45,6 @@ class GameState:
         del self.positions[unitId]
 
     def moveUnitToward(self, unitId, dest):
-        # TODO: Take in elapsed ticks; have an actual speed, rather than a
-        # constant "move amount per update".
-        MAX_SPEED = 3.0
-
         self.checkId(unitId)
 
         oldPos = self.getPos(unitId)

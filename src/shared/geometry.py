@@ -31,7 +31,7 @@ def findPath(gameState, srcPos, destPos):
     chunkWidth, chunkHeight = gameState.sizeInChunks
 
     # Value larger than any actual distance.
-    FAR_FAR_AWAY = ORTHOGONAL_COST**2 * chunkWidth * chunkHeight
+    farFarAway = ORTHOGONAL_COST**2 * chunkWidth * chunkHeight
 
     srcChunk  = unitToChunk(srcPos)
     destChunk = unitToChunk(destPos)
@@ -62,7 +62,7 @@ def findPath(gameState, srcPos, destPos):
                       for x in range(chunkWidth)]
 
     # Shortest distance to each node from the start.
-    distanceFromStart = [[FAR_FAR_AWAY for y in range(chunkHeight)]
+    distanceFromStart = [[farFarAway for y in range(chunkHeight)]
                          for x in range(chunkWidth)]
     distanceFromStart[srcCX][srcCY] = 0
 

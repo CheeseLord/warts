@@ -11,8 +11,10 @@ MAX_NAME_LENGTH = 11
 
 # Code adapted from
 #   https://github.com/borntyping/python-colorlog
-handler = logging.getLogger().handlers[0]
-formatter = colorlog.ColoredFormatter(
+# Pylint thinks these are constants, but they're not. Disable invalid-name on
+# them.
+handler = logging.getLogger().handlers[0] # pylint: disable=invalid-name
+formatter = colorlog.ColoredFormatter( # pylint: disable=invalid-name
     "%(log_color)s%(levelname)-8s%(reset)s "
     "%(green)s%(name)-{maxnamelen}s%(reset)s "
     "%(blue)s%(message)s%(reset)s ".format(maxnamelen = MAX_NAME_LENGTH),
@@ -34,9 +36,10 @@ handler.setLevel(logging.INFO)
 def enableDebugLogging():
     handler.setLevel(logging.DEBUG)
 
-def newLogger(fullname):
-    SHORTENED_MIDDLE = "..."
+# String to use to replace the middle part of a long module name.
+SHORTENED_MIDDLE = "..."
 
+def newLogger(fullname):
     # Empirically __name__'s are dot-separated in these modules, not
     # slash-separated. We could do an os.basename to deal with the case where
     # they're slash-separated, but if that happens then the rpartition below is

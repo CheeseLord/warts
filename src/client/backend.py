@@ -12,6 +12,9 @@ from src.client import messages as cmessages
 
 # Constants
 GRAPHICS_SCALE = 3
+# Max squared distance between mouse click and unit for it to register as
+# clicking that unit.
+MAX_CLICK_DISTANCE = 30**2
 
 # Logging
 log = newLogger(__name__)
@@ -295,10 +298,6 @@ class Backend:
     def getUnitAt(self, targetUPos):
         targetX, targetY = targetUPos
 
-        # TODO[#3]: Make this a real constant somewhere. Or take into account
-        # the size of the unit? This could get ugly.
-        MAX_DISTANCE = 30**2
-
         nearest = None
         # TODO: Compute the diameter of the world in unit coordinates when we
         # first load the map, have the server send that to the client, save
@@ -311,7 +310,7 @@ class Backend:
 
             x, y = uPos
             distance = (x - targetX)**2 + (y - targetY)**2
-            if distance < nearestDistance and distance < MAX_DISTANCE:
+            if distance < nearestDistance and distance < MAX_CLICK_DISTANCE:
                 nearest         = uid
                 nearestDistance = distance
 
