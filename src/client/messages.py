@@ -1,15 +1,15 @@
 from src.shared.message_infrastructure import defineMessageType, \
     ArgumentSpecification, InvalidMessageError
-from src.shared.messages import boolArg, intArg, floatPairArg, unitIdArg
+from src.shared.messages import BOOL_ARG, INT_ARG, FLOAT_PAIR_ARG, UNIT_ID_ARG
 
 
 ###############################################################################
 # Argument specifications
 
-graphicsIdArg = intArg
-gPosArg       = floatPairArg  # Graphics position
+GRAPHICS_ID_ARG = INT_ARG
+G_POS_ARG       = FLOAT_PAIR_ARG  # Graphics position
 
-modelPathArg  = ArgumentSpecification(1, str, unsafe=True)
+MODEL_PATH_ARG  = ArgumentSpecification(1, str, unsafe=True)
 
 
 ###############################################################################
@@ -18,38 +18,38 @@ modelPathArg  = ArgumentSpecification(1, str, unsafe=True)
 # TODO[#9]: Get rid of isExample argument; replace with more generic isActor
 # (or hasAnimations?).
 AddEntity          = defineMessageType("add_entity",
-                                       [("gid", graphicsIdArg),
-                                        ("pos", gPosArg),
-                                        ("isExample", boolArg),
-                                        ("goalSize", floatPairArg),
-                                        ("modelPath", modelPathArg)])
+                                       [("gid", GRAPHICS_ID_ARG),
+                                        ("pos", G_POS_ARG),
+                                        ("isExample", BOOL_ARG),
+                                        ("goalSize", FLOAT_PAIR_ARG),
+                                        ("modelPath", MODEL_PATH_ARG)])
 CenterCamera       = defineMessageType("center_camera",
-                                       [("pos", gPosArg)])
+                                       [("pos", G_POS_ARG)])
 Click              = defineMessageType("click",
-                                       [("button", intArg),
-                                        ("pos", gPosArg)])
+                                       [("button", INT_ARG),
+                                        ("pos", G_POS_ARG)])
 ShiftLClick        = defineMessageType("shift_left_click",
-                                       [("pos", gPosArg)])
+                                       [("pos", G_POS_ARG)])
 ControlLClick      = defineMessageType("control_left_click",
-                                       [("pos", gPosArg)])
+                                       [("pos", G_POS_ARG)])
 ShiftRClick        = defineMessageType("shift_right_click",
-                                       [("pos", gPosArg)])
+                                       [("pos", G_POS_ARG)])
 ControlRClick      = defineMessageType("control_right_click",
-                                       [("pos", gPosArg)])
+                                       [("pos", G_POS_ARG)])
 DragBox            = defineMessageType("drag_box",
-                                       [("corner1", gPosArg),
-                                        ("corner2", gPosArg)])
+                                       [("corner1", G_POS_ARG),
+                                        ("corner2", G_POS_ARG)])
 MarkEntitySelected = defineMessageType("mark_entity_selected",
-                                       [("gid", graphicsIdArg),
-                                        ("isSelected", boolArg)])
+                                       [("gid", GRAPHICS_ID_ARG),
+                                        ("isSelected", BOOL_ARG)])
 MarkUnitSelected   = defineMessageType("mark_unit_selected",
-                                       [("unitId", unitIdArg),
-                                        ("isSelected", boolArg)])
+                                       [("unitId", UNIT_ID_ARG),
+                                        ("isSelected", BOOL_ARG)])
 MoveEntity         = defineMessageType("move_entity",
-                                       [("gid", graphicsIdArg),
-                                        ("pos", gPosArg)])
+                                       [("gid", GRAPHICS_ID_ARG),
+                                        ("pos", G_POS_ARG)])
 RemoveEntity       = defineMessageType("remove_entity",
-                                       [("gid", graphicsIdArg)])
+                                       [("gid", GRAPHICS_ID_ARG)])
 RequestCenter      = defineMessageType("request_center", [])
 RequestQuit        = defineMessageType("request_quit", [])
 

@@ -80,23 +80,24 @@ def parseBool(desc):
 # the better-named ones that are aliases of these. These exist so that (for
 # example) the three different type of pos args that all boil down to "pair of
 # ints" can be implemented as a single underlying specification.
-intArg       = ArgumentSpecification(1, int)
-boolArg      = ArgumentSpecification(1, parseBool, encodeBool)
-intPairArg   = ArgumentSpecification(2, parseIntPair, encodeIntPair)
-floatPairArg = ArgumentSpecification(2, parseFloatPair, encodeFloatPair)
+INT_ARG        = ArgumentSpecification(1, int)
+BOOL_ARG       = ArgumentSpecification(1, parseBool, encodeBool)
+INT_PAIR_ARG   = ArgumentSpecification(2, parseIntPair, encodeIntPair)
+FLOAT_PAIR_ARG = ArgumentSpecification(2, parseFloatPair, encodeFloatPair)
 
-playerIdArg  = intArg
-unitSetArg   = ArgumentSpecification(1, UnitSet.deserialize, UnitSet.serialize)
-unitIdArg    = ArgumentSpecification(2, parseUnitId, encodeUnitId)
+PLAYER_ID_ARG  = INT_ARG
+UNIT_SET_ARG   = ArgumentSpecification(1, UnitSet.deserialize,
+                                          UnitSet.serialize)
+UNIT_ID_ARG    = ArgumentSpecification(2, parseUnitId, encodeUnitId)
 
 # Different types of coordinates. For now at least, all bug graphics are
 # encoded and parsed exactly the same way.
-uPosArg = intPairArg    # Unit position  (unit movements)
-bPosArg = intPairArg    # Build position (build grid)
-cPosArg = intPairArg    # Chunk position (terrain tiles)
+U_POS_ARG = INT_PAIR_ARG    # Unit position  (unit movements)
+B_POS_ARG = INT_PAIR_ARG    # Build position (build grid)
+C_POS_ARG = INT_PAIR_ARG    # Chunk position (terrain tiles)
 
 # The type of ground on a certain chunk.
-terrainTypeArg = intArg
+TERRAIN_TYPE_ARG = INT_ARG
 
 
 ###############################################################################
@@ -105,22 +106,22 @@ terrainTypeArg = intArg
 # Messages that are sent between client and server.
 
 DeleteObelisk = defineMessageType("delete_obelisk",
-                                  [("unitId", unitIdArg)])
+                                  [("unitId", UNIT_ID_ARG)])
 GroundInfo    = defineMessageType("ground_info",
-                                  [("pos", cPosArg),
-                                   ("terrainType", terrainTypeArg)])
+                                  [("pos", C_POS_ARG),
+                                   ("terrainType", TERRAIN_TYPE_ARG)])
 MapSize       = defineMessageType("map_size",
-                                  [("size", intPairArg)])
+                                  [("size", INT_PAIR_ARG)])
 NewObelisk    = defineMessageType("new_obelisk",
-                                  [("unitId", unitIdArg),
-                                   ("pos", uPosArg)])
-OrderDel      = defineMessageType("order_del", [("unitSet", unitSetArg)])
-OrderMove     = defineMessageType("order_move", [("unitSet", unitSetArg),
-                                                 ("dest", uPosArg)])
-OrderNew      = defineMessageType("order_new", [("pos", uPosArg)])
-ResourceAmt   = defineMessageType("resource_amount", [("amount", intArg)])
+                                  [("unitId", UNIT_ID_ARG),
+                                   ("pos", U_POS_ARG)])
+OrderDel      = defineMessageType("order_del", [("unitSet", UNIT_SET_ARG)])
+OrderMove     = defineMessageType("order_move", [("unitSet", UNIT_SET_ARG),
+                                                 ("dest", U_POS_ARG)])
+OrderNew      = defineMessageType("order_new", [("pos", U_POS_ARG)])
+ResourceAmt   = defineMessageType("resource_amount", [("amount", INT_ARG)])
 SetPos        = defineMessageType("set_pos",
-                                  [("unitId", unitIdArg),
-                                   ("pos", uPosArg)])
-YourIdIs      = defineMessageType("your_id_is", [("playerId", playerIdArg)])
+                                  [("unitId", UNIT_ID_ARG),
+                                   ("pos", U_POS_ARG)])
+YourIdIs      = defineMessageType("your_id_is", [("playerId", PLAYER_ID_ARG)])
 
