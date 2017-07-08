@@ -6,7 +6,7 @@ from direct.task import Task  # This must be imported first.
 from direct.actor.Actor import Actor
 from direct.showbase.ShowBase import ShowBase
 from panda3d import core
-from panda3d.core import Point2, Point3, Mat4, Filename, NodePath, LineSegs
+from panda3d.core import Point2, Point3, Mat4, Filename, LineSegs
 
 from src.shared import config
 from src.shared.logconfig import newLogger
