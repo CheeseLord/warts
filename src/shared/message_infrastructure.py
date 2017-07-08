@@ -272,7 +272,7 @@ def buildMessage(command, args, lastIsUnsafe=False):
                                                .format(tokenDesc, TOKEN_DELIM))
         # TODO [#45]: Validate this.
         if command.startswith(START_STRING):
-            raise InvalidMessageError(message, "{0} may not start with {0!r}"
+            raise InvalidMessageError(message, "{0} may not start with {1!r}"
                                                .format(tokenDesc,
                                                        START_STRING))
 
