@@ -50,6 +50,7 @@ class WartsApp(ShowBase):
         self.cameraHolder = self.render.attachNewNode('CameraHolder')
         self.cameraHolder.setPos(0, 0, 100)
         self.prevCameraHpr = (0, -80, 0)
+        self.useCustomCamera = True
         self.setCameraCustom()
 
         self.prevMousePos = None
@@ -320,7 +321,6 @@ class WartsApp(ShowBase):
         self.taskMgr.remove("UpdateCameraTask")
 
         # Save current location for when this control style is restored.
-        self.prevCameraPos = self.camera.getPos()
         self.prevCameraHpr = self.camera.getHpr()
 
         # Use the existing camera location, rather than jumping back to the one

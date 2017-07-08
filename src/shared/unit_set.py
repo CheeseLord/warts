@@ -5,6 +5,7 @@ from src.shared.logconfig import newLogger
 
 log = newLogger(__name__)
 
+
 class UnitSet(object):
     def __init__(self, units=None):
         super(UnitSet, self).__init__()
@@ -95,6 +96,7 @@ class UnitSet(object):
         s += "}"
         return s
 
+
 def _serializeSubIds(subIds):
     """
     Serialize a set of unit subIds, without regard for the playerId.
@@ -104,6 +106,7 @@ def _serializeSubIds(subIds):
     for i in subIds:
         val |= (1 << i)
     return "{:x}".format(val)
+
 
 def _deserializeSubIds(desc):
     """

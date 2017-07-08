@@ -20,6 +20,24 @@ START_STRING = "|"
 messagesByCommand = {} # pylint: disable=invalid-name
 
 
+class Message(object):
+    command  = None
+    argSpecs = None
+
+    # Note: this doesn't seem to be necessary, but that might just be because
+    # (I think) namedtuple overrides __new__ instead of __init__.
+    # def __init__(self, *args):
+    #     super(Message, self).__init__(*args)
+
+    # For a message that was just deserialized, maybe we should cache the
+    # original string and return it, rather than regenerating it?
+    def serialize(self):
+        return serializeMessage(self)
+
+    def __str__(self):
+        return self.serialize()
+
+
 def defineMessageType(commandWord, argNamesAndSpecs):
     """
     Define a new message type.
@@ -57,6 +75,7 @@ def defineMessageType(commandWord, argNamesAndSpecs):
     messagesByCommand[commandWord] = NewMessageType
     return NewMessageType
 
+
 def serializeMessage(message):
     argStrings = []
     assert len(message.argSpecs) == len(message)
@@ -67,6 +86,7 @@ def serializeMessage(message):
         argStrings.extend(argWords)
     lastIsUnsafe = message.argSpecs[-1].unsafe if message.argSpecs else False
     return buildMessage(message.command, argStrings, lastIsUnsafe=lastIsUnsafe)
+
 
 # Note: errorOnFail might never be passed as False; currently all callers that
 # don't want to crash still pass errorOnFail=True and just handle
@@ -127,22 +147,6 @@ def deserializeMessage(data, errorOnFail=True):
         else:
             return None
 
-class Message(object):
-    command  = None
-    argSpecs = None
-
-    # Note: this doesn't seem to be necessary, but that might just be because
-    # (I think) namedtuple overrides __new__ instead of __init__.
-    # def __init__(self, *args):
-    #     super(Message, self).__init__(*args)
-
-    # For a message that was just deserialized, maybe we should cache the
-    # original string and return it, rather than regenerating it?
-    def serialize(self):
-        return serializeMessage(self)
-
-    def __str__(self):
-        return self.serialize()
 
 class ArgumentSpecification(object):
     """
@@ -215,6 +219,7 @@ class ArgumentSpecification(object):
             assert len(words) == self.count
         return self.decodeFunc(words)
 
+
 # For an arbitrary string command and an arbitrary list of strings args,
 #     tokenize(buildMessage(command, args, lastIsUnsafe=<whatever>))
 # should either return exactly (command, args) or raise an InvalidMessageError.
@@ -235,6 +240,7 @@ def tokenize(message):
         log.warning("Empty token in %s.", tokens)
 
     return (tokens[0], tokens[1:])
+
 
 # TODO: We can and should unit-test buildMessage.
 def buildMessage(command, args, lastIsUnsafe=False):
