@@ -338,7 +338,9 @@ class WartsApp(ShowBase):
         else:
             self.setCameraCustom()
 
-    def updateCameraTask(self, task):
+    # We don't use task, but we can't remove it because the function signature
+    # is from Panda3D.
+    def updateCameraTask(self, task):  # pylint: disable=unused-argument
         """
         Move the camera sensibly.
         """
@@ -391,7 +393,9 @@ class WartsApp(ShowBase):
         message = cmessages.RequestCenter()
         self.graphicsInterface.graphicsMessage(message.serialize())
 
-    def mouseMoveTask(self, task):
+    # We don't use task, but we can't remove it because the function signature
+    # is from Panda3D.
+    def mouseMoveTask(self, task):  # pylint: disable=unused-argument
         """
         Handle mouse movement.
         """

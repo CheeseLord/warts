@@ -38,7 +38,7 @@ class ConnectionManager(object):
     def setGameStateHandler(self, gameStateManager):
         self.gameStateManager = gameStateManager
 
-    def newConnection(self, *args):
+    def newConnection(self):
         connection = NetworkConnection(self.nextId, self.gameStateManager,
                                        self)
         self.connections[self.nextId] = connection
