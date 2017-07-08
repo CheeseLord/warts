@@ -58,12 +58,12 @@ def findPath(gameState, srcPos, destPos):
 
     # Set to True for a node once we know we've found a shortest path to it, so
     # that we don't keep checking new paths to that node.
-    nodeFinalized = [[False for y in range(chunkHeight)]
-                     for x in range(chunkWidth)]
+    nodeFinalized = [[False for _y in range(chunkHeight)]
+                     for _x in range(chunkWidth)]
 
     # Shortest distance to each node from the start.
-    distanceFromStart = [[farFarAway for y in range(chunkHeight)]
-                         for x in range(chunkWidth)]
+    distanceFromStart = [[farFarAway for _y in range(chunkHeight)]
+                         for _x in range(chunkWidth)]
     distanceFromStart[srcCX][srcCY] = 0
 
     # Priority queue of chunks that we still need to search outward from, where
