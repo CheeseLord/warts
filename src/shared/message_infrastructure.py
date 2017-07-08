@@ -16,7 +16,8 @@ START_STRING = "|"
 
 
 # Mapping from command word to Message (sub)classes.
-messagesByCommand = {}
+# Pylint thinks this is a constant, but pylint is wrong.
+messagesByCommand = {} # pylint: disable=invalid-name
 
 
 def defineMessageType(commandWord, argNamesAndSpecs):
@@ -37,7 +38,10 @@ def defineMessageType(commandWord, argNamesAndSpecs):
     # TODO: snake_case to BigCamelCase?
     # Ideally we'd choose this name so that it matches the actual message class
     # name. Or just override __str__ in Message.
-    NamedTupleType = namedtuple(commandWord + "_message_tuple",
+    # Pylint thinks this is a variable, for valid reasons. But it's logically a
+    # typename, so override the warning in this case.
+    NamedTupleType = namedtuple( # pylint: disable=invalid-name
+                                commandWord + "_message_tuple",
                                 [nameSpec[0] for nameSpec in argNamesAndSpecs])
 
     # Subclass from Message before NamedTupleType, so that we can override some

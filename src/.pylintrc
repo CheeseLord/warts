@@ -61,6 +61,8 @@ confidence=
 # --disable=W"
 # disable=import-star-module-level,old-octal-literal,oct-method,print-statement,unpacking-in-except,parameter-unpacking,backtick,old-raise-syntax,old-ne-operator,long-suffix,dict-view-method,dict-iter-method,metaclass-assignment,next-method-called,raising-string,indexing-exception,raw_input-builtin,long-builtin,file-builtin,execfile-builtin,coerce-builtin,cmp-builtin,buffer-builtin,basestring-builtin,apply-builtin,filter-builtin-not-iterating,using-cmp-argument,useless-suppression,range-builtin-not-iterating,suppressed-message,no-absolute-import,old-division,cmp-method,reload-builtin,zip-builtin-not-iterating,intern-builtin,unichr-builtin,reduce-builtin,standarderror-builtin,unicode-builtin,xrange-builtin,coerce-method,delslice-method,getslice-method,setslice-method,input-builtin,round-builtin,hex-method,nonzero-method,map-builtin-not-iterating
 
+# locally-disabled: What is the point of locally disabling a warning if it just
+#     creates another warning for "warning locally disabled"??
 # bad-whitespace: We usually align things, which pylint doesn't want. Just
 #     disable the checking.
 # missing-docstring: We don't put docstrings on everything.
@@ -70,7 +72,7 @@ confidence=
 # wrong-import-order: Our chosen import order doesn't match pylint's. If we can
 #     find a way to make it enforce ours, that would be ideal; until then,
 #     let's just disable the check.
-disable=import-star-module-level,old-octal-literal,oct-method,print-statement,unpacking-in-except,parameter-unpacking,backtick,old-raise-syntax,old-ne-operator,long-suffix,dict-view-method,dict-iter-method,metaclass-assignment,next-method-called,raising-string,indexing-exception,raw_input-builtin,long-builtin,file-builtin,execfile-builtin,coerce-builtin,cmp-builtin,buffer-builtin,basestring-builtin,apply-builtin,filter-builtin-not-iterating,using-cmp-argument,useless-suppression,range-builtin-not-iterating,suppressed-message,no-absolute-import,old-division,cmp-method,reload-builtin,zip-builtin-not-iterating,intern-builtin,unichr-builtin,reduce-builtin,standarderror-builtin,unicode-builtin,xrange-builtin,coerce-method,delslice-method,getslice-method,setslice-method,input-builtin,round-builtin,hex-method,nonzero-method,map-builtin-not-iterating,bad-whitespace,missing-docstring,fixme,bad-builtin,wrong-import-order
+disable=import-star-module-level,old-octal-literal,oct-method,print-statement,unpacking-in-except,parameter-unpacking,backtick,old-raise-syntax,old-ne-operator,long-suffix,dict-view-method,dict-iter-method,metaclass-assignment,next-method-called,raising-string,indexing-exception,raw_input-builtin,long-builtin,file-builtin,execfile-builtin,coerce-builtin,cmp-builtin,buffer-builtin,basestring-builtin,apply-builtin,filter-builtin-not-iterating,using-cmp-argument,useless-suppression,range-builtin-not-iterating,suppressed-message,no-absolute-import,old-division,cmp-method,reload-builtin,zip-builtin-not-iterating,intern-builtin,unichr-builtin,reduce-builtin,standarderror-builtin,unicode-builtin,xrange-builtin,coerce-method,delslice-method,getslice-method,setslice-method,input-builtin,round-builtin,hex-method,nonzero-method,map-builtin-not-iterating,locally-disabled,bad-whitespace,missing-docstring,fixme,bad-builtin,wrong-import-order
 
 
 [REPORTS]
@@ -141,14 +143,17 @@ const-rgx=(([A-Z_][A-Z0-9_]*)|(__.*__))$
 
 # Regular expression matching correct attribute names
 # attr-rgx=[a-z_][a-z0-9_]{2,30}$
-attr-rgx=(([a-z][a-z0-9A-Z]{2,30})|(__.*__))$
+attr-rgx=(([a-z][a-z0-9A-Z]{1,30})|(__.*__))$
 
 # Naming hint for attribute names
 # attr-name-hint=[a-z_][a-z0-9_]{2,30}$
 
 # Regular expression matching correct argument names
 # argument-rgx=[a-z_][a-z0-9_]{2,30}$
-argument-rgx=(([a-z][a-z0-9A-Z]{2,30})|(__.*__))$
+# Allow one-character argument names because it's sometimes convenient and
+# harmless, but let's not overdo it. If it becomes a problem, we can change the
+# regex.
+argument-rgx=(([a-z][a-z0-9A-Z]*)|(__.*__))$
 
 # Naming hint for argument names
 # argument-name-hint=[a-z_][a-z0-9_]{2,30}$
