@@ -232,7 +232,7 @@ def tokenize(message):
         tokens = message[:index].split(TOKEN_DELIM) + [message[index + 2:]]
 
     if not all(tokens):
-        log.warning("Empty token in {}.".format(tokens))
+        log.warning("Empty token in %s.", tokens)
 
     return (tokens[0], tokens[1:])
 
@@ -291,7 +291,7 @@ def buildMessage(command, args, lastIsUnsafe=False):
 # Functions used to report bad messages.
 
 
-def illFormedEMessage(error, log, clientId=None):
+def illFormedEMessage(error, otherLog, clientId=None):
     """
     Log a warning for when a message string originating from an external source
     could not be parsed into a message, for example because it used a
@@ -303,11 +303,11 @@ def illFormedEMessage(error, log, clientId=None):
     if clientId is not None:
         sender = "client {}".format(clientId)
 
-    log.warning("Received invalid message from {sender}: {error}"
+    otherLog.warning("Received invalid message from {sender}: {error}"
                 .format(sender=sender, error=error))
 
 
-def badEMessageCommand(message, log, clientId=None):
+def badEMessageCommand(message, otherLog, clientId=None):
     """
     Log a warning for a message originating from an external source, where the
     message is well-formed (valid command with the right number of arguments)
@@ -319,11 +319,11 @@ def badEMessageCommand(message, log, clientId=None):
     if clientId is not None:
         sender = "client {}".format(clientId)
 
-    log.warning("Could not handle message type from {sender}: {command}"
+    otherLog.warning("Could not handle message type from {sender}: {command}"
                 .format(sender=sender, command=message.command))
 
 
-def badEMessageArgument(message, log, clientId=None, reason=""):
+def badEMessageArgument(message, otherLog, clientId=None, reason=""):
     """
     Log a warning for a message originating from an external source, where the
     message is well-formed and was received by a part of the code that knows
@@ -337,26 +337,26 @@ def badEMessageArgument(message, log, clientId=None, reason=""):
     if reason:
         reason = "\n    " + reason
 
-    log.warning("Invalid argument to message from {sender}: {message}{reason}"
+    otherLog.warning("Invalid argument to message from {sender}: {message}{reason}"
                 .format(sender=sender, message=message, reason=reason))
 
 
 # In this case you should just let error propagate up, rather than catching it
 # at all.
 #
-# def illFormedIMessage(error, log, clientId=None):
+# def illFormedIMessage(error, otherLog, clientId=None):
 #     """
 #     Give an error for when a message string originating from an internal source
 #     could not be parsed into a message, for example because it used a
 #     nonexistent command or passed the wrong number of arguments.
 #     """
 #
-#     log.error("Received invalid message: {error}"
+#     otherLog.error("Received invalid message: {error}"
 #               .format(sender=sender, error=error))
 #     raise error
 
 
-def badIMessageCommand(message, log):
+def badIMessageCommand(message, otherLog):
     """
     Give an error for when a message originating from an internal source is
     received by a part of the code that doesn't know how to handle that type of
@@ -365,12 +365,12 @@ def badIMessageCommand(message, log):
 
     error = "Could not handle message type from internal source: {command}." \
         .format(command=message.command)
-    log.error(error)
+    otherLog.error(error)
 
     raise InvalidMessageError(message.serialize(), error)
 
 
-def badIMessageArgument(message, log, reason=""):
+def badIMessageArgument(message, otherLog, reason=""):
     """
     Give an error for when a message originating from an internal source is
     received by a part of the code that knows how to handle that type of
@@ -381,7 +381,7 @@ def badIMessageArgument(message, log, reason=""):
     if reason:
         reason = "\n    " + reason
 
-    log.warning("Invalid argument in internal message: {message}{reason}"
+    otherLog.warning("Invalid argument in internal message: {message}{reason}"
                 .format(message=message, reason=reason))
 
 

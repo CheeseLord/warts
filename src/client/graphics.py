@@ -95,7 +95,7 @@ class WartsApp(ShowBase):
             raise RuntimeError("Already have entity with gid {gid}."
                                .format(gid=gid))
 
-        log.debug("Adding graphical entity {} at {}".format(gid, pos))
+        log.debug("Adding graphical entity %s at %s", gid, pos)
         x, y = pos
 
         if isExample:
@@ -134,20 +134,18 @@ class WartsApp(ShowBase):
         # Sanity check the scale factor.
         if scaleFactor <= 0.0:
             if scaleFactor == 0.0:
-                log.warn("Graphical entity {} will be scaled negatively!"
-                         .format(gid))
+                log.warn("Graphical entity %s will be scaled negatively!", gid)
             else:
-                log.warn("Graphical entity {} will be scaled to zero size."
-                         .format(gid))
+                log.warn("Graphical entity %s will be scaled to zero size.",
+                         gid)
         else:
             # TODO[#9]: Currently the example panda triggers this warning.
             # TODO[#3]: Magic numbers bad.
             if altScaleFactor / scaleFactor > 1.001:
-                log.warn("Graphical entity {} has different aspect ratio "
-                         "than its model: model of size {:.3g} x {:.3g} "
-                         "being scaled into {:.3g} x {:.3g}."
-                         .format(gid, modelWidthX, modelWidthY,
-                                 goalWidthX, goalWidthY))
+                log.warn("Graphical entity %s has different aspect ratio than "
+                         "its model: model of size %.3g x %.3g being scaled "
+                         "into %.3g x %.3g.",
+                         gid, modelWidthX, modelWidthY, goalWidthX, goalWidthY)
 
         model.setScale(scaleFactor)
 
@@ -162,12 +160,12 @@ class WartsApp(ShowBase):
         self.entities[gid] = entity
 
     def removeEntity(self, gid):
-        log.debug("Removing graphical entity {}".format(gid))
+        log.debug("Removing graphical entity %s", gid)
         entity = self.entities.pop(gid)
         entity.cleanup()
 
     def moveEntity(self, gid, newPos):
-        log.debug("Moving graphical entity {} to {}".format(gid, newPos))
+        log.debug("Moving graphical entity %s to %s", gid, newPos)
         entity = self.entities[gid]
 
         x, y = newPos
@@ -198,9 +196,8 @@ class WartsApp(ShowBase):
             # the animation just keeps jumping around the early frames and
             # never gets past frame 5 or so. I'm not sure why. For now at
             # least, just calculate the endFrame ourselves to work around this.
-            log.debug("Animating entity {} from frame {}/{}"
-                      .format(gid, currFrame,
-                              entity.model.getNumFrames("walk")))
+            log.debug("Animating entity %s from frame %s/%s",
+                      gid, currFrame, entity.model.getNumFrames("walk"))
             frameRate = entity.model.getAnimControl("walk").getFrameRate()
             endFrame = currFrame + int(math.ceil(frameRate *
                                                  config.TICK_LENGTH))
@@ -209,8 +206,8 @@ class WartsApp(ShowBase):
             animInterval.start()
 
     def markSelected(self, gid, isSelected):
-        log.debug("Marking graphical entity {} as {}selected" \
-            .format(gid, "" if isSelected else "not "))
+        log.debug("Marking graphical entity %s as %sselected",
+                  gid, "" if isSelected else "not ")
         entity = self.entities[gid]
 
         z = 5 if isSelected else 0
@@ -434,7 +431,7 @@ class WartsApp(ShowBase):
             # Call pandaEventMouseUp just to clear any state related to the
             # button being down, so we can handle this buttonDown event as if
             # it were a fresh press of the button.
-            log.warn("Mouse button {} is already down.".format(buttonId))
+            log.warn("Mouse button %s is already down.", buttonId)
             self.pandaEventMouseUp(buttonId)
 
         assert buttonId not in self.mouseState
@@ -445,7 +442,7 @@ class WartsApp(ShowBase):
     def pandaEventMouseUp(self, buttonId):
         if buttonId not in self.mouseState:
             # Drop the event, since there's nothing to do.
-            log.warn("Mouse button {} is already up.".format(buttonId))
+            log.warn("Mouse button %s is already up.", buttonId)
             return
 
         state = self.mouseState[buttonId]
@@ -487,7 +484,7 @@ class WartsApp(ShowBase):
             self.graphicsInterface.graphicsMessage(message.serialize())
 
     def handleMouseDragStart(self, buttonId, modifiers, startPos, endPos):
-        log.debug("Start dragging from {} to {}".format(startPos, endPos))
+        log.debug("Start dragging from %s to %s", startPos, endPos)
 
         if buttonId == 1 and modifiers == []:
             assert self.selectionBoxOrigin is None
@@ -496,7 +493,7 @@ class WartsApp(ShowBase):
             self.createSelectionBox(self.selectionBoxOrigin, endPos)
 
     def handleMouseDragMove(self, buttonId, modifiers, startPos, endPos):
-        log.debug("Continue dragging from {} to {}".format(startPos, endPos))
+        log.debug("Continue dragging from %s to %s", startPos, endPos)
 
         if buttonId == 1 and modifiers == []:
             assert self.selectionBoxOrigin is not None
@@ -504,7 +501,7 @@ class WartsApp(ShowBase):
             self.moveSelectionBox(self.selectionBoxOrigin, endPos)
 
     def handleMouseDragEnd(self, buttonId, modifiers, startPos, endPos):
-        log.debug("End dragging from {} to {}".format(startPos, endPos))
+        log.debug("End dragging from %s to %s", startPos, endPos)
 
         if buttonId == 1 and modifiers == []:
             # Actually select the units.
@@ -586,7 +583,7 @@ class WartsApp(ShowBase):
         self.accept("window-close", self.handleWindowClose)
 
     def logEvent(self, eventName):
-        log.info("Received event {0!r}".format(eventName))
+        log.info("Received event %r", eventName)
 
     def coord3dToScreen(self, coord3d):
         # Empirically, Lens.project takes coordinates in the *camera*'s

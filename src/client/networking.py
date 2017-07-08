@@ -17,12 +17,12 @@ class NetworkConnectionFactory(ClientFactory):
         self.alreadyConnected = False
 
     def clientConnectionFailed(self, connector, reason):
-        log.error("Failed to connect to server: {}" . \
-            format(reason.getErrorMessage()))
+        log.error("Failed to connect to server: %s", \
+                  reason.getErrorMessage())
 
     def clientConnectionLost(self, connector, reason):
-        log.info("Disconnected from server: {}" . \
-            format(reason.getErrorMessage()))
+        log.info("Disconnected from server: %s", \
+                 reason.getErrorMessage())
 
     def buildProtocol(self, serverAddress):
         assert not self.alreadyConnected
@@ -48,10 +48,10 @@ class NetworkConnection(Int16StringReceiver):
         self.backend.networkReady(self)
 
     def stringReceived(self, message):
-        log.debug("[receive] {}".format(message))
+        log.debug("[receive] %s", message)
         self.backend.networkMessage(message)
 
     def backendMessage(self, message):
-        log.debug("[send]    {}".format(message))
+        log.debug("[send]    %s", message)
         self.sendString(message)
 

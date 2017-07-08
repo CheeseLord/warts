@@ -47,15 +47,14 @@ class GameStateManager(object):
             log.info("Dumping all unit info...")
             for uid in sorted(self.gameState.positions.keys()):
                 pos = self.gameState.positions[uid]
-                log.info("    {player:>2}: {subId:>3} @ {x:>4}, {y:>4}"
-                         .format(player = unitToPlayer(uid),
-                                 subId  = getUnitSubId(uid),
-                                 x      = pos[0],
-                                 y      = pos[1]))
+                # TODO: Factor this out (maybe into gamestate?)
+                # "    {player:>2}: {subId:>3} @ {x:>4}, {y:>4}"
+                log.info("    %2s: %3s @ %4s, %4s",
+                         unitToPlayer(uid), getUnitSubId(uid), pos[0], pos[1])
             log.info("End unit dump.")
         else:
             # TODO: Do something sensible.
-            log.info("Don't know how to handle \"{}\".".format(message))
+            log.info("Don't know how to handle %r.", message)
 
     # TODO[#10]: Why is this in GameStateManager?
     def handshake(self, playerId):
@@ -89,8 +88,8 @@ class GameStateManager(object):
         # Rate-limit the client.
         self.messageCounts[playerId] += 1
         if self.messageCounts[playerId] == MAXIMUM_MESSAGES_PER_TICK:
-            log.warning("Received too many messages this tick from player {}"
-                        .format(playerId))
+            log.warning("Received too many messages this tick from player %s",
+                        playerId)
         if self.messageCounts[playerId] >= MAXIMUM_MESSAGES_PER_TICK:
             return
 
@@ -127,14 +126,14 @@ class GameStateManager(object):
                         try:
                             srcPos = self.gameState.getPos(unitId)
                             path = findPath(self.gameState, srcPos, message.dest)
-                            log.debug("Issuing orders to unit {}: {}."
-                                      .format(unitId, path))
+                            log.debug("Issuing orders to unit %s: %s.",
+                                      unitId, path)
                             orders = map(MoveUnitOrder, path)
                             self.unitOrders.giveOrders(unitId, orders)
                         except NoPathToTargetError:
-                            log.debug("Can't order unit {} to {}: "
-                                      "no path to target."
-                                      .format(unitId, message.dest))
+                            log.debug("Can't order unit %s to %s: "
+                                      "no path to target.",
+                                      unitId, message.dest)
                             # If the target position is not reachable, just drop
                             # the command.
             else:

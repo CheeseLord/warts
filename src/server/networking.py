@@ -54,7 +54,7 @@ class ConnectionManager(object):
             log.warning("Failed to remove connection.")
 
     def reportRemainingConnections(self):
-        log.info("{} connections remain.".format(len(self.connections)))
+        log.info("%s connections remain.", len(self.connections))
 
     def broadcastMessage(self, message):
         for connection in self:
@@ -82,12 +82,8 @@ class NetworkConnection(Int16StringReceiver):
         self.gameStateManager.handshake(self.playerId)
 
         # TODO: Create a common method for doing all these prefixed logs?
-        log.info(
-            "[{ip}:{port}] <new connection with id {playerId}>".format(
-                ip       = peer.host,
-                port     = peer.port,
-                playerId = self.playerId,
-            )
+        log.info("[%s:%s] <new connection with id %s>",
+                 peer.host, peer.port, self.playerId)
         )
 
     def handshake(self):
@@ -97,13 +93,8 @@ class NetworkConnection(Int16StringReceiver):
         peer = self.transport.getPeer()
         self.connections.removeConnection(self)
 
-        log.info(
-            "[{ip}:{port}] <connection {playerId} lost: {reason}>".format(
-                ip       = peer.host,
-                port     = peer.port,
-                playerId = self.playerId,
-                reason   = reason.getErrorMessage(),
-            )
+        log.info("[%s:%s] <connection %s lost: %s>",
+                 peer.host, peer.port, self.playerId, reason.getErrorMessage())
         )
 
         self.connections.reportRemainingConnections()
@@ -112,11 +103,7 @@ class NetworkConnection(Int16StringReceiver):
         peer = self.transport.getPeer()
         self.gameStateManager.stringReceived(self.playerId, data)
 
-        log.info("[{ip}:{port}] {msg!r}".format(
-            ip=peer.host,
-            port=peer.port,
-            msg=data)
-        )
+        log.info("[%s:%s] %r", peer.host, peer.port, data)
 
     def sendMessage(self, message):
         self.sendString(message.serialize())

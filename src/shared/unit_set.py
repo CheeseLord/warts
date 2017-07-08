@@ -61,7 +61,7 @@ class UnitSet(object):
         try:
             self.units[playerId].remove(subId)
         except KeyError:
-            log.warn("Can't remove unit {}: No such unit in set.".format(unit))
+            log.warn("Can't remove unit %s: No such unit in set.", unit)
         if not self.units[playerId]:
             del self.units[playerId]
 

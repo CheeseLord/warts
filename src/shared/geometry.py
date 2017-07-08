@@ -26,7 +26,7 @@ def findPath(gameState, srcPos, destPos):
     get to destPos without hitting any obstacles.
     """
 
-    log.debug("Searching for path from {} to {}".format(srcPos, destPos))
+    log.debug("Searching for path from %s to %s", srcPos, destPos)
 
     chunkWidth, chunkHeight = gameState.sizeInChunks
 
@@ -74,7 +74,7 @@ def findPath(gameState, srcPos, destPos):
 
     while len(chunksToCheck) > 0:
         _, currChunk = heapq.heappop(chunksToCheck)
-        log.debug("Pathfinding: search out from {}".format(currChunk))
+        log.debug("Pathfinding: search out from %s", currChunk)
         if currChunk == destChunk:
             break
         cx, cy = currChunk
@@ -85,7 +85,7 @@ def findPath(gameState, srcPos, destPos):
 
         log.debug("Pathfinding: checking neighbors.")
         for addlDist, neighbor in _getValidNeighbors(currChunk, gameState):
-            log.debug("Pathfinding: trying {}".format(neighbor))
+            log.debug("Pathfinding: trying %s", neighbor)
             nx, ny = neighbor
             neighborStartDist = distanceFromStart[cx][cy] + addlDist
             if neighborStartDist < distanceFromStart[nx][ny]:

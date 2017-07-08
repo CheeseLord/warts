@@ -98,8 +98,8 @@ class Backend(object):
             self.handleUserInput(message)
         else:
             # TODO: Buffer messages until ready? Don't just drop them....
-            log.warning("Input '{}' ignored; client not initialized yet." \
-                .format(message))
+            log.warning("Input %r ignored; client not initialized yet.",
+                        message)
 
     def handleUserInput(self, message):
         assert not message.endswith('\n')
@@ -109,12 +109,11 @@ class Backend(object):
             for uid in sorted(self.gameState.positions):
                 pos = self.gameState.positions[uid]
                 isSelected = (uid in self.unitSelection)
-                log.info("    {sel:1} {player:>2}: {subId:>3} @ {x:>4}, {y:>4}"
-                         .format(sel    = "*" if isSelected else "",
-                                 player = unitToPlayer(uid),
-                                 subId  = getUnitSubId(uid),
-                                 x      = pos[0],
-                                 y      = pos[1]))
+                # TODO: Factor this out (maybe into gamestate?)
+                # "    {sel:1} {player:>2}: {subId:>3} @ {x:>4}, {y:>4}"
+                log.info("    %1s %2s: %3s @ %4s, %4s",
+                         "*" if isSelected else "", unitToPlayer(uid),
+                         getUnitSubId(uid), pos[0], pos[1])
             log.info("End unit dump.")
         else:
             self.network.backendMessage(message)
@@ -134,13 +133,13 @@ class Backend(object):
                     # log.debug in here, so we can more easily catch if we've
                     # forgotten to forward a message.
                     log.debug("Intentionally not forwarding message to "
-                              "graphics interface: {}".format(str(message)))
+                              "graphics interface: %s", message)
             except InvalidMessageError as error:
                 illFormedEMessage(error, log)
         else:
             # TODO: Buffer messages until ready? Don't just drop them....
-            log.warning("Server message '{}' ignored; client not " \
-                "initialized yet.".format(messageStr))
+            log.warning("Server message %r ignored; client not initialized " \
+                        "yet.", messageStr)
 
     def tryToHandleNetworkMessage(self, message):
         """
@@ -156,7 +155,7 @@ class Backend(object):
             if self.myId >= 0:
                 raise RuntimeError("ID already set; can't change it now.")
             self.myId = message.playerId
-            log.info("Your id is {id}.".format(id=self.myId))
+            log.info("Your id is %s.", self.myId)
 
             self.unitSelection = UnitSet([])
             # TODO: Does the graphics interface really need to know our id?
@@ -200,8 +199,8 @@ class Backend(object):
             forwardToGraphicsInterface = True
         elif isinstance(message, messages.ResourceAmt):
             self.gameState.resources[self.myId] = message.amount
-            log.info("I now have {} arbitrary units of resource."
-                     .format(message.amount))
+            log.info("I now have %s arbitrary units of resource.",
+                     message.amount)
         elif isinstance(message, messages.GroundInfo):
             # Note: this isn't used in any way right now. I think it's right,
             # but it's definitely possible we transposed something, or worse.
