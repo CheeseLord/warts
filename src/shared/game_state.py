@@ -73,9 +73,6 @@ class GameState:
 
     def moveUnitTo(self, unitId, newPos):
         self.checkId(unitId)
-        # POS_INT_CHECK
-        for k in newPos:
-            assert type(k) is int
         self.positions[unitId] = newPos
 
     def getPos(self, unitId):

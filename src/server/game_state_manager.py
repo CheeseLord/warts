@@ -202,12 +202,7 @@ class GameStateManager(object):
 
                 # Don't try to move to the current position.
                 if dest != pos:
-                    # log.debug("Moving unit {} (at {}) toward {}."
-                    #           .format(unitId, pos, dest))
                     assert dest is not None
-                    # POS_INT_CHECK
-                    for k in dest:
-                        assert type(k) is int
 
                     self.gameState.moveUnitToward(unitId, dest)
                     pos = self.gameState.getPos(unitId)

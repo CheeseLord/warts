@@ -185,11 +185,11 @@ class ArgumentSpecification:
 
         words = self.encodeFunc(arg)
         if self.count == 1:
-            assert type(words) == str
+            assert isinstance(words, str0
         else:
             # Alow encodeFunc to give a list instead of a tuple, because that's
             # close enough.
-            assert type(words) in [tuple, list]
+            assert isinstance(words, (tuple, list))
             assert len(words) == self.count
         return words
 
@@ -201,13 +201,13 @@ class ArgumentSpecification:
         """
 
         if self.count == 1:
-            assert type(words) == str
+            assert isinstance(words, str)
         else:
             # Since words always comes from deserializeMessage, require that
             # it be a tuple, not a list. There's no real problem with it being
             # a list, but we know that that shouldn't happen, so if it does,
             # then it suggests a bug.
-            assert type(words) == tuple
+            assert isinstance(words, tuple)
             assert len(words) == self.count
         return self.decodeFunc(words)
 

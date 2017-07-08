@@ -15,7 +15,7 @@ class UnitOrders(object):
         self.pendingNewUnits = []
 
     def giveOrders(self, unit, orders):
-        assert type(orders) == list
+        assert isinstance(orders, list)
         for order in orders:
             assert isinstance(order, Order)
         self.orders[unit] = orders
