@@ -367,8 +367,9 @@ def badIMessageCommand(message, otherLog):
     message.
     """
 
-    otherLog.error("Could not handle message type from internal source: %s.",
-                   message.command)
+    error = "Could not handle message type from internal source: {command}." \
+        .format(command=message.command)
+    otherLog.error(error)
 
     raise InvalidMessageError(message.serialize(), error)
 
