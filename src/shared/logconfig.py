@@ -13,8 +13,8 @@ MAX_NAME_LENGTH = 11
 #   https://github.com/borntyping/python-colorlog
 # Pylint thinks these are constants, but they're not. Disable invalid-name on
 # them.
-handler = logging.getLogger().handlers[0] # pylint: disable=invalid-name
-formatter = colorlog.ColoredFormatter( # pylint: disable=invalid-name
+handler = logging.getLogger().handlers[0]  # pylint: disable=invalid-name
+formatter = colorlog.ColoredFormatter(  # pylint: disable=invalid-name
     "%(log_color)s%(levelname)-8s%(reset)s "
     "%(green)s%(name)-{maxnamelen}s%(reset)s "
     "%(blue)s%(message)s%(reset)s ".format(maxnamelen = MAX_NAME_LENGTH),

@@ -17,7 +17,7 @@ START_STRING = "|"
 
 # Mapping from command word to Message (sub)classes.
 # Pylint thinks this is a constant, but pylint is wrong.
-messagesByCommand = {} # pylint: disable=invalid-name
+messagesByCommand = {}  # pylint: disable=invalid-name
 
 
 class Message(object):
