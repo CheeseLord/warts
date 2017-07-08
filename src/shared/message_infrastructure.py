@@ -2,7 +2,7 @@ from collections import namedtuple
 import sys
 import traceback
 
-from logconfig import newLogger
+from src.shared.logconfig import newLogger
 
 log = newLogger(__name__)
 

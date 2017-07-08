@@ -1,9 +1,9 @@
 import argparse
 import sys
 
-from shared.logconfig import enableDebugLogging
-from server.main import main as serverMain
-from client.main import main as clientMain
+from src.shared.logconfig import enableDebugLogging
+from src.server.main import main as serverMain
+from src.client.main import main as clientMain
 
 HOST_DEFAULT = "127.0.0.1"
 PORT_DEFAULT = "16097"
