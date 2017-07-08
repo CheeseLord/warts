@@ -185,7 +185,7 @@ class ArgumentSpecification:
 
         words = self.encodeFunc(arg)
         if self.count == 1:
-            assert isinstance(words, str0
+            assert isinstance(words, str)
         else:
             # Alow encodeFunc to give a list instead of a tuple, because that's
             # close enough.
