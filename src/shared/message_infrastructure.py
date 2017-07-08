@@ -303,8 +303,7 @@ def illFormedEMessage(error, otherLog, clientId=None):
     if clientId is not None:
         sender = "client {}".format(clientId)
 
-    otherLog.warning("Received invalid message from {sender}: {error}"
-                .format(sender=sender, error=error))
+    otherLog.warning("Received invalid message from %s: %s", sender, error)
 
 
 def badEMessageCommand(message, otherLog, clientId=None):
@@ -319,8 +318,8 @@ def badEMessageCommand(message, otherLog, clientId=None):
     if clientId is not None:
         sender = "client {}".format(clientId)
 
-    otherLog.warning("Could not handle message type from {sender}: {command}"
-                .format(sender=sender, command=message.command))
+    otherLog.warning("Could not handle message type from %s: %s",
+                     sender, message.command)
 
 
 def badEMessageArgument(message, otherLog, clientId=None, reason=""):
@@ -337,8 +336,8 @@ def badEMessageArgument(message, otherLog, clientId=None, reason=""):
     if reason:
         reason = "\n    " + reason
 
-    otherLog.warning("Invalid argument to message from {sender}: {message}{reason}"
-                .format(sender=sender, message=message, reason=reason))
+    otherLog.warning("Invalid argument to message from %s: %s%s",
+                     sender, message, reason)
 
 
 # In this case you should just let error propagate up, rather than catching it
@@ -351,8 +350,7 @@ def badEMessageArgument(message, otherLog, clientId=None, reason=""):
 #     nonexistent command or passed the wrong number of arguments.
 #     """
 #
-#     otherLog.error("Received invalid message: {error}"
-#               .format(sender=sender, error=error))
+#     otherLog.error("Received invalid message: %s", error)
 #     raise error
 
 
@@ -363,9 +361,8 @@ def badIMessageCommand(message, otherLog):
     message.
     """
 
-    error = "Could not handle message type from internal source: {command}." \
-        .format(command=message.command)
-    otherLog.error(error)
+    otherLog.error("Could not handle message type from internal source: %s.",
+                   message.command)
 
     raise InvalidMessageError(message.serialize(), error)
 
@@ -381,8 +378,8 @@ def badIMessageArgument(message, otherLog, reason=""):
     if reason:
         reason = "\n    " + reason
 
-    otherLog.warning("Invalid argument in internal message: {message}{reason}"
-                .format(message=message, reason=reason))
+    otherLog.warning("Invalid argument in internal message: %s%s",
+                     message, reason)
 
 
 class InvalidMessageError(StandardError):
