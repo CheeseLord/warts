@@ -132,7 +132,7 @@ function-rgx=(([a-z][a-z0-9A-Z]{2,30})|(_[a-z0-9A-Z]{2,30})|([a-z0-9A-Z]{2,30}_)
 
 # Regular expression matching correct variable names
 # variable-rgx=[a-z_][a-z0-9_]{2,30}$
-variable-rgx=(([a-z][a-z0-9A-Z]*)|(__.*__))$
+variable-rgx=((_?[a-z][a-z0-9A-Z]*_?)|(__.*__))$
 
 # Naming hint for variable names
 # variable-name-hint=[a-z_][a-z0-9_]{2,30}$
@@ -145,7 +145,7 @@ const-rgx=(([A-Z_][A-Z0-9_]*)|(__.*__))$
 
 # Regular expression matching correct attribute names
 # attr-rgx=[a-z_][a-z0-9_]{2,30}$
-attr-rgx=(([a-z][a-z0-9A-Z]{1,30})|(__.*__))$
+attr-rgx=((_?[a-z][a-z0-9A-Z]*_?)|(__.*__))$
 
 # Naming hint for attribute names
 # attr-name-hint=[a-z_][a-z0-9_]{2,30}$
@@ -155,7 +155,7 @@ attr-rgx=(([a-z][a-z0-9A-Z]{1,30})|(__.*__))$
 # Allow one-character argument names because it's sometimes convenient and
 # harmless, but let's not overdo it. If it becomes a problem, we can change the
 # regex.
-argument-rgx=(([a-z][a-z0-9A-Z]*)|(__.*__))$
+argument-rgx=(([a-z][a-z0-9A-Z]*))$
 
 # Naming hint for argument names
 # argument-name-hint=[a-z_][a-z0-9_]{2,30}$
@@ -169,7 +169,7 @@ class-attribute-rgx=(([a-z][a-z0-9A-Z]{2,30})|(__.*__))$
 
 # Regular expression matching correct inline iteration names
 # inlinevar-rgx=[A-Za-z_][A-Za-z0-9_]*$
-inlinevar-rgx=([a-z][a-z0-9A-Z]*)$
+inlinevar-rgx=(_?[a-z][a-z0-9A-Z]*_?)$
 
 # Naming hint for inline iteration names
 # inlinevar-name-hint=[A-Za-z_][A-Za-z0-9_]*$
@@ -292,7 +292,7 @@ init-import=no
 
 # A regular expression matching the name of dummy variables (i.e. expectedly
 # not used).
-dummy-variables-rgx=_$|dummy
+dummy-variables-rgx=_[a-z0-9A-Z]*|dummy
 
 # List of additional names supposed to be defined in builtins. Remember that
 # you should avoid to define new builtins when possible.
@@ -313,7 +313,7 @@ ignore-mixin-members=yes
 # (useful for modules/projects where namespaces are manipulated during runtime
 # and thus existing member attributes cannot be deduced by static analysis. It
 # supports qualified module names, as well as Unix pattern matching.
-ignored-modules=
+ignored-modules=panda3d
 
 # List of classes names for which member attributes should not be checked
 # (useful for classes with attributes dynamically set). This supports can work

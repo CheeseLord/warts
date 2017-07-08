@@ -116,9 +116,6 @@ class WartsApp(ShowBase):
         modelWidthX = abs(bound2[0] - bound1[0])
         modelWidthY = abs(bound2[1] - bound1[1])
 
-        xScale = goalWidthX / modelWidthX
-        yScale = goalWidthY / modelWidthY
-
         # Scale it to the largest it can be while still fitting within the goal
         # rect. If the aspect ratio of the goal rect is different from that of
         # the model, then it'll only fill that rect in one dimension.
@@ -461,7 +458,7 @@ class WartsApp(ShowBase):
         # Make sure the mouse is inside the screen
         # TODO: Move this check to pandaEventMouseUp?
         if self.mouseWatcherNode.hasMouse() and self.usingCustomCamera:
-            x, y, z = self.coordScreenTo3d(pos)
+            x, y, _z = self.coordScreenTo3d(pos)
 
             if modifiers == []:
                 # TODO: This component should take care of decoding the

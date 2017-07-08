@@ -53,8 +53,8 @@ def findPath(gameState, srcPos, destPos):
     # chunks have been visited already. Second, for those that have been
     # visited, it tracks which chunk came before it in the shortest path from
     # the srcChunk to it.
-    parents = [[None for y in range(chunkHeight)]
-               for x in range(chunkWidth)]
+    parents = [[None for _y in range(chunkHeight)]
+               for _x in range(chunkWidth)]
 
     # Set to True for a node once we know we've found a shortest path to it, so
     # that we don't keep checking new paths to that node.

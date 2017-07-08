@@ -16,8 +16,8 @@ class GameState(object):
         self.mapSize = tuple(mapSize)
         mapWidth, mapHeight = self.mapSize
         # Reference chunks as [x][y].
-        self.groundTypes = [[0 for y in range(mapHeight)]
-                            for x in range(mapWidth)]
+        self.groundTypes = [[0 for _x in range(mapHeight)]
+                            for _y in range(mapWidth)]
         self.resourcePools = []
 
     @property

@@ -156,7 +156,7 @@ class GraphicsInterface(object):
                 self.graphics.interfaceMessage(msg.serialize())
             else:
                 badIMessageCommand(message, log)
-        except InvalidMessageError as error:
+        except InvalidMessageError:
             # TODO: Either use illFormedIMessage (if we add it) or just remove
             # the try/except.
             raise
