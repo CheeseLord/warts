@@ -1,8 +1,6 @@
-import logging
-
 from src.shared import messages
 from src.shared.game_state import GameState
-from src.shared.ident import UnitId, unitToPlayer, getUnitSubId
+from src.shared.ident import unitToPlayer, getUnitSubId
 from src.shared.logconfig import newLogger
 from src.shared.unit_set import UnitSet
 from src.shared.message_infrastructure import deserializeMessage, \

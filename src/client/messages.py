@@ -1,5 +1,5 @@
 from src.shared.message_infrastructure import defineMessageType, \
-    ArgumentSpecification, InvalidMessageError
+    ArgumentSpecification
 from src.shared.messages import BOOL_ARG, INT_ARG, FLOAT_PAIR_ARG, UNIT_ID_ARG
 
 

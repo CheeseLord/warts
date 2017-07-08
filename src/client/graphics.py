@@ -9,16 +9,10 @@ from panda3d import core
 from panda3d.core import Point2, Point3, Mat4, Filename, NodePath, LineSegs
 
 from src.shared import config
-from src.shared import messages
-from src.shared.geometry import chunkToUnit
-from src.shared.ident import unitToPlayer
 from src.shared.logconfig import newLogger
 from src.shared.message_infrastructure import deserializeMessage, \
-    illFormedEMessage, badEMessageCommand, badEMessageArgument, \
-    InvalidMessageError, badIMessageCommand
-from src.shared.unit_set import UnitSet
+    badIMessageCommand
 from src.shared.utils import minmax, thisShouldNeverHappen, thisIsNotHandled
-from src.client.backend import unitToGraphics, GRAPHICS_SCALE
 from src.client import messages as cmessages
 
 log = newLogger(__name__)
@@ -50,7 +44,7 @@ class WartsApp(ShowBase):
         self.cameraHolder = self.render.attachNewNode('CameraHolder')
         self.cameraHolder.setPos(0, 0, 100)
         self.prevCameraHpr = (0, -80, 0)
-        self.useCustomCamera = True
+        self.usingCustomCamera = True
         self.setCameraCustom()
 
         self.prevMousePos = None

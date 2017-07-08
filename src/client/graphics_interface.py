@@ -1,11 +1,9 @@
-from src.shared import config
 from src.shared import messages
 from src.shared.geometry import chunkToUnit
 from src.shared.ident import unitToPlayer
 from src.shared.logconfig import newLogger
 from src.shared.message_infrastructure import deserializeMessage, \
-    illFormedEMessage, badEMessageCommand, badEMessageArgument, \
-    InvalidMessageError, badIMessageCommand
+    badEMessageArgument, InvalidMessageError, badIMessageCommand
 from src.client.backend import unitToGraphics, GRAPHICS_SCALE
 from src.client import messages as cmessages
 

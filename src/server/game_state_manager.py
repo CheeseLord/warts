@@ -9,8 +9,6 @@ from src.shared.message_infrastructure import deserializeMessage, \
     badEMessageArgument, illFormedEMessage, badEMessageCommand, \
     InvalidMessageError
 from src.shared import messages
-from src.shared.resources import ResourcePool
-from src.shared.unit_set import UnitSet
 from src.shared.unit_orders import UnitOrders, Order, DelUnitOrder, \
     MoveUnitOrder
 
