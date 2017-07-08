@@ -86,8 +86,9 @@ INT_PAIR_ARG   = ArgumentSpecification(2, parseIntPair, encodeIntPair)
 FLOAT_PAIR_ARG = ArgumentSpecification(2, parseFloatPair, encodeFloatPair)
 
 PLAYER_ID_ARG  = INT_ARG
-UNIT_SET_ARG   = ArgumentSpecification(1, UnitSet.deserialize,
-                                          UnitSet.serialize)
+UNIT_SET_ARG   = ArgumentSpecification(1,
+                                       UnitSet.deserialize,
+                                       UnitSet.serialize)
 UNIT_ID_ARG    = ArgumentSpecification(2, parseUnitId, encodeUnitId)
 
 # Different types of coordinates. For now at least, all bug graphics are

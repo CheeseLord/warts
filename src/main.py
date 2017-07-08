@@ -35,31 +35,31 @@ def parseArguments():
     parser = WartsParser()
 
     parser.add_argument('--log-debug', action="store_true",
-        help="Enable debug-level logging")
+                        help="Enable debug-level logging")
 
     subparsers = parser.add_subparsers(title="commands")
 
     # Server command
     serverParser = subparsers.add_parser("server", help="Run a WaRTS server")
     serverParser.set_defaults(command="server")
-    serverParser.add_argument(
-        '--port', type=int, nargs='?', default=PORT_DEFAULT,
-        help="server port [Default: %(default)s]")
+    serverParser.add_argument('--port', type=int, nargs='?',
+                              default=PORT_DEFAULT,
+                              help="server port [Default: %(default)s]")
     serverParser.add_argument('--log-debug', action="store_true",
-        help="Enable debug-level logging")
+                              help="Enable debug-level logging")
 
     # Server command
     clientParser = subparsers.add_parser("client",
-        help="connect to a WaRTS server")
+                                         help="connect to a WaRTS server")
     clientParser.set_defaults(command="client")
-    clientParser.add_argument(
-        '--host', type=str, nargs='?', default=HOST_DEFAULT,
-        help="server hostname [Default: %(default)s]")
-    clientParser.add_argument(
-        '--port', type=int, nargs='?', default=PORT_DEFAULT,
-        help="server port [Default: %(default)s]")
+    clientParser.add_argument('--host', type=str, nargs='?',
+                              default=HOST_DEFAULT,
+                              help="server hostname [Default: %(default)s]")
+    clientParser.add_argument('--port', type=int, nargs='?',
+                              default=PORT_DEFAULT,
+                              help="server port [Default: %(default)s]")
     clientParser.add_argument('--log-debug', action="store_true",
-        help="Enable debug-level logging")
+                              help="Enable debug-level logging")
 
     return parser.parse_args()
 

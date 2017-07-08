@@ -54,9 +54,12 @@ class GraphicsInterface(object):
                     # problem in one of its messages then we should really
                     # handle it like a bad message from an internal source.
                     # The same goes for other messages below.
-                    badEMessageArgument(message, log,
-                        reason="uid {} already corresponds to gid {}"
-                            .format(uid, gid))
+                    badEMessageArgument(
+                        message, log,
+                        reason="uid {} already corresponds to gid {}".format(
+                            uid, gid
+                        )
+                    )
                     # This is probably a bug on our end, so maybe we shouldn't
                     # drop the message. Instead, it would make sense to just
                     # assign that uid a new gid and add it to the graphics.
@@ -96,7 +99,7 @@ class GraphicsInterface(object):
                     modelName = "red-ground.egg"
                 else:
                     badEMessageArgument(message, log,
-                        reason="Invalid terrain type")
+                                        reason="Invalid terrain type")
                     return
 
                 gid  = self.getNextGid()
@@ -121,8 +124,10 @@ class GraphicsInterface(object):
                 uid = message.unitId
 
                 if uid not in self.uidToGid:
-                    badEMessageArgument(message, log,
-                        reason="No graphical entity for uid {}".format(uid))
+                    badEMessageArgument(
+                        message, log,
+                        reason="No graphical entity for uid {}".format(uid)
+                    )
                     return
                 gid = self.uidToGid.pop(uid)
 
@@ -133,8 +138,10 @@ class GraphicsInterface(object):
                 uPos = message.pos
 
                 if uid not in self.uidToGid:
-                    badEMessageArgument(message, log,
-                        reason="No graphical entity for uid {}".format(uid))
+                    badEMessageArgument(
+                        message, log,
+                        reason="No graphical entity for uid {}".format(uid)
+                    )
                     return
                 gid = self.uidToGid[uid]
 

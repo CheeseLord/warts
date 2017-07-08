@@ -58,9 +58,10 @@ def defineMessageType(commandWord, argNamesAndSpecs):
     # name. Or just override __str__ in Message.
     # Pylint thinks this is a variable, for valid reasons. But it's logically a
     # typename, so override the warning in this case.
-    NamedTupleType = namedtuple( # pylint: disable=invalid-name
-                                commandWord + "_message_tuple",
-                                [nameSpec[0] for nameSpec in argNamesAndSpecs])
+    NamedTupleType = namedtuple(  # pylint: disable=invalid-name
+        commandWord + "_message_tuple",
+        [nameSpec[0] for nameSpec in argNamesAndSpecs]
+    )
 
     # Subclass from Message before NamedTupleType, so that we can override some
     # methods of NamedTupleType in Message. (We may want to do this with
@@ -278,13 +279,14 @@ def buildMessage(command, args, lastIsUnsafe=False):
 
     def checkToken(token, tokenDesc):
         if TOKEN_DELIM in token:
-            raise InvalidMessageError(message, "{0} may not contain {1!r}"
-                                               .format(tokenDesc, TOKEN_DELIM))
+            raise InvalidMessageError(message,
+                                      "{0} may not contain {1!r}"
+                                      .format(tokenDesc, TOKEN_DELIM))
         # TODO [#45]: Validate this.
         if command.startswith(START_STRING):
-            raise InvalidMessageError(message, "{0} may not start with {1!r}"
-                                               .format(tokenDesc,
-                                                       START_STRING))
+            raise InvalidMessageError(message,
+                                      "{0} may not start with {1!r}"
+                                      .format(tokenDesc, START_STRING))
 
     checkToken(command, "Command")
     for arg in args:

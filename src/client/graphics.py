@@ -196,8 +196,9 @@ class WartsApp(ShowBase):
             frameRate = entity.model.getAnimControl("walk").getFrameRate()
             endFrame = currFrame + int(math.ceil(frameRate *
                                                  config.TICK_LENGTH))
-            animInterval = entity.model.actorInterval("walk", loop=1,
-                startFrame=currFrame, endFrame=endFrame)
+            animInterval = entity.model.actorInterval(
+                "walk", loop=1, startFrame=currFrame, endFrame=endFrame
+            )
             animInterval.start()
 
     def markSelected(self, gid, isSelected):

@@ -100,26 +100,26 @@ class GameStateManager(object):
                     # TODO: Factor out this pair of checks? We're probably
                     # going to be doing them a *lot*.
                     if not playerId == unitToPlayer(unitId):
-                        badEMessageArgument(message, log,
-                            clientId=playerId,
-                            reason="Can't delete other player's unit")
+                        badEMessageArgument(
+                            message, log, clientId=playerId,
+                            reason="Can't delete other player's unit"
+                        )
                     elif not self.gameState.isUnitIdValid(unitId):
-                        badEMessageArgument(message, log,
-                            clientId=playerId,
-                            reason="No such unit")
+                        badEMessageArgument(message, log, clientId=playerId,
+                                            reason="No such unit")
                     else:
                         self.unitOrders.giveOrders(unitId, [DelUnitOrder()])
             elif isinstance(message, messages.OrderMove):
                 unitSet = message.unitSet
                 for unitId in unitSet:
                     if not playerId == unitToPlayer(unitId):
-                        badEMessageArgument(message, log,
-                            clientId=playerId,
-                            reason="Can't order other player's unit")
+                        badEMessageArgument(
+                            message, log, clientId=playerId,
+                            reason="Can't order other player's unit"
+                        )
                     elif not self.gameState.isUnitIdValid(unitId):
-                        badEMessageArgument(message, log,
-                            clientId=playerId,
-                            reason="No such unit")
+                        badEMessageArgument(message, log, clientId=playerId,
+                                            reason="No such unit")
                     else:
                         try:
                             srcPos = self.gameState.getPos(unitId)

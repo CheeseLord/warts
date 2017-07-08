@@ -164,7 +164,7 @@ class Backend(object):
             pos = message.pos
             if uid in self.gameState.positions:
                 badEMessageArgument(message, log,
-                    reason="uid {} already in use".format(uid))
+                                    reason="uid {} already in use".format(uid))
                 return False
             self.gameState.positions[uid] = pos
             # TODO: So the backend needs to keep track of where all the units
@@ -180,7 +180,7 @@ class Backend(object):
             uid = message.unitId
             if uid not in self.gameState.positions:
                 badEMessageArgument(message, log,
-                    reason="No such uid: {}".format(uid))
+                                    reason="No such uid: {}".format(uid))
                 return False
             if uid in self.unitSelection:
                 self.removeFromSelection(uid)
@@ -191,7 +191,7 @@ class Backend(object):
             pos = message.pos
             if uid not in self.gameState.positions:
                 badEMessageArgument(message, log,
-                    reason="No such uid: {}".format(uid))
+                                    reason="No such uid: {}".format(uid))
                 return False
             self.gameState.positions[uid] = pos
             forwardToGraphicsInterface = True
