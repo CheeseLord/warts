@@ -87,7 +87,7 @@ class NetworkConnection(Int16StringReceiver):
     def handshake(self):
         self.sendMessage(messages.YourIdIs(self.playerId))
 
-    def connectionLost(self, reason):
+    def connectionLost(self, reason=protocol.connectionDone):
         peer = self.transport.getPeer()
         self.connections.removeConnection(self)
 

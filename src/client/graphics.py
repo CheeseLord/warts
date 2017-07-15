@@ -587,9 +587,6 @@ class WartsApp(ShowBase):
         self.win.set_close_request_event("window-close")
         self.accept("window-close", self.handleWindowClose)
 
-    def logEvent(self, eventName):
-        log.info("Received event %r", eventName)
-
     def coord3dToScreen(self, coord3d):
         # Empirically, Lens.project takes coordinates in the *camera*'s
         # coordinate system, not its parent or the render. This was not very
