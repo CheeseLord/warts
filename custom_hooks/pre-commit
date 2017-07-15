@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "Wait, what?"
+
 pwd
 
 exit 1
