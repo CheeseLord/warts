@@ -37,7 +37,13 @@ class UnitSet(object):
         for part in desc.split(","):
             playerId, _, subIdDesc = part.partition(":")
             subIds = _deserializeSubIds(subIdDesc)
-            ret._addManyHomogeneous(int(playerId), subIds)
+            # pylint doesn't recognize that _addManyHomogeneous is a protected
+            # member of this same class, so complains. I think this is just a
+            # limitation of the tool; see:
+            #     https://stackoverflow.com/q/38035158
+            ret._addManyHomogeneous(  # pylint: disable=protected-access
+                int(playerId), subIds
+            )
         return ret
 
     # TODO: Optimize better. Make use of _addManyHomogeneous if there's a lot
