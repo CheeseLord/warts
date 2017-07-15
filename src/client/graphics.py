@@ -6,7 +6,7 @@ from direct.task import Task  # This must be imported first.
 from direct.actor.Actor import Actor
 from direct.showbase.ShowBase import ShowBase
 from panda3d import core
-from panda3d.core import Point2, Point3, Mat4, Filename, LineSegs
+from panda3d.core import Point2, Point3, Mat4, Filename, LineSegs, ClockObject
 
 from src.shared import config
 from src.shared.logconfig import newLogger
@@ -29,6 +29,15 @@ class WartsApp(ShowBase):
 
     def __init__(self, graphicsInterface):
         ShowBase.__init__(self)
+
+        # This is available as a global, but pylint gives an undefined-variable
+        # warning if we use it that way. Looking at
+        #     https://www.panda3d.org/manual/index.php/ShowBase
+        # I would have thought we could reference it as either
+        # self.globalClock, direct.showbase.ShowBase.globalClock, or possibly
+        # direct.showbase.globalClock, but none of those seems to work. To
+        # avoid the pylint warnings, create self.globalClock manually.
+        self.globalClock = ClockObject.getGlobalClock()
 
         self.graphicsInterface = graphicsInterface
 
@@ -342,12 +351,7 @@ class WartsApp(ShowBase):
         Move the camera sensibly.
         """
 
-        # TODO[#67]: self.globalClock doesn't exist, nor base.globalClock, but
-        # pylint complains about the use of the global. I can't figure out how
-        # else to access it, though. As a hack, maybe we could assign
-        # self.globalClock to panda3d.core.ClockObjet.getGlobalClock() in
-        # __init__?
-        dt = globalClock.getDt()
+        dt = self.globalClock.getDt()
         translateSpeed = 30 * dt
         rotateSpeed = 50 * dt
 
@@ -381,8 +385,7 @@ class WartsApp(ShowBase):
         Zoom in or out.
         """
 
-        # TODO[#67]: {self,base}.globalClock don't exist.
-        dt = globalClock.getDt()
+        dt = self.globalClock.getDt()
         zoomSpeed = 100 * dt
 
         zoom = -zoomSpeed if inward else zoomSpeed
