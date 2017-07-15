@@ -102,7 +102,7 @@ class WartsApp(ShowBase):
             model = self.loader.loadModel(getModelPath(modelPath))
 
         # Put the model in the scene, but don't position it yet.
-        rootNode = render.attachNewNode("")
+        rootNode = self.render.attachNewNode("")
         model.reparentTo(rootNode)
 
         # Rescale the model about its origin. The x and y coordinates of the
@@ -231,7 +231,7 @@ class WartsApp(ShowBase):
         self.selectionBox.draw_to(x4, 0, y4)
         self.selectionBox.draw_to(x1, 0, y1)
 
-        self.selectionBoxNode = render2d.attachNewNode(
+        self.selectionBoxNode = self.render2d.attachNewNode(
             self.selectionBox.create())
 
     def moveSelectionBox(self, corner1, corner2):
@@ -318,7 +318,7 @@ class WartsApp(ShowBase):
         # Use the existing camera location, rather than jumping back to the one
         # from last time the default camera controller was active.
         # Copied from https://www.panda3d.org/manual/index.php/Mouse_Support
-        mat = Mat4(camera.getMat())
+        mat = Mat4(self.camera.getMat())
         mat.invertInPlace()
         self.mouseInterfaceNode.setMat(mat)
         self.enableMouse()
@@ -342,6 +342,11 @@ class WartsApp(ShowBase):
         Move the camera sensibly.
         """
 
+        # TODO[#67]: self.globalClock doesn't exist, nor base.globalClock, but
+        # pylint complains about the use of the global. I can't figure out how
+        # else to access it, though. As a hack, maybe we could assign
+        # self.globalClock to panda3d.core.ClockObjet.getGlobalClock() in
+        # __init__?
         dt = globalClock.getDt()
         translateSpeed = 30 * dt
         rotateSpeed = 50 * dt
@@ -351,10 +356,10 @@ class WartsApp(ShowBase):
         sideways = translateSpeed * (self.keys["arrow_right"] -
                                      self.keys["arrow_left"])
         # Check if the mouse is over the window.
-        if base.mouseWatcherNode.hasMouse():
+        if self.mouseWatcherNode.hasMouse():
             # Get the position.
             # Each coordinate is normalized to the interval [-1, 1].
-            mousePos = base.mouseWatcherNode.getMouse()
+            mousePos = self.mouseWatcherNode.getMouse()
             xPos, yPos = mousePos.getX(), mousePos.getY()
             # Only move if the mouse is close to the edge.
             if abs(xPos) > 0.4:
@@ -376,6 +381,7 @@ class WartsApp(ShowBase):
         Zoom in or out.
         """
 
+        # TODO[#67]: {self,base}.globalClock don't exist.
         dt = globalClock.getDt()
         zoomSpeed = 100 * dt
 
@@ -520,10 +526,10 @@ class WartsApp(ShowBase):
 
     def getMousePos(self):
         # Check if the mouse is over the window.
-        if base.mouseWatcherNode.hasMouse():
+        if self.mouseWatcherNode.hasMouse():
             # Get the position.
             # Each coordinate is normalized to the interval [-1, 1].
-            mousePoint = base.mouseWatcherNode.getMouse()
+            mousePoint = self.mouseWatcherNode.getMouse()
             # Create a copy of mousePoint rather than returning a reference to
             # it, because mousePoint will be modified in place by Panda.
             return (mousePoint.getX(), mousePoint.getY())
