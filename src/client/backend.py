@@ -284,6 +284,7 @@ class Backend(object):
                 totalY += unitY
             centroid = (totalX // len(self.unitSelection),
                         totalY // len(self.unitSelection))
+            log.debug("Center requested; it's %s", centroid)
             # FIXME: Write this.
         elif isinstance(message, cmessages.RequestQuit):
             for component in self.allComponents:
