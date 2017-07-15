@@ -1,0 +1,6 @@
+#!/bin/bash
+
+echo "This isn't the commit you're looking for."
+echo "Move along."
+
+exit 0
