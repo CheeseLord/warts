@@ -666,6 +666,10 @@ class MouseButtonState(object):
         super(MouseButtonState, self).__init__()
         self.modifiers = modifiers
         self.startPos  = pos
+        # TODO: Keep track of a global prevValidMousePos, which serves the same
+        # purpose as each MouseButtonState.lastPos. All MouseButtonStates'
+        # lastPos's are the same anyway, so there's no need to track them
+        # separately.
         self.lastPos   = pos
         self.hasMoved  = False
 
