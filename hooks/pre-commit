@@ -1,6 +1,28 @@
 #!/bin/bash
 
-echo "This isn't the commit you're looking for."
-echo "Move along."
+fail() {
+    echo
+    echo "** Pre-commit hook failed **"
+    exit 1
+}
 
-exit 0
+# Make sure we're run from the directory containing bin/, else we're going to
+# have a bad time.
+if [ ! -d bin ]; then
+    echo "Internal error in pre-commit hook: not run from root of repository."
+    fail
+fi
+
+# Check that tests and lint run cleanly.
+
+# FIXME: Enable once the tests are actually clean.
+# TODO: Run quietly?
+# if ! ./bin/test.sh; then
+#     fail
+# fi
+
+# -rn is shorthand for "--reports=no", and suppresses all output except the
+# actual messages (errors, warnings, etc.).
+if ! ./bin/lint.sh -rn; then
+    fail
+fi
