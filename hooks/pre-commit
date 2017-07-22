@@ -14,6 +14,9 @@ if [ ! -d bin ]; then
 fi
 
 # Check that tests and lint run cleanly.
+# TODO: Add a script bin/validate.sh that runs these and then notes down
+# somewhere that <hash for current staged repo state> validated cleanly. If
+# that note is present, then don't re-validate during pre-commit hook.
 
 # Amazingly enough, pytest doesn't seem to have an option for "produce no
 # output on success". So simulate that ourselves.
