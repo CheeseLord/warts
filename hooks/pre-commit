@@ -2,7 +2,11 @@
 
 fail() {
     echo
-    echo "** Pre-commit hook failed **"
+    if (( $# > 0 )); then
+        echo "** Pre-commit hook failed: $1 **"
+    else
+        echo "** Pre-commit hook failed **"
+    fi
     exit 1
 }
 
@@ -26,11 +30,11 @@ fi
 # something more complicated.
 if ! test_output="$(./bin/test.sh -- --color=yes)"; then
     echo "$test_output"
-    fail
+    fail "Not all tests passed."
 fi
 
 # -rn is shorthand for "--reports=no", and suppresses all output except the
 # actual messages (errors, warnings, etc.).
 if ! ./bin/lint.sh -rn; then
-    fail
+    fail "Lint output was not clean."
 fi
