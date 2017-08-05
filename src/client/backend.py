@@ -199,6 +199,7 @@ class Backend(object):
             self.gameState.resources[self.myId] = message.amount
             log.info("I now have %s arbitrary units of resource.",
                      message.amount)
+            forwardToGraphicsInterface = True
         elif isinstance(message, messages.GroundInfo):
             # Note: this isn't used in any way right now. I think it's right,
             # but it's definitely possible we transposed something, or worse.

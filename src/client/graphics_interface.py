@@ -149,6 +149,9 @@ class GraphicsInterface(object):
 
                 gMessage = cmessages.MoveEntity(gid, gPos)
                 self.graphics.interfaceMessage(gMessage.serialize())
+            elif isinstance(message, messages.ResourceAmt):
+                gMessage = cmessages.DisplayResources(message.amount)
+                self.graphics.interfaceMessage(gMessage.serialize())
             elif isinstance(message, cmessages.MarkUnitSelected):
                 uid = message.unitId
                 gid = self.uidToGid[uid]

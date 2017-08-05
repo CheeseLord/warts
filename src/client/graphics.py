@@ -4,6 +4,7 @@ import sys
 
 from direct.task import Task  # This must be imported first.
 from direct.actor.Actor import Actor
+from direct.gui.OnscreenText import OnscreenText
 from direct.showbase.ShowBase import ShowBase
 from panda3d import core
 from panda3d.core import Point2, Point3, Mat4, Filename, LineSegs, ClockObject
@@ -60,6 +61,7 @@ class WartsApp(ShowBase):
         self.selectionBox = None
         self.selectionBoxNode = None
         self.selectionBoxOrigin = None
+        self.resourceDisplay = OnscreenText(pos=(-.9,.9))
 
         # Define the ground plane by a normal (+z) and a point (the origin).
         self.groundPlane = core.Plane(core.Vec3(0, 0, 1), core.Point3(0, 0, 0))
@@ -82,6 +84,8 @@ class WartsApp(ShowBase):
             self.moveEntity(message.gid, message.pos)
         elif isinstance(message, cmessages.MarkEntitySelected):
             self.markSelected(message.gid, message.isSelected)
+        elif isinstance(message, cmessages.DisplayResources):
+            self.displayResources(message.resourceAmt)
         else:
             badIMessageCommand(message, log)
 
@@ -214,6 +218,10 @@ class WartsApp(ShowBase):
 
         z = 5 if isSelected else 0
         entity.model.setPos(0, 0, z)
+
+    def displayResources(self, resourceAmt):
+        # TODO[#3]: Magic numbers bad.
+        self.resourceDisplay.setText("Resource: {}".format(resourceAmt))
 
     def createSelectionBox(self, corner1, corner2):
         """

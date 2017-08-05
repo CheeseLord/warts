@@ -39,6 +39,8 @@ ControlRClick      = defineMessageType("control_right_click",
 DragBox            = defineMessageType("drag_box",
                                        [("corner1", G_POS_ARG),
                                         ("corner2", G_POS_ARG)])
+DisplayResources   = defineMessageType("display_resources",
+                                       [("resourceAmt", INT_ARG)])
 MarkEntitySelected = defineMessageType("mark_entity_selected",
                                        [("gid", GRAPHICS_ID_ARG),
                                         ("isSelected", BOOL_ARG)])
