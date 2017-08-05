@@ -18,6 +18,8 @@ class GameState(object):
         # Reference chunks as [x][y].
         self.groundTypes = [[0 for _x in range(mapHeight)]
                             for _y in range(mapWidth)]
+        # List of build coordinates. For now, individual resource pools are
+        # 1x1, so if you want something larger just create multiple pools.
         self.resourcePools = []
 
     @property

@@ -6,11 +6,13 @@ shared between client and server.
 import heapq
 import math
 
-from src.shared.config import CHUNK_SIZE
+from src.shared.config import CHUNK_SIZE, BUILD_SIZE
 from src.shared.exceptions import NoPathToTargetError
 from src.shared.logconfig import newLogger
 
 log = newLogger(__name__)
+
+BUILDS_PER_CHUNK = CHUNK_SIZE / BUILD_SIZE
 
 # Costs used by pathfinding code.
 # Measure distances in unit coordinates.
@@ -194,6 +196,10 @@ def getChunkCenter(chunkPos):
     """
     return tuple(x + CHUNK_SIZE // 2 for x in chunkToUnit(chunkPos))
 
+# TODO[#70]: Sigh. This is not a good way to keep track of coordinates. It's
+# too easy to forget to call one of these functions (or call the wrong one) and
+# then you just silently get the wrong value.
+
 def chunkToUnit(chunkPos):
     """
     Return the unit coordinates of the origin corner of chunkPos.
@@ -205,4 +211,28 @@ def unitToChunk(unitPos):
     Return the chunk coordinates of the chunk containing unitPos.
     """
     return tuple(x // CHUNK_SIZE for x in unitPos)
+
+def chunkToBuild(chunkPos):
+    """
+    Return the build coordinates of the origin corner of chunkPos.
+    """
+    return tuple(x * BUILDS_PER_CHUNK for x in chunkPos)
+
+def buildToChunk(buildPos):
+    """
+    Return the chunk coordinates of the chunk containing buildPos.
+    """
+    return tuple(x // BUILDS_PER_CHUNK for x in buildPos)
+
+def buildToUnit(buildPos):
+    """
+    Return the unit coordinates of the origin corner of buildPos.
+    """
+    return tuple(x * BUILD_SIZE for x in buildPos)
+
+def unitToBuild(unitPos):
+    """
+    Return the build coordinates of the build square containing unitPos.
+    """
+    return tuple(x // BUILD_SIZE for x in unitPos)
 

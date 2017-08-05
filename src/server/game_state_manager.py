@@ -67,6 +67,11 @@ class GameStateManager(object):
                 msg = messages.GroundInfo((x, y), groundType)
                 self.connectionManager.sendMessage(playerId, msg)
 
+        # Send resource pool info.
+        for pool in self.gameState.resourcePools:
+            msg = messages.ResourceLoc(pool)
+            self.connectionManager.sendMessage(playerId, msg)
+
         # Send positions of all existing obelisks.
         for unitId in self.gameState.positions:
             # The gameState does not yet know about this new player, so their
@@ -233,6 +238,13 @@ def getDefaultGameState():
     gameState.groundTypes[1][3] = 1
     gameState.groundTypes[2][3] = 1
     gameState.groundTypes[3][2] = 1
+
+    # Resource pools.
+    # TODO [#70]: Make use of BUILDS_PER_CHUNK.
+    gameState.resourcePools.extend([
+        (13, 16),
+        (14, 16),
+    ])
 
     return gameState
 
