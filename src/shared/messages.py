@@ -121,6 +121,7 @@ OrderMove     = defineMessageType("order_move", [("unitSet", UNIT_SET_ARG),
                                                  ("dest", U_POS_ARG)])
 OrderNew      = defineMessageType("order_new", [("pos", U_POS_ARG)])
 ResourceAmt   = defineMessageType("resource_amount", [("amount", INT_ARG)])
+ResourceLoc   = defineMessageType("resource_loc", [("pos", B_POS_ARG)])
 SetPos        = defineMessageType("set_pos",
                                   [("unitId", UNIT_ID_ARG),
                                    ("pos", U_POS_ARG)])
