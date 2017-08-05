@@ -356,13 +356,15 @@ class WartsApp(ShowBase):
     # is from Panda3D.
     def updateCameraTask(self, task):  # pylint: disable=unused-argument
         """
-        Move the camera sensibly.
+        Move the camera "sensibly".
         """
 
         dt = self.globalClock.getDt()
         translateSpeed = 30 * dt
         rotateSpeed = 50 * dt
 
+        # TODO: I think we probably just want a flat speed that we move at,
+        # which is used if either arrow key pressed or mouse at screen edge.
         forward = translateSpeed * (self.keys["arrow_up"] -
                                     self.keys["arrow_down"])
         sideways = translateSpeed * (self.keys["arrow_right"] -
@@ -374,9 +376,9 @@ class WartsApp(ShowBase):
             mousePos = self.mouseWatcherNode.getMouse()
             xPos, yPos = mousePos.getX(), mousePos.getY()
             # Only move if the mouse is close to the edge.
-            if abs(xPos) > 0.4:
+            if 0.8 < abs(xPos) <= 1.0:
                 sideways += 2 * translateSpeed * xPos
-            if abs(yPos) > 0.4:
+            if 0.8 < abs(yPos) <= 1.0:
                 forward += 2 * translateSpeed * yPos
         self.cameraHolder.setPos(self.cameraHolder, sideways, forward, 0)
 
