@@ -32,6 +32,11 @@ class GameStateManager(object):
         # TODO[#10]: Why is this in GameStateManager?
         self.stdio = None
 
+        # TODO[#10]: Why is this in GameStateManager?
+        # I was gonna just make this a global, but pylint doesn't like globals.
+        # Fortunately, this is definitely less terrible and hacky.
+        self.elapsedTicks = 0
+
     # TODO[#10]: Why is this in GameStateManager?
     def stdioReady(self, stdioComponent):
         assert self.stdio is None
@@ -150,9 +155,10 @@ class GameStateManager(object):
         self.messageCounts.clear()
         # FIXME: Shouldn't really go in tick(); I just put it here so we could
         # test handling of ResourceAmt in client.
-        # Hack: just give everyone 42 resources.
-        msg = messages.ResourceAmt(42)
+        # Hack: just give everyone 2 resources per second.
+        msg = messages.ResourceAmt(self.elapsedTicks / 5)
         self.connectionManager.broadcastMessage(msg)
+        self.elapsedTicks += 1
 
     def applyOrders(self):
         # Create any pending units.
