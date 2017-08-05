@@ -61,7 +61,7 @@ class WartsApp(ShowBase):
         self.selectionBox = None
         self.selectionBoxNode = None
         self.selectionBoxOrigin = None
-        self.resourceDisplay = OnscreenText(pos=(-.9,.9))
+        self.resourceDisplay = OnscreenText(pos=(-.9,.9), mayChange=True)
 
         # Define the ground plane by a normal (+z) and a point (the origin).
         self.groundPlane = core.Plane(core.Vec3(0, 0, 1), core.Point3(0, 0, 0))
