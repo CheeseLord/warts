@@ -48,7 +48,7 @@ class ConnectionManager(object):
     def removeConnection(self, connection):
         if connection.playerId in self.connections:
             del self.connections[connection.playerId]
-            self.gameStateManager.removeConnection(connection.playerId)
+            self.gameStateManager.removePlayer(connection.playerId)
         else:
             log.warning("Failed to remove connection.")
 

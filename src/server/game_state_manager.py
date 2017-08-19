@@ -37,6 +37,11 @@ class GameStateManager(object):
         # Fortunately, this is definitely less terrible and hacky.
         self.elapsedTicks = 0
 
+
+    ###########################################################################
+    # Stuff that probably belongs in server backend -- interfacing with other
+    # components
+
     # TODO[#10]: Why is this in GameStateManager?
     def stdioReady(self, stdioComponent):
         assert self.stdio is None
@@ -86,10 +91,11 @@ class GameStateManager(object):
             msg = messages.NewObelisk(unitId, otherPos)
             self.connectionManager.sendMessage(playerId, msg)
 
-    # FIXME[#10]: Why is this in GameStateManager?
-    def removeConnection(self, playerId):
-        for unitId in self.gameState.getAllUnitsForPlayer(playerId):
-            self.unitOrders.giveOrders(unitId, [DelUnitOrder()])
+
+    ###########################################################################
+    # Stuff having to do with handling inputs from clients, but higher-level
+    # than just the network component. Maybe this should go in a connection
+    # manager, or client manager?
 
     # FIXME[#10]: Why is this in GameStateManager?
     def stringReceived(self, playerId, data):
@@ -148,6 +154,14 @@ class GameStateManager(object):
                 badEMessageCommand(message, log, clientId=playerId)
         except InvalidMessageError as error:
             illFormedEMessage(error, log, clientId=playerId)
+
+
+    ###########################################################################
+    # Stuff that probably actually does belong in GameStateManager.
+
+    def removePlayer(self, playerId):
+        for unitId in self.gameState.getAllUnitsForPlayer(playerId):
+            self.unitOrders.giveOrders(unitId, [DelUnitOrder()])
 
     # Why is this in GameStateManager?
     # Wrong question. *This* function's purpose is "update the game state
