@@ -149,7 +149,16 @@ class GameStateManager(object):
         except InvalidMessageError as error:
             illFormedEMessage(error, log, clientId=playerId)
 
-    # FIXME[#10]: Why is this in GameStateManager?
+    # Why is this in GameStateManager?
+    # Wrong question. *This* function's purpose is "update the game state
+    # because a tick has elapsed", which is pretty much the one thing here that
+    # definitely does belong in the GameStateManager. The right question is:
+    # "Where is the top-level function that resolves a tick, or for that matter
+    # is there even such a function above GameStateManager.tick?" To which the
+    # answer is: "Currently, no; server.main just sets up a LoopingCall of
+    # gameStateManager.tick. But there's very little that needs to be done on
+    # a tick boundary that isn't updating game state, so it's not really clear
+    # there needs to be a function above GameStateManager.tick."
     def tick(self):
         self.applyOrders()
         self.messageCounts.clear()
