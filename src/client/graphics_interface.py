@@ -9,6 +9,7 @@ from src.client import messages as cmessages
 
 log = newLogger(__name__)
 
+
 class GraphicsInterface(object):
     def __init__(self, backend):
         self.ready = False
@@ -84,7 +85,7 @@ class GraphicsInterface(object):
                 # TODO: Organize all the coordinate conversion functions. Make
                 # sure we have functions to convert both positions and sizes.
                 # Actually use one of those functions here.
-                goalGSize = tuple(float(x)/GRAPHICS_SCALE for x in goalUSize)
+                goalGSize = tuple(float(x) / GRAPHICS_SCALE for x in goalUSize)
 
                 gMessage = cmessages.AddEntity(gid, gPos, isExample, goalGSize,
                                                modelPath)
@@ -152,6 +153,9 @@ class GraphicsInterface(object):
             elif isinstance(message, messages.ResourceAmt):
                 gMessage = cmessages.DisplayResources(message.amount)
                 self.graphics.interfaceMessage(gMessage.serialize())
+            elif isinstance(message, messages.ResourceLoc):
+                bPos = message.pos
+                # FIXME: Write this.
             elif isinstance(message, cmessages.MarkUnitSelected):
                 uid = message.unitId
                 gid = self.uidToGid[uid]

@@ -198,6 +198,9 @@ class Backend(object):
         elif isinstance(message, messages.ResourceAmt):
             self.gameState.resources[self.myId] = message.amount
             forwardToGraphicsInterface = True
+        elif isinstance(message, messages.ResourceLoc):
+            self.gameState.resourcePools.append(message.pos)
+            forwardToGraphicsInterface = True
         elif isinstance(message, messages.GroundInfo):
             # Note: this isn't used in any way right now. I think it's right,
             # but it's definitely possible we transposed something, or worse.
@@ -334,10 +337,10 @@ class Backend(object):
 def unitToGraphics(unitCoords):
     """Convert unit (xu,yu) integers tuples to graphics (xg,yg) float tuples
     """
-    return tuple(float(x)/GRAPHICS_SCALE for x in unitCoords)
+    return tuple(float(x) / GRAPHICS_SCALE for x in unitCoords)
 
 def graphicsToUnit(graphicsCoords):
     """Convert graphics (xg,yg) float tuples to unit (xu,yu) integers tuples
     """
-    return tuple(int(round(x*GRAPHICS_SCALE)) for x in graphicsCoords)
+    return tuple(int(round(x * GRAPHICS_SCALE)) for x in graphicsCoords)
 
