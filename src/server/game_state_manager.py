@@ -1,7 +1,8 @@
-from collections import defaultdict
+from collections import defaultdict, deque
 
 from src.shared.exceptions import NoPathToTargetError
 from src.shared.game_state import GameState
+from src.shared.game_state_change import ResourceChange
 from src.shared.geometry import findPath
 from src.shared.ident import unitToPlayer, getUnitSubId
 from src.shared.logconfig import newLogger
@@ -11,6 +12,7 @@ from src.shared.message_infrastructure import deserializeMessage, \
 from src.shared import messages
 from src.shared.unit_orders import UnitOrders, Order, DelUnitOrder, \
     MoveUnitOrder
+from src.shared.utils import thisShouldNeverHappen
 
 log = newLogger(__name__)
 
@@ -25,6 +27,8 @@ class GameStateManager(object):
         self.gameState = getDefaultGameState()
         self.unitOrders = UnitOrders()
         self.connectionManager = connectionManager
+
+        self.pendingChanges = deque()
 
         # TODO[#10]: Why is this in GameStateManager?
         self.messageCounts = defaultdict(int)
@@ -56,14 +60,31 @@ class GameStateManager(object):
     # a tick boundary that isn't updating game state, so it's not really clear
     # there needs to be a function above GameStateManager.tick."
     def tick(self):
-        self.applyOrders()
-        self.messageCounts.clear()
         # FIXME: Shouldn't really go in tick(); I just put it here so we could
         # test handling of ResourceAmt in client.
         # Hack: just give everyone 2 resources per second.
-        msg = messages.ResourceAmt(self.elapsedTicks / 5)
-        self.connectionManager.broadcastMessage(msg)
+        if self.elapsedTicks % 5 == 0:
+            for playerId in self.connectionManager.connections.keys():
+                self.scheduleChange(ResourceChange(playerId, 1))
+
+        self.applyOrders()
+        self.applyPendingChanges()
+        self.broadcastChanges()
+
+        self.pendingChanges.clear()
+        self.messageCounts.clear()
         self.elapsedTicks += 1
+
+    def scheduleChange(self, change):
+        self.pendingChanges.append(change)
+
+    def applyPendingChanges(self):
+        # TODO: Figure out a way to ensure that these are commutative (or else
+        # resolve them simultaneously). As is, this solution might give a
+        # subtle advantage to lower-numbered players, depending on what we put
+        # in GameStateChanges.
+        for change in self.pendingChanges:
+            change.apply(self.gameState)
 
     def applyOrders(self):
         # Create any pending units.
@@ -253,6 +274,18 @@ class GameStateManager(object):
                 badEMessageCommand(message, log, clientId=playerId)
         except InvalidMessageError as error:
             illFormedEMessage(error, log, clientId=playerId)
+
+    def broadcastChanges(self):
+        for change in self.pendingChanges:
+            # FIXME: Hack to send a ResourceAmt for ResourceChanges. Really we
+            # should just send a more general GameStateUpdate message, but that
+            # doesn't exist yet.
+            if isinstance(change, ResourceChange):
+                newResources = self.gameState.resources[change.playerId]
+                msg = messages.ResourceAmt(newResources)
+                self.connectionManager.sendMessage(change.playerId, msg)
+            else:
+                thisShouldNeverHappen()
 
 
 # TODO[#10]: Why is this in GameStateManager?
