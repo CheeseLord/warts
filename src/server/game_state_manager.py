@@ -259,7 +259,8 @@ class GameStateManager(object):
                     else:
                         try:
                             srcPos = self.gameState.getPos(unitId)
-                            path = findPath(self.gameState, srcPos, message.dest)
+                            path = findPath(self.gameState, srcPos,
+                                            message.dest)
                             log.debug("Issuing orders to unit %s: %s.",
                                       unitId, path)
                             orders = map(MoveUnitOrder, path)
@@ -268,8 +269,8 @@ class GameStateManager(object):
                             log.debug("Can't order unit %s to %s: "
                                       "no path to target.",
                                       unitId, message.dest)
-                            # If the target position is not reachable, just drop
-                            # the command.
+                            # If the target position is not reachable, just
+                            # drop the command.
             else:
                 badEMessageCommand(message, log, clientId=playerId)
         except InvalidMessageError as error:

@@ -353,8 +353,8 @@ def badEMessageArgument(message, otherLog, clientId=None, reason=""):
 #
 # def illFormedIMessage(error, otherLog, clientId=None):
 #     """
-#     Give an error for when a message string originating from an internal source
-#     could not be parsed into a message, for example because it used a
+#     Give an error for when a message string originating from an internal
+#     source could not be parsed into a message, for example because it used a
 #     nonexistent command or passed the wrong number of arguments.
 #     """
 #
