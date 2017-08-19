@@ -23,6 +23,10 @@ log = newLogger(__name__)
 # TODO[#34]: Read from a config file.
 DESIRED_FPS = 60
 
+# Fraction of the window (on each axis) taken up by the "edge scrolling"
+# region. Note that half of the region is on each side.
+EDGE_SCROLL_WIDTH = 0.2
+
 
 class WartsApp(ShowBase):
     """
@@ -359,30 +363,44 @@ class WartsApp(ShowBase):
     # is from Panda3D.
     def updateCameraTask(self, task):  # pylint: disable=unused-argument
         """
-        Move the camera "sensibly".
+        Move the camera sensibly.
         """
 
         dt = self.globalClock.getDt()
         translateSpeed = 30 * dt
-        rotateSpeed = 50 * dt
+        rotateSpeed    = 50 * dt
 
-        # TODO: I think we probably just want a flat speed that we move at,
-        # which is used if either arrow key pressed or mouse at screen edge.
-        forward = translateSpeed * (self.keys["arrow_up"] -
-                                    self.keys["arrow_down"])
-        sideways = translateSpeed * (self.keys["arrow_right"] -
-                                     self.keys["arrow_left"])
+        # Separately track whether the camera should translate in each of the 4
+        # directions. These 4 are initialized based on the various inputs that
+        # might tell us to scroll, and different inputs saying the same thing
+        # don't stack. That way if we get inputs saying both "left" and
+        # "right", they can cancel and the camera just won't move along that
+        # axis -- even if, say, there are two inputs saying "left" and only one
+        # saying "right'.
+        moveLeft  = self.keys["arrow_left"]
+        moveRight = self.keys["arrow_right"]
+        moveUp    = self.keys["arrow_up"]
+        moveDown  = self.keys["arrow_down"]
+
         # Check if the mouse is over the window.
         if self.mouseWatcherNode.hasMouse():
             # Get the position.
             # Each coordinate is normalized to the interval [-1, 1].
             mousePos = self.mouseWatcherNode.getMouse()
             xPos, yPos = mousePos.getX(), mousePos.getY()
-            # Only move if the mouse is close to the edge.
-            if 0.8 < abs(xPos) <= 1.0:
-                sideways += 2 * translateSpeed * xPos
-            if 0.8 < abs(yPos) <= 1.0:
-                forward += 2 * translateSpeed * yPos
+            # Only move if the mouse is close to the edge, and actually within
+            # the window.
+            if  (1.0 - EDGE_SCROLL_WIDTH) < xPos <=  1.0:
+                moveRight = 1
+            if -(1.0 - EDGE_SCROLL_WIDTH) > xPos >= -1.0:
+                moveLeft  = 1
+            if  (1.0 - EDGE_SCROLL_WIDTH) < yPos <=  1.0:
+                moveUp    = 1
+            if -(1.0 - EDGE_SCROLL_WIDTH) > yPos >= -1.0:
+                moveDown  = 1
+
+        forward  = translateSpeed * (moveUp    - moveDown)
+        sideways = translateSpeed * (moveRight - moveLeft)
         self.cameraHolder.setPos(self.cameraHolder, sideways, forward, 0)
 
         if sideways != 0 or forward != 0:
