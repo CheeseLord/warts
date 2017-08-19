@@ -39,6 +39,105 @@ class GameStateManager(object):
 
 
     ###########################################################################
+    # Stuff that probably actually does belong in GameStateManager.
+
+    def removePlayer(self, playerId):
+        for unitId in self.gameState.getAllUnitsForPlayer(playerId):
+            self.unitOrders.giveOrders(unitId, [DelUnitOrder()])
+
+    # Why is this in GameStateManager?
+    # Wrong question. *This* function's purpose is "update the game state
+    # because a tick has elapsed", which is pretty much the one thing here that
+    # definitely does belong in the GameStateManager. The right question is:
+    # "Where is the top-level function that resolves a tick, or for that matter
+    # is there even such a function above GameStateManager.tick?" To which the
+    # answer is: "Currently, no; server.main just sets up a LoopingCall of
+    # gameStateManager.tick. But there's very little that needs to be done on
+    # a tick boundary that isn't updating game state, so it's not really clear
+    # there needs to be a function above GameStateManager.tick."
+    def tick(self):
+        self.applyOrders()
+        self.messageCounts.clear()
+        # FIXME: Shouldn't really go in tick(); I just put it here so we could
+        # test handling of ResourceAmt in client.
+        # Hack: just give everyone 2 resources per second.
+        msg = messages.ResourceAmt(self.elapsedTicks / 5)
+        self.connectionManager.broadcastMessage(msg)
+        self.elapsedTicks += 1
+
+    def applyOrders(self):
+        # Create any pending units.
+        for playerId, pos in self.unitOrders.getPendingNewUnits():
+            unitId = self.gameState.addUnit(playerId, pos)
+            # Should have no effect, but just to make sure we have the right
+            # position...
+            pos = self.gameState.getPos(unitId)
+
+            msg = messages.NewObelisk(unitId, pos)
+            self.connectionManager.broadcastMessage(msg)
+
+        self.unitOrders.clearPendingNewUnits()
+
+        # Resolve orders to any existing units.
+        for unitId in self.unitOrders.getAllUnitsWithOrders():
+            assert self.gameState.isUnitIdValid(unitId)
+            self.applyOrdersForUnit(unitId)
+
+    def applyOrdersForUnit(self, unitId):
+        # TODO: Refactor this?
+        done = False
+        while not done and self.unitOrders.hasNextOrder(unitId):
+            order = self.unitOrders.getNextOrder(unitId)
+
+            # Remove unit.
+            if isinstance(order, DelUnitOrder):
+                # If a client manages to connect then disconnect within a
+                # single tick, then it's possible the only order we'll ever
+                # execute for their obelisk is the "remove" order, without
+                # having first created it. In that case, we can't remove the
+                # obelisk, because it doesn't exist: gameState.removePlayer
+                # would crash if we tried and the clients would be confused if
+                # we sent them a DeleteObelisk message for an unused id.
+                #
+                # FIXME: This is the wrong solution to that. We shouldn't allow
+                # that order to be created in the first place.
+                if self.gameState.isUnitIdValid(unitId):
+                    self.gameState.removeUnit(unitId)
+                    self.unitOrders.clearOrders(unitId)
+                    msg = messages.DeleteObelisk(unitId)
+                    self.connectionManager.broadcastMessage(msg)
+                done = True
+
+            # Move player.
+            elif isinstance(order, MoveUnitOrder):
+                dest = order.dest
+                pos  = self.gameState.getPos(unitId)
+
+                # Don't try to move to the current position.
+                if dest != pos:
+                    assert dest is not None
+
+                    self.gameState.moveUnitToward(unitId, dest)
+                    pos = self.gameState.getPos(unitId)
+                    # TODO: Maybe only broadcast the new position if we handled
+                    # a valid command? Else the position isn't changed....
+                    msg = messages.SetPos(unitId, pos)
+                    self.connectionManager.broadcastMessage(msg)
+
+                    # TODO[#13]: Don't set done if the unit can move farther in
+                    # this tick.
+                    done = True
+
+                else:
+                    self.unitOrders.removeNextOrder(unitId)
+
+            elif isinstance(order, Order):
+                raise TypeError("Unrecognized sublass of Order")
+            else:
+                raise TypeError("Found non-Order object among orders")
+
+
+    ###########################################################################
     # Stuff that probably belongs in server backend -- interfacing with other
     # components
 
@@ -154,105 +253,6 @@ class GameStateManager(object):
                 badEMessageCommand(message, log, clientId=playerId)
         except InvalidMessageError as error:
             illFormedEMessage(error, log, clientId=playerId)
-
-
-    ###########################################################################
-    # Stuff that probably actually does belong in GameStateManager.
-
-    def removePlayer(self, playerId):
-        for unitId in self.gameState.getAllUnitsForPlayer(playerId):
-            self.unitOrders.giveOrders(unitId, [DelUnitOrder()])
-
-    # Why is this in GameStateManager?
-    # Wrong question. *This* function's purpose is "update the game state
-    # because a tick has elapsed", which is pretty much the one thing here that
-    # definitely does belong in the GameStateManager. The right question is:
-    # "Where is the top-level function that resolves a tick, or for that matter
-    # is there even such a function above GameStateManager.tick?" To which the
-    # answer is: "Currently, no; server.main just sets up a LoopingCall of
-    # gameStateManager.tick. But there's very little that needs to be done on
-    # a tick boundary that isn't updating game state, so it's not really clear
-    # there needs to be a function above GameStateManager.tick."
-    def tick(self):
-        self.applyOrders()
-        self.messageCounts.clear()
-        # FIXME: Shouldn't really go in tick(); I just put it here so we could
-        # test handling of ResourceAmt in client.
-        # Hack: just give everyone 2 resources per second.
-        msg = messages.ResourceAmt(self.elapsedTicks / 5)
-        self.connectionManager.broadcastMessage(msg)
-        self.elapsedTicks += 1
-
-    def applyOrders(self):
-        # Create any pending units.
-        for playerId, pos in self.unitOrders.getPendingNewUnits():
-            unitId = self.gameState.addUnit(playerId, pos)
-            # Should have no effect, but just to make sure we have the right
-            # position...
-            pos = self.gameState.getPos(unitId)
-
-            msg = messages.NewObelisk(unitId, pos)
-            self.connectionManager.broadcastMessage(msg)
-
-        self.unitOrders.clearPendingNewUnits()
-
-        # Resolve orders to any existing units.
-        for unitId in self.unitOrders.getAllUnitsWithOrders():
-            assert self.gameState.isUnitIdValid(unitId)
-            self.applyOrdersForUnit(unitId)
-
-    def applyOrdersForUnit(self, unitId):
-        # TODO: Refactor this?
-        done = False
-        while not done and self.unitOrders.hasNextOrder(unitId):
-            order = self.unitOrders.getNextOrder(unitId)
-
-            # Remove unit.
-            if isinstance(order, DelUnitOrder):
-                # If a client manages to connect then disconnect within a
-                # single tick, then it's possible the only order we'll ever
-                # execute for their obelisk is the "remove" order, without
-                # having first created it. In that case, we can't remove the
-                # obelisk, because it doesn't exist: gameState.removePlayer
-                # would crash if we tried and the clients would be confused if
-                # we sent them a DeleteObelisk message for an unused id.
-                #
-                # FIXME: This is the wrong solution to that. We shouldn't allow
-                # that order to be created in the first place.
-                if self.gameState.isUnitIdValid(unitId):
-                    self.gameState.removeUnit(unitId)
-                    self.unitOrders.clearOrders(unitId)
-                    msg = messages.DeleteObelisk(unitId)
-                    self.connectionManager.broadcastMessage(msg)
-                done = True
-
-            # Move player.
-            elif isinstance(order, MoveUnitOrder):
-                dest = order.dest
-                pos  = self.gameState.getPos(unitId)
-
-                # Don't try to move to the current position.
-                if dest != pos:
-                    assert dest is not None
-
-                    self.gameState.moveUnitToward(unitId, dest)
-                    pos = self.gameState.getPos(unitId)
-                    # TODO: Maybe only broadcast the new position if we handled
-                    # a valid command? Else the position isn't changed....
-                    msg = messages.SetPos(unitId, pos)
-                    self.connectionManager.broadcastMessage(msg)
-
-                    # TODO[#13]: Don't set done if the unit can move farther in
-                    # this tick.
-                    done = True
-
-                else:
-                    self.unitOrders.removeNextOrder(unitId)
-
-            elif isinstance(order, Order):
-                raise TypeError("Unrecognized sublass of Order")
-            else:
-                raise TypeError("Found non-Order object among orders")
 
 
 # TODO[#10]: Why is this in GameStateManager?
