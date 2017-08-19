@@ -163,6 +163,12 @@ class GameStateManager(object):
             # TODO: Do something sensible.
             log.info("Don't know how to handle %r.", message)
 
+
+    ###########################################################################
+    # Stuff having to do with handling inputs from clients, but higher-level
+    # than just the network component. Maybe this should go in a connection
+    # manager, or client manager?
+
     # TODO[#10]: Why is this in GameStateManager?
     def handshake(self, playerId):
         # Send map size (must come before ground info).
@@ -189,12 +195,6 @@ class GameStateManager(object):
             otherPos = self.gameState.getPos(unitId)
             msg = messages.NewObelisk(unitId, otherPos)
             self.connectionManager.sendMessage(playerId, msg)
-
-
-    ###########################################################################
-    # Stuff having to do with handling inputs from clients, but higher-level
-    # than just the network component. Maybe this should go in a connection
-    # manager, or client manager?
 
     # FIXME[#10]: Why is this in GameStateManager?
     def stringReceived(self, playerId, data):
