@@ -1,14 +1,8 @@
-from collections import defaultdict, deque
+from collections import deque
 
-from src.shared.exceptions import NoPathToTargetError
 from src.shared.game_state import GameState
 from src.shared.game_state_change import ResourceChange
-from src.shared.geometry import findPath
-from src.shared.ident import unitToPlayer, getUnitSubId
 from src.shared.logconfig import newLogger
-from src.shared.message_infrastructure import deserializeMessage, \
-    badEMessageArgument, illFormedEMessage, badEMessageCommand, \
-    InvalidMessageError
 from src.shared import messages
 from src.shared.unit_orders import UnitOrders, Order, DelUnitOrder, \
     MoveUnitOrder
@@ -16,34 +10,23 @@ from src.shared.utils import thisShouldNeverHappen
 
 log = newLogger(__name__)
 
-# TODO[#10]: Why is this in GameStateManager?
-MAXIMUM_MESSAGES_PER_TICK = 10
-
-
 class GameStateManager(object):
-    def __init__(self, connectionManager):
+    def __init__(self, backend, connections):
         super(GameStateManager, self).__init__()
+
+        self.backend           = backend
+        self.connectionManager = connections
+
+        self.backend.setGameStateManager(self)
 
         self.gameState = getDefaultGameState()
         self.unitOrders = UnitOrders()
-        self.connectionManager = connectionManager
-
         self.pendingChanges = deque()
-
-        # TODO[#10]: Why is this in GameStateManager?
-        self.messageCounts = defaultdict(int)
-
-        # TODO[#10]: Why is this in GameStateManager?
-        self.stdio = None
 
         # TODO[#10]: Why is this in GameStateManager?
         # I was gonna just make this a global, but pylint doesn't like globals.
         # Fortunately, this is definitely less terrible and hacky.
         self.elapsedTicks = 0
-
-
-    ###########################################################################
-    # Stuff that probably actually does belong in GameStateManager.
 
     def removePlayer(self, playerId):
         for unitId in self.gameState.getAllUnitsForPlayer(playerId):
@@ -72,7 +55,6 @@ class GameStateManager(object):
         self.broadcastChanges()
 
         self.pendingChanges.clear()
-        self.messageCounts.clear()
         self.elapsedTicks += 1
 
     def scheduleChange(self, change):
@@ -85,6 +67,18 @@ class GameStateManager(object):
         # in GameStateChanges.
         for change in self.pendingChanges:
             change.apply(self.gameState)
+
+    def broadcastChanges(self):
+        for change in self.pendingChanges:
+            # FIXME: Hack to send a ResourceAmt for ResourceChanges. Really we
+            # should just send a more general GameStateUpdate message, but that
+            # doesn't exist yet.
+            if isinstance(change, ResourceChange):
+                newResources = self.gameState.resources[change.playerId]
+                msg = messages.ResourceAmt(newResources)
+                self.connectionManager.sendMessage(change.playerId, msg)
+            else:
+                thisShouldNeverHappen()
 
     def applyOrders(self):
         # Create any pending units.
@@ -156,138 +150,6 @@ class GameStateManager(object):
                 raise TypeError("Unrecognized sublass of Order")
             else:
                 raise TypeError("Found non-Order object among orders")
-
-
-    ###########################################################################
-    # Stuff that probably belongs in server backend -- interfacing with other
-    # components
-
-    # TODO[#10]: Why is this in GameStateManager?
-    def stdioReady(self, stdioComponent):
-        assert self.stdio is None
-        self.stdio = stdioComponent
-        assert self.stdio is not None
-
-    # TODO[#10]: Why is this in GameStateManager?
-    def stdioMessage(self, message):
-        # TODO[#48]: Use a real message here.
-        if message == "dump":
-            log.info("Dumping all unit info...")
-            for uid in sorted(self.gameState.positions.keys()):
-                pos = self.gameState.positions[uid]
-                # TODO: Factor this out (maybe into gamestate?)
-                # "    {player:>2}: {subId:>3} @ {x:>4}, {y:>4}"
-                log.info("    %2s: %3s @ %4s, %4s",
-                         unitToPlayer(uid), getUnitSubId(uid), pos[0], pos[1])
-            log.info("End unit dump.")
-        else:
-            # TODO: Do something sensible.
-            log.info("Don't know how to handle %r.", message)
-
-
-    ###########################################################################
-    # Stuff having to do with handling inputs from clients, but higher-level
-    # than just the network component. Maybe this should go in a connection
-    # manager, or client manager?
-
-    # TODO[#10]: Why is this in GameStateManager?
-    def handshake(self, playerId):
-        # Send map size (must come before ground info).
-        msg = messages.MapSize(self.gameState.sizeInChunks)
-        self.connectionManager.sendMessage(playerId, msg)
-
-        # Send ground info.
-        for x in range(len(self.gameState.groundTypes)):
-            for y in range(len(self.gameState.groundTypes[x])):
-                groundType = self.gameState.groundTypes[x][y]
-                msg = messages.GroundInfo((x, y), groundType)
-                self.connectionManager.sendMessage(playerId, msg)
-
-        # Send resource pool info.
-        for pool in self.gameState.resourcePools:
-            msg = messages.ResourceLoc(pool)
-            self.connectionManager.sendMessage(playerId, msg)
-
-        # Send positions of all existing obelisks.
-        for unitId in self.gameState.positions:
-            # The gameState does not yet know about this new player, so their
-            # id should not be in the gameState's mapping.
-            assert unitToPlayer(unitId) != playerId
-            otherPos = self.gameState.getPos(unitId)
-            msg = messages.NewObelisk(unitId, otherPos)
-            self.connectionManager.sendMessage(playerId, msg)
-
-    # FIXME[#10]: Why is this in GameStateManager?
-    def stringReceived(self, playerId, data):
-        # Rate-limit the client.
-        self.messageCounts[playerId] += 1
-        if self.messageCounts[playerId] == MAXIMUM_MESSAGES_PER_TICK:
-            log.warning("Received too many messages this tick from player %s",
-                        playerId)
-        if self.messageCounts[playerId] >= MAXIMUM_MESSAGES_PER_TICK:
-            return
-
-        try:
-            message = deserializeMessage(data)
-            if isinstance(message, messages.OrderNew):
-                self.unitOrders.createNewUnit(playerId, message.pos)
-            elif isinstance(message, messages.OrderDel):
-                for unitId in message.unitSet:
-                    # TODO: Factor out this pair of checks? We're probably
-                    # going to be doing them a *lot*.
-                    if not playerId == unitToPlayer(unitId):
-                        badEMessageArgument(
-                            message, log, clientId=playerId,
-                            reason="Can't delete other player's unit"
-                        )
-                    elif not self.gameState.isUnitIdValid(unitId):
-                        badEMessageArgument(message, log, clientId=playerId,
-                                            reason="No such unit")
-                    else:
-                        self.unitOrders.giveOrders(unitId, [DelUnitOrder()])
-            elif isinstance(message, messages.OrderMove):
-                unitSet = message.unitSet
-                for unitId in unitSet:
-                    if not playerId == unitToPlayer(unitId):
-                        badEMessageArgument(
-                            message, log, clientId=playerId,
-                            reason="Can't order other player's unit"
-                        )
-                    elif not self.gameState.isUnitIdValid(unitId):
-                        badEMessageArgument(message, log, clientId=playerId,
-                                            reason="No such unit")
-                    else:
-                        try:
-                            srcPos = self.gameState.getPos(unitId)
-                            path = findPath(self.gameState, srcPos,
-                                            message.dest)
-                            log.debug("Issuing orders to unit %s: %s.",
-                                      unitId, path)
-                            orders = map(MoveUnitOrder, path)
-                            self.unitOrders.giveOrders(unitId, orders)
-                        except NoPathToTargetError:
-                            log.debug("Can't order unit %s to %s: "
-                                      "no path to target.",
-                                      unitId, message.dest)
-                            # If the target position is not reachable, just
-                            # drop the command.
-            else:
-                badEMessageCommand(message, log, clientId=playerId)
-        except InvalidMessageError as error:
-            illFormedEMessage(error, log, clientId=playerId)
-
-    def broadcastChanges(self):
-        for change in self.pendingChanges:
-            # FIXME: Hack to send a ResourceAmt for ResourceChanges. Really we
-            # should just send a more general GameStateUpdate message, but that
-            # doesn't exist yet.
-            if isinstance(change, ResourceChange):
-                newResources = self.gameState.resources[change.playerId]
-                msg = messages.ResourceAmt(newResources)
-                self.connectionManager.sendMessage(change.playerId, msg)
-            else:
-                thisShouldNeverHappen()
-
 
 # TODO[#10]: Why is this in GameStateManager?
 def getDefaultGameState():
