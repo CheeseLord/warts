@@ -1,5 +1,5 @@
 from src.shared import messages
-from src.shared.geometry import chunkToUnit
+from src.shared.geometry import buildToUnit, chunkToUnit
 from src.shared.ident import unitToPlayer
 from src.shared.logconfig import newLogger
 from src.shared.message_infrastructure import deserializeMessage, \
@@ -8,6 +8,7 @@ from src.client.backend import unitToGraphics, GRAPHICS_SCALE
 from src.client import messages as cmessages
 
 log = newLogger(__name__)
+
 
 class GraphicsInterface(object):
     def __init__(self, backend):
@@ -84,7 +85,7 @@ class GraphicsInterface(object):
                 # TODO: Organize all the coordinate conversion functions. Make
                 # sure we have functions to convert both positions and sizes.
                 # Actually use one of those functions here.
-                goalGSize = tuple(float(x)/GRAPHICS_SCALE for x in goalUSize)
+                goalGSize = tuple(float(x) / GRAPHICS_SCALE for x in goalUSize)
 
                 gMessage = cmessages.AddEntity(gid, gPos, isExample, goalGSize,
                                                modelPath)
@@ -151,6 +152,27 @@ class GraphicsInterface(object):
                 self.graphics.interfaceMessage(gMessage.serialize())
             elif isinstance(message, messages.ResourceAmt):
                 gMessage = cmessages.DisplayResources(message.amount)
+                self.graphics.interfaceMessage(gMessage.serialize())
+            elif isinstance(message, messages.ResourceLoc):
+                _bPos = message.pos
+                modelName = "resource-pool.egg"
+                gid  = self.getNextGid()
+
+                gPos1 = unitToGraphics(buildToUnit(_bPos))
+                gPos2 = unitToGraphics(buildToUnit((coord + 1
+                                                    for coord in _bPos)))
+
+                # Figure out where we want the tile.
+                goalCenterX = 0.5 * (gPos2[0] + gPos1[0])
+                goalCenterY = 0.5 * (gPos2[1] + gPos1[1])
+                goalWidthX  =    abs(gPos2[0] - gPos1[0])
+                goalWidthY  =    abs(gPos2[1] - gPos1[1])
+
+                gPos      = (goalCenterX, goalCenterY)
+                goalGSize = (goalWidthX,  goalWidthY)
+
+                gMessage = cmessages.AddEntity(gid, gPos, False, goalGSize,
+                                               modelName)
                 self.graphics.interfaceMessage(gMessage.serialize())
             elif isinstance(message, cmessages.MarkUnitSelected):
                 uid = message.unitId
