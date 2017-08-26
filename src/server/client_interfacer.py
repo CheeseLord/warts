@@ -12,7 +12,6 @@ from src.shared.unit_orders import DelUnitOrder, MoveUnitOrder
 
 log = newLogger(__name__)
 
-# TODO[#10]: Why is this in GameStateManager?
 MAXIMUM_MESSAGES_PER_TICK = 10
 
 class ClientInterfacer(object):
@@ -27,7 +26,6 @@ class ClientInterfacer(object):
 
         self.messageCounts = defaultdict(int)
 
-    # TODO[#10]: Why is this in GameStateManager?
     def handshake(self, playerId):
         # Send map size (must come before ground info).
         msg = messages.MapSize(self.gameStateManager.gameState.sizeInChunks)
@@ -55,7 +53,6 @@ class ClientInterfacer(object):
             msg = messages.NewObelisk(unitId, otherPos)
             self.connectionManager.sendMessage(playerId, msg)
 
-    # FIXME[#10]: Why is this in GameStateManager?
     def stringReceived(self, playerId, data):
         # Rate-limit the client.
         self.messageCounts[playerId] += 1

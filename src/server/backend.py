@@ -24,13 +24,11 @@ class Backend(object):
         self.gameStateManager.tick()
         self.clientInterfacer.tick()
 
-    # TODO[#10]: Why is this in GameStateManager?
     def stdioReady(self, stdioComponent):
         assert self.stdio is None
         self.stdio = stdioComponent
         assert self.stdio is not None
 
-    # TODO[#10]: Why is this in GameStateManager?
     def stdioMessage(self, message):
         # TODO[#48]: Use a real message here.
         if message == "dump":
