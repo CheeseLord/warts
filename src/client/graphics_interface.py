@@ -1,5 +1,5 @@
 from src.shared import messages
-from src.shared.geometry import chunkToUnit
+from src.shared.geometry import buildToUnit, chunkToUnit
 from src.shared.ident import unitToPlayer
 from src.shared.logconfig import newLogger
 from src.shared.message_infrastructure import deserializeMessage, \
@@ -154,8 +154,26 @@ class GraphicsInterface(object):
                 gMessage = cmessages.DisplayResources(message.amount)
                 self.graphics.interfaceMessage(gMessage.serialize())
             elif isinstance(message, messages.ResourceLoc):
-                bPos = message.pos
-                # FIXME: Write this.
+                _bPos = message.pos
+                modelName = "resource-pool.egg"
+                gid  = self.getNextGid()
+
+                gPos1 = unitToGraphics(buildToUnit(_bPos))
+                gPos2 = unitToGraphics(buildToUnit((coord + 1
+                                                    for coord in _bPos)))
+
+                # Figure out where we want the tile.
+                goalCenterX = 0.5 * (gPos2[0] + gPos1[0])
+                goalCenterY = 0.5 * (gPos2[1] + gPos1[1])
+                goalWidthX  =    abs(gPos2[0] - gPos1[0])
+                goalWidthY  =    abs(gPos2[1] - gPos1[1])
+
+                gPos      = (goalCenterX, goalCenterY)
+                goalGSize = (goalWidthX,  goalWidthY)
+
+                gMessage = cmessages.AddEntity(gid, gPos, False, goalGSize,
+                                               modelName)
+                self.graphics.interfaceMessage(gMessage.serialize())
             elif isinstance(message, cmessages.MarkUnitSelected):
                 uid = message.unitId
                 gid = self.uidToGid[uid]
