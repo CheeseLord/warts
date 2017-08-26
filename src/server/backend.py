@@ -33,8 +33,9 @@ class Backend(object):
         # TODO[#48]: Use a real message here.
         if message == "dump":
             log.info("Dumping all unit info...")
-            for uid in sorted(self.gameState.positions.keys()):
-                pos = self.gameStateManager.gameState.positions[uid]
+            gameState = self.gameStateManager.gameState
+            for uid in sorted(gameState.positions.keys()):
+                pos = gameState.positions[uid]
                 # TODO: Factor this out (maybe into gamestate?)
                 # "    {player:>2}: {subId:>3} @ {x:>4}, {y:>4}"
                 log.info("    %2s: %3s @ %4s, %4s",
