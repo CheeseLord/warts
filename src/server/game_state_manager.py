@@ -2,6 +2,8 @@ from collections import deque
 
 from src.shared.game_state import GameState
 from src.shared.game_state_change import ResourceChange
+from src.shared.geometry import unitToBuild
+from src.shared.ident import unitToPlayer
 from src.shared.logconfig import newLogger
 from src.shared import messages
 from src.shared.unit_orders import UnitOrders, Order, DelUnitOrder, \
@@ -45,10 +47,7 @@ class GameStateManager(object):
     def tick(self):
         # FIXME: Shouldn't really go in tick(); I just put it here so we could
         # test handling of ResourceAmt in client.
-        # Hack: just give everyone 2 resources per second.
-        if self.elapsedTicks % 5 == 0:
-            for playerId in self.connectionManager.connections.keys():
-                self.scheduleChange(ResourceChange(playerId, 1))
+        self.resolveResourceGathering()
 
         self.applyOrders()
         self.applyPendingChanges()
@@ -56,6 +55,15 @@ class GameStateManager(object):
 
         self.pendingChanges.clear()
         self.elapsedTicks += 1
+
+    def resolveResourceGathering(self):
+        if self.elapsedTicks % 5 == 0:
+            for uid in self.gameState.getAllUnits():
+                bPos = unitToBuild(self.gameState.getPos(uid))
+                for pool in self.gameState.resourcePools:
+                    if bPos == pool:
+                        playerId = unitToPlayer(uid)
+                        self.scheduleChange(ResourceChange(playerId, 1))
 
     def scheduleChange(self, change):
         self.pendingChanges.append(change)
