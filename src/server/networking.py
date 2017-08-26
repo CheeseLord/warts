@@ -7,11 +7,10 @@ from src.shared import messages
 log = newLogger(__name__)
 
 
-def runServer(port, connections):
+def startServer(port, connections):
     serverString = "tcp:{}".format(port)
     server = endpoints.serverFromString(reactor, serverString)
     server.listen(NetworkConnectionFactory(connections))
-    reactor.run()
 
 
 class NetworkConnectionFactory(protocol.Factory):
@@ -33,13 +32,18 @@ class ConnectionManager(object):
         self.nextId      = 0
 
         self.gameStateManager = None
+        self.clientInterfacer = None
 
-    # Must be called immediately after __init__, before any other methods.
-    def setGameStateHandler(self, gameStateManager):
+    # These next two methods must be called immediately after __init__, before
+    # any other methods.
+    def setGameStateManager(self, gameStateManager):
         self.gameStateManager = gameStateManager
 
+    def setClientInterfacer(self, clientInterfacer):
+        self.clientInterfacer = clientInterfacer
+
     def newConnection(self):
-        connection = NetworkConnection(self.nextId, self.gameStateManager,
+        connection = NetworkConnection(self.nextId, self.clientInterfacer,
                                        self)
         self.connections[self.nextId] = connection
         self.nextId += 1
@@ -69,16 +73,16 @@ class ConnectionManager(object):
 
 
 class NetworkConnection(Int16StringReceiver):
-    def __init__(self, playerId, gameStateManager, connections):
+    def __init__(self, playerId, clientInterfacer, connections):
         self.playerId = playerId
         self.connections = connections
-        self.gameStateManager = gameStateManager
+        self.clientInterfacer = clientInterfacer
 
     def connectionMade(self):
         peer = self.transport.getPeer()
 
         self.handshake()
-        self.gameStateManager.handshake(self.playerId)
+        self.clientInterfacer.handshake(self.playerId)
 
         # TODO: Create a common method for doing all these prefixed logs?
         log.info("[%s:%s] <new connection with id %s>",
@@ -98,7 +102,7 @@ class NetworkConnection(Int16StringReceiver):
 
     def stringReceived(self, data):
         peer = self.transport.getPeer()
-        self.gameStateManager.stringReceived(self.playerId, data)
+        self.clientInterfacer.stringReceived(self.playerId, data)
 
         log.info("[%s:%s] %r", peer.host, peer.port, data)
 
