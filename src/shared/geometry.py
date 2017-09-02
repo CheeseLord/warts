@@ -288,7 +288,7 @@ class AbstractCoord(object):
 
         x = self.x + rhs.x
         y = self.y + rhs.y
-        return retType(x, y)
+        return retType((x, y))
 
     def __sub__(self, rhs):
         if isinstance(self, Coord) == isinstance(rhs, Coord):
@@ -303,7 +303,7 @@ class AbstractCoord(object):
 
         x = self.x - rhs.x
         y = self.y - rhs.y
-        return retType(x, y)
+        return retType((x, y))
 
 class Distance(AbstractCoord):
     def __neg__(self):
