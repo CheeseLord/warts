@@ -3,9 +3,13 @@
 # Things that still need to be fixed to use the new Coord and Distance classes:
 #     Search for dest, src
 #     Remove all uses of the old 6 CBU-to-CBU functions
-#     Remove all uses of graphicsToWorld, worldToGraphics
+#     Remove graphicsToUnit, unitToGraphics
+#     Implement graphicsToWorld, worldToGraphics
 #     Remove {coord,distance}From{Unit,CBU}
 #     Write AbstractCoord.[de]serialize so messages work
+#
+# Once we get up to merging back to master, use --no-ff so there's a commit
+# message associated with the merge. Then write a real commit message :)
 
 """
 Functions for doing geometry calculations in the various types of coordinates
