@@ -44,10 +44,10 @@ class GraphicsInterface(object):
                 self.myId          = message.playerId
             elif isinstance(message, messages.NewObelisk):
                 uid  = message.unitId
-                uPos = message.pos
+                wPos = message.pos
 
                 gid  = self.getNextGid()
-                gPos = unitToGraphics(uPos)
+                gPos = unitToGraphics(wPos)
 
                 if uid in self.uidToGid:
                     # TODO: The backend no longer forwards unvalidated server
@@ -91,7 +91,7 @@ class GraphicsInterface(object):
                                                modelPath)
                 self.graphics.interfaceMessage(gMessage.serialize())
             elif isinstance(message, messages.GroundInfo):
-                cPos        = message.pos
+                wPos        = message.pos.truncToChunk
                 terrainType = message.terrainType
 
                 if terrainType == 0:
@@ -105,9 +105,8 @@ class GraphicsInterface(object):
 
                 gid  = self.getNextGid()
 
-                gPos1 = unitToGraphics(chunkToUnit(cPos))
-                gPos2 = unitToGraphics(chunkToUnit((coord + 1
-                                                    for coord in cPos)))
+                gPos1 = unitToGraphics(wPos)
+                gPos2 = unitToGraphics(wPos + Distance.fromCBU(chunk=(1,1)))
 
                 # Figure out where we want the tile.
                 goalCenterX = 0.5 * (gPos2[0] + gPos1[0])
@@ -136,7 +135,7 @@ class GraphicsInterface(object):
                 self.graphics.interfaceMessage(gMessage.serialize())
             elif isinstance(message, messages.SetPos):
                 uid  = message.unitId
-                uPos = message.pos
+                wPos = message.pos
 
                 if uid not in self.uidToGid:
                     badEMessageArgument(
@@ -146,7 +145,7 @@ class GraphicsInterface(object):
                     return
                 gid = self.uidToGid[uid]
 
-                gPos = unitToGraphics(uPos)
+                gPos = unitToGraphics(wPos)
 
                 gMessage = cmessages.MoveEntity(gid, gPos)
                 self.graphics.interfaceMessage(gMessage.serialize())
@@ -154,13 +153,12 @@ class GraphicsInterface(object):
                 gMessage = cmessages.DisplayResources(message.amount)
                 self.graphics.interfaceMessage(gMessage.serialize())
             elif isinstance(message, messages.ResourceLoc):
-                _bPos = message.pos
+                wPos = message.pos.truncToBuild
                 modelName = "resource-pool.egg"
                 gid  = self.getNextGid()
 
-                gPos1 = unitToGraphics(buildToUnit(_bPos))
-                gPos2 = unitToGraphics(buildToUnit((coord + 1
-                                                    for coord in _bPos)))
+                gPos1 = unitToGraphics(wPos)
+                gPos2 = unitToGraphics(wPos + Distance.fromCBU(build=(1,1)))
 
                 # Figure out where we want the tile.
                 goalCenterX = 0.5 * (gPos2[0] + gPos1[0])

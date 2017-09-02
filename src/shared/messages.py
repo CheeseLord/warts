@@ -91,11 +91,8 @@ UNIT_SET_ARG   = ArgumentSpecification(1,
                                        UnitSet.serialize)
 UNIT_ID_ARG    = ArgumentSpecification(2, parseUnitId, encodeUnitId)
 
-# Different types of coordinates. For now at least, all bug graphics are
-# encoded and parsed exactly the same way.
-U_POS_ARG = INT_PAIR_ARG    # Unit position  (unit movements)
-B_POS_ARG = INT_PAIR_ARG    # Build position (build grid)
-C_POS_ARG = INT_PAIR_ARG    # Chunk position (terrain tiles)
+# World coordinates.
+POS_ARG = None # TODO FIXME TODO
 
 # The type of ground on a certain chunk.
 TERRAIN_TYPE_ARG = INT_ARG
@@ -109,21 +106,21 @@ TERRAIN_TYPE_ARG = INT_ARG
 DeleteObelisk = defineMessageType("delete_obelisk",
                                   [("unitId", UNIT_ID_ARG)])
 GroundInfo    = defineMessageType("ground_info",
-                                  [("pos", C_POS_ARG),
+                                  [("pos", POS_ARG),
                                    ("terrainType", TERRAIN_TYPE_ARG)])
 MapSize       = defineMessageType("map_size",
                                   [("size", INT_PAIR_ARG)])
 NewObelisk    = defineMessageType("new_obelisk",
                                   [("unitId", UNIT_ID_ARG),
-                                   ("pos", U_POS_ARG)])
+                                   ("pos", POS_ARG)])
 OrderDel      = defineMessageType("order_del", [("unitSet", UNIT_SET_ARG)])
 OrderMove     = defineMessageType("order_move", [("unitSet", UNIT_SET_ARG),
-                                                 ("dest", U_POS_ARG)])
-OrderNew      = defineMessageType("order_new", [("pos", U_POS_ARG)])
+                                                 ("dest", POS_ARG)])
+OrderNew      = defineMessageType("order_new", [("pos", POS_ARG)])
 ResourceAmt   = defineMessageType("resource_amount", [("amount", INT_ARG)])
-ResourceLoc   = defineMessageType("resource_loc", [("pos", B_POS_ARG)])
+ResourceLoc   = defineMessageType("resource_loc", [("pos", POS_ARG)])
 SetPos        = defineMessageType("set_pos",
                                   [("unitId", UNIT_ID_ARG),
-                                   ("pos", U_POS_ARG)])
+                                   ("pos", POS_ARG)])
 YourIdIs      = defineMessageType("your_id_is", [("playerId", PLAYER_ID_ARG)])
 

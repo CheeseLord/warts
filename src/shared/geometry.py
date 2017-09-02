@@ -1,3 +1,12 @@
+# TODO FIXME TODO
+#
+# Things that still need to be fixed to use the new Coord and Distance classes:
+#     Search for dest, src
+#     Remove all uses of the old 6 CBU-to-CBU functions
+#     Remove all uses of graphicsToWorld, worldToGraphics
+#     Remove {coord,distance}From{Unit,CBU}
+#     Write AbstractCoord.[de]serialize so messages work
+
 """
 Functions for doing geometry calculations in the various types of coordinates
 shared between client and server.
@@ -35,14 +44,14 @@ def findPath(gameState, srcPos, destPos):
     # Value larger than any actual distance.
     farFarAway = ORTHOGONAL_COST**2 * chunkWidth * chunkHeight
 
-    srcChunk  = unitToChunk(srcPos)
-    destChunk = unitToChunk(destPos)
+    srcChunk  = srcPos.chunk
+    destChunk = destPos.chunk
     srcCX,  srcCY  = srcChunk
     destCX, destCY = destChunk
 
     # Make sure we're starting within the world.
     if not (0 <= srcCX < chunkWidth and 0 <= srcCY < chunkHeight):
-        raise NoPathToTargetError("Starting point {} outside the word."
+        raise NoPathToTargetError("Starting point {} is outside the world."
                                   .format(srcPos))
 
     # If the source and dest points are in the same chunk, there's no point
@@ -98,7 +107,7 @@ def findPath(gameState, srcPos, destPos):
                 neighborEstCost = neighborStartDist + neighborFwdDist
                 heapq.heappush(chunksToCheck, (neighborEstCost, neighbor))
 
-    if      (not gameState.chunkInBounds(destChunk)) or \
+    if      (not gameState.inBounds(destChunk)) or \
             parents[destCX][destCY] is None:
         raise NoPathToTargetError("No path exists from {} to {}."
                                   .format(srcPos, destPos))
@@ -123,7 +132,10 @@ def findPath(gameState, srcPos, destPos):
     waypoints.reverse()
 
     # Now convert the chunk coordinates to unit coordinates.
-    waypoints = map(getChunkCenter, waypoints)
+    waypoints = map(lambda chunk: Coord.fromCBU(
+            chunk=chunk, unit=(CHUNK_SIZE // 2, CHUNK_SIZE // 2)
+        ), waypoints
+    )
 
     # Note: The very first waypoint is still valid, because it's in a chunk
     # orthogonally adjacent to the chunk containing the source point, so
@@ -173,8 +185,8 @@ def _getValidNeighbors(chunkPos, gameState):
     # Try diagonals first, so that when crossing a non-square rectangle we do
     # the diagonal part of the path before the orthogonal part.
     for neighbor in diagonals:
-        if      gameState.chunkInBounds(neighbor) and \
-                gameState.chunkIsPassable(neighbor):
+        if      gameState.inBounds(neighbor) and \
+                gameState.isPassable(neighbor):
             # Check that the other two corners of the square are passable, so
             # we don't try to move through zero-width spaces in cases like:
             #     @@ B
@@ -182,19 +194,13 @@ def _getValidNeighbors(chunkPos, gameState):
             #      /@@
             #     A @@
             nx, ny = neighbor
-            if      gameState.chunkIsPassable(( x, ny)) and \
-                    gameState.chunkIsPassable((nx,  y)):
+            if      gameState.isPassable(( x, ny)) and \
+                    gameState.isPassable((nx,  y)):
                 yield (DIAGONAL_COST, neighbor)
     for neighbor in orthogonals:
-        if      gameState.chunkInBounds(neighbor) and \
-                gameState.chunkIsPassable(neighbor):
+        if      gameState.inBounds(neighbor) and \
+                gameState.isPassable(neighbor):
             yield (ORTHOGONAL_COST, neighbor)
-
-def getChunkCenter(chunkPos):
-    """
-    Return the unit coordinates of the center of chunkPos.
-    """
-    return tuple(x + CHUNK_SIZE // 2 for x in chunkToUnit(chunkPos))
 
 # TODO[#70]: Sigh. This is not a good way to keep track of coordinates. It's
 # too easy to forget to call one of these functions (or call the wrong one) and
@@ -243,6 +249,19 @@ class AbstractCoord(object):
         super(AbstractCoord, self).__init__()
         self.x, self.y = uPos
 
+    @classmethod
+    def fromUnit(cls, unit):
+        return cls(unit)
+
+    @classmethod
+    def fromCBU(cls, chunk=(0,0), build=(0,0), unit=(0,0)):
+        cx, cy = chunk
+        bx, by = build
+        ux, uy = unit
+        x = cx * CHUNK_SIZE + bx * BUILD_SIZE + ux
+        y = cy * CHUNK_SIZE + by * BUILD_SIZE + uy
+        return cls((x, y))
+
     @property
     def chunk(self):
         return (self.x // CHUNK_SIZE, self.y // CHUNK_SIZE)
@@ -264,6 +283,39 @@ class AbstractCoord(object):
     def unitSub(self):
         return (self.x % BUILD_SIZE, self.y % BUILD_SIZE)
 
+    @property
+    def truncToChunk(self):
+        return self.fromCBU(chunk=self.chunk)
+
+    @property
+    def truncToBuild(self):
+        return self.fromCBU(build=self.build)
+
+    def __repr__(self):
+        return "{}({}, {})".format(type(self), self.x, self.y)
+
+    def __str__(self):
+        cx, cy = self.chunk
+        bx, by = self.build
+        ux, uy = self.unit
+        return "({cx}.{bx}.{ux}, {cy}.{by}.{uy})".format(
+            cx=cx, cy=cy, bx=bx, by=by, ux=ux, uy=uy
+        )
+
+    def __eq__(self, rhs):
+        if type(self) != type(rhs):
+            raise TypeError("Cannot compare {} with {}.".format(
+                type(self), type(rhs)
+            ))
+        return self.x == rhs.x and self.y == rhs.y
+
+    def __ne__(self, rhs):
+        if type(self) != type(rhs):
+            raise TypeError("Cannot compare {} with {}.".format(
+                type(self), type(rhs)
+            ))
+        return self.x != rhs.x and self.y != rhs.y
+
     # Coord + Coord = err
     # Coord + Dist  = Coord
     # Dist  + Coord = Coord
@@ -279,7 +331,7 @@ class AbstractCoord(object):
 
     def __add__(self, rhs):
         if isinstance(self, Coord) and isinstance(rhs, Coord):
-            raise TypeError, "Cannot add two Coords."
+            raise TypeError("Cannot add two Coords.")
         elif isinstance(self, Distance) and isinstance(rhs, Distance):
             retType = Distance
         else:
@@ -299,29 +351,64 @@ class AbstractCoord(object):
             retType = Coord
         else:
             # Distance - Coord
-            raise TypeError, "Cannot subtract Distance - Coord."
+            raise TypeError("Cannot subtract Distance - Coord.")
 
         x = self.x - rhs.x
         y = self.y - rhs.y
         return retType((x, y))
 
 class Distance(AbstractCoord):
+    def length(self):
+        "Return the Euclidean length of this Distance."
+        return math.hypot(self.x, self.y)
+
     def __neg__(self):
         x = - self.x
         y = - self.y
         return Distance((x, y))
 
+    def __rmul__(self, lhs):
+        if type(lhs) != int and type(lhs) != float:
+            raise TypeError("Cannot multiply Distance by {}.".format(
+                type(lhs)
+            ))
+        return Distance(int(round(self.x * lhs)), int(rount(self.y * lhs)))
+
+    def __mul__(self, rhs):
+        return rhs * self
+
 class Coord(AbstractCoord):
+    # @property
+    # def chunkCenter(self):
+    #     """
+    #     Return the Coord of the center of the chunk containing this Coord.
+    #     """
+    #     return coordFromCBU(self.chunk, (0, 0),
+    #                         (CHUNK_SIZE // 2, CHUNK_SIZE // 2))
+
     pass
 
+
+# FIXME: Remove
 def coordFromUnit(unit):
     return Coord(unit)
 
-def coordFromCBU(chunk, build, unit):
+def coordFromCBU(chunk=(0,0), build=(0,0), unit=(0,0)):
     cx, cy = chunk
     bx, by = build
     ux, uy = unit
     x = cx * CHUNK_SIZE + bx * BUILD_SIZE + ux
     y = cy * CHUNK_SIZE + by * BUILD_SIZE + uy
     return Coord((x, y))
+
+def distanceFromUnit(unit):
+    return Distance(unit)
+
+def distanceFromCBU(chunk=(0,0), build=(0,0), unit=(0,0)):
+    cx, cy = chunk
+    bx, by = build
+    ux, uy = unit
+    x = cx * CHUNK_SIZE + bx * BUILD_SIZE + ux
+    y = cy * CHUNK_SIZE + by * BUILD_SIZE + uy
+    return Distance((x, y))
 

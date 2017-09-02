@@ -36,10 +36,11 @@ class Backend(object):
             gameState = self.gameStateManager.gameState
             for uid in sorted(gameState.positions.keys()):
                 pos = gameState.positions[uid]
+                ux, uy = pos.unit
                 # TODO: Factor this out (maybe into gamestate?)
                 # "    {player:>2}: {subId:>3} @ {x:>4}, {y:>4}"
                 log.info("    %2s: %3s @ %4s, %4s",
-                         unitToPlayer(uid), getUnitSubId(uid), pos[0], pos[1])
+                         unitToPlayer(uid), getUnitSubId(uid), ux, uy)
             log.info("End unit dump.")
         else:
             # TODO: Do something sensible.
