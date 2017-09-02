@@ -236,3 +236,92 @@ def unitToBuild(unitPos):
     """
     return tuple(x // BUILD_SIZE for x in unitPos)
 
+
+
+class AbstractCoord(object):
+    def __init__(self, uPos):
+        super(AbstractCoord, self).__init__()
+        self.x, self.y = uPos
+
+    @property
+    def chunk(self):
+        return (self.x // CHUNK_SIZE, self.y // CHUNK_SIZE)
+
+    @property
+    def build(self):
+        return (self.x // BUILD_SIZE, self.y // BUILD_SIZE)
+
+    @property
+    def unit(self):
+        return (self.x, self.y)
+
+    @property
+    def buildSub(self):
+        return ((self.x % CHUNK_SIZE) // BUILD_SIZE,
+                (self.y % CHUNK_SIZE) // BUILD_SIZE)
+
+    @property
+    def unitSub(self):
+        return (self.x % BUILD_SIZE, self.y % BUILD_SIZE)
+
+    # Coord + Coord = err
+    # Coord + Dist  = Coord
+    # Dist  + Coord = Coord
+    # Dist  + Dist  = Dist
+    #
+    # Coord - Coord = Dist
+    # Coord - Dist  = Coord
+    # Dist  - Coord = err
+    # Dist  - Dist  = Dist
+    #
+    #       - Coord = err
+    #       - Dist  = Dist
+
+    def __add__(self, rhs):
+        if isinstance(self, Coord) and isinstance(rhs, Coord):
+            raise TypeError, "Cannot add two Coords."
+        elif isinstance(self, Distance) and isinstance(rhs, Distance):
+            retType = Distance
+        else:
+            # Coord + Distance or Distance + Coord
+            retType = Coord
+
+        x = self.x + rhs.x
+        y = self.y + rhs.y
+        return retType(x, y)
+
+    def __sub__(self, rhs):
+        if isinstance(self, Coord) == isinstance(rhs, Coord):
+            # Coord - Coord or Distance - Distance
+            retType = Distance
+        elif isinstance(self, Coord):
+            # Coord - Distance
+            retType = Coord
+        else:
+            # Distance - Coord
+            raise TypeError, "Cannot subtract Distance - Coord."
+
+        x = self.x - rhs.x
+        y = self.y - rhs.y
+        return retType(x, y)
+
+class Distance(AbstractCoord):
+    def __neg__(self):
+        x = - self.x
+        y = - self.y
+        return Distance((x, y))
+
+class Coord(AbstractCoord):
+    pass
+
+def coordFromUnit(unit):
+    return Coord(unit)
+
+def coordFromCBU(chunk, build, unit):
+    cx, cy = chunk
+    bx, by = build
+    ux, uy = unit
+    x = cx * CHUNK_SIZE + bx * BUILD_SIZE + ux
+    y = cy * CHUNK_SIZE + by * BUILD_SIZE + uy
+    return Coord((x, y))
+
