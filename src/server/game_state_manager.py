@@ -84,7 +84,8 @@ class GameStateManager(object):
             if isinstance(change, ResourceChange):
                 newResources = self.gameState.resources[change.playerId]
                 msg = messages.ResourceAmt(newResources)
-                self.connectionManager.sendMessage(change.playerId, msg)
+                self.connectionManager.sendMessage(change.playerId, msg,
+                                                   dropOnFailure=True)
             else:
                 thisShouldNeverHappen()
 

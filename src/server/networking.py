@@ -63,7 +63,9 @@ class ConnectionManager(object):
         for connection in self:
             connection.sendMessage(message)
 
-    def sendMessage(self, playerId, message):
+    def sendMessage(self, playerId, message, dropOnFailure=False):
+        if dropOnFailure and playerId not in self.connections:
+            return
         self.connections[playerId].sendMessage(message)
 
     def __iter__(self):
