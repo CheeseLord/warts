@@ -2,7 +2,6 @@ from collections import deque
 
 from src.shared.game_state import GameState
 from src.shared.game_state_change import ResourceChange
-from src.shared.geometry import unitToBuild
 from src.shared.ident import unitToPlayer
 from src.shared.logconfig import newLogger
 from src.shared import messages

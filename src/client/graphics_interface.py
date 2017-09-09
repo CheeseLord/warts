@@ -1,10 +1,9 @@
 from src.shared import messages
-from src.shared.geometry import buildToUnit, chunkToUnit
 from src.shared.ident import unitToPlayer
 from src.shared.logconfig import newLogger
 from src.shared.message_infrastructure import deserializeMessage, \
     badEMessageArgument, InvalidMessageError, badIMessageCommand
-from src.client.backend import unitToGraphics, GRAPHICS_SCALE
+from src.client.backend import worldToGraphics, GRAPHICS_SCALE
 from src.client import messages as cmessages
 
 log = newLogger(__name__)
@@ -47,7 +46,7 @@ class GraphicsInterface(object):
                 wPos = message.pos
 
                 gid  = self.getNextGid()
-                gPos = unitToGraphics(wPos)
+                gPos = worldToGraphics(wPos)
 
                 if uid in self.uidToGid:
                     # TODO: The backend no longer forwards unvalidated server
@@ -82,9 +81,9 @@ class GraphicsInterface(object):
                 # TODO[#3]: Magic numbers bad
                 goalUSize = (10, 10)
 
-                # TODO: Organize all the coordinate conversion functions. Make
-                # sure we have functions to convert both positions and sizes.
-                # Actually use one of those functions here.
+                # TODO[#70]: Organize all the coordinate conversion functions.
+                # Make sure we have functions to convert both positions and
+                # sizes. Actually use one of those functions here.
                 goalGSize = tuple(float(x) / GRAPHICS_SCALE for x in goalUSize)
 
                 gMessage = cmessages.AddEntity(gid, gPos, isExample, goalGSize,
@@ -105,8 +104,8 @@ class GraphicsInterface(object):
 
                 gid  = self.getNextGid()
 
-                gPos1 = unitToGraphics(wPos)
-                gPos2 = unitToGraphics(wPos + Distance.fromCBU(chunk=(1,1)))
+                gPos1 = worldToGraphics(wPos)
+                gPos2 = worldToGraphics(wPos + Distance.fromCBU(chunk=(1,1)))
 
                 # Figure out where we want the tile.
                 goalCenterX = 0.5 * (gPos2[0] + gPos1[0])
@@ -145,7 +144,7 @@ class GraphicsInterface(object):
                     return
                 gid = self.uidToGid[uid]
 
-                gPos = unitToGraphics(wPos)
+                gPos = worldToGraphics(wPos)
 
                 gMessage = cmessages.MoveEntity(gid, gPos)
                 self.graphics.interfaceMessage(gMessage.serialize())
@@ -157,8 +156,8 @@ class GraphicsInterface(object):
                 modelName = "resource-pool.egg"
                 gid  = self.getNextGid()
 
-                gPos1 = unitToGraphics(wPos)
-                gPos2 = unitToGraphics(wPos + Distance.fromCBU(build=(1,1)))
+                gPos1 = worldToGraphics(wPos)
+                gPos2 = worldToGraphics(wPos + Distance.fromCBU(build=(1,1)))
 
                 # Figure out where we want the tile.
                 goalCenterX = 0.5 * (gPos2[0] + gPos1[0])

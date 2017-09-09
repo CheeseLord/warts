@@ -1,9 +1,10 @@
 import math
 
-from src.shared.unit_set import UnitSet
+from src.shared.geometry import Coord
 from src.shared.ident import encodeUnitId, parseUnitId
 from src.shared.message_infrastructure import defineMessageType, \
     ArgumentSpecification, InvalidMessageError
+from src.shared.unit_set import UnitSet
 
 
 ###############################################################################
@@ -92,7 +93,7 @@ UNIT_SET_ARG   = ArgumentSpecification(1,
 UNIT_ID_ARG    = ArgumentSpecification(2, parseUnitId, encodeUnitId)
 
 # World coordinates.
-POS_ARG = None # TODO FIXME TODO
+POS_ARG        = ArgumentSpecification(2, Coord.deserialize, Coord.serialize)
 
 # The type of ground on a certain chunk.
 TERRAIN_TYPE_ARG = INT_ARG

@@ -1,16 +1,3 @@
-# TODO FIXME TODO
-#
-# Things that still need to be fixed to use the new Coord and Distance classes:
-#     Search for dest, src
-#     Remove all uses of the old 6 CBU-to-CBU functions
-#     Remove graphicsToUnit, unitToGraphics
-#     Implement graphicsToWorld, worldToGraphics
-#     Remove {coord,distance}From{Unit,CBU}
-#     Write AbstractCoord.[de]serialize so messages work
-#
-# Once we get up to merging back to master, use --no-ff so there's a commit
-# message associated with the merge. Then write a real commit message :)
-
 """
 Functions for doing geometry calculations in the various types of coordinates
 shared between client and server.
@@ -206,47 +193,6 @@ def _getValidNeighbors(chunkPos, gameState):
                 gameState.isPassable(neighbor):
             yield (ORTHOGONAL_COST, neighbor)
 
-# TODO[#70]: Sigh. This is not a good way to keep track of coordinates. It's
-# too easy to forget to call one of these functions (or call the wrong one) and
-# then you just silently get the wrong value.
-
-def chunkToUnit(chunkPos):
-    """
-    Return the unit coordinates of the origin corner of chunkPos.
-    """
-    return tuple(x * CHUNK_SIZE for x in chunkPos)
-
-def unitToChunk(unitPos):
-    """
-    Return the chunk coordinates of the chunk containing unitPos.
-    """
-    return tuple(x // CHUNK_SIZE for x in unitPos)
-
-def chunkToBuild(chunkPos):
-    """
-    Return the build coordinates of the origin corner of chunkPos.
-    """
-    return tuple(x * BUILDS_PER_CHUNK for x in chunkPos)
-
-def buildToChunk(buildPos):
-    """
-    Return the chunk coordinates of the chunk containing buildPos.
-    """
-    return tuple(x // BUILDS_PER_CHUNK for x in buildPos)
-
-def buildToUnit(buildPos):
-    """
-    Return the unit coordinates of the origin corner of buildPos.
-    """
-    return tuple(x * BUILD_SIZE for x in buildPos)
-
-def unitToBuild(unitPos):
-    """
-    Return the build coordinates of the build square containing unitPos.
-    """
-    return tuple(x // BUILD_SIZE for x in unitPos)
-
-
 
 class AbstractCoord(object):
     def __init__(self, uPos):
@@ -294,6 +240,14 @@ class AbstractCoord(object):
     @property
     def truncToBuild(self):
         return self.fromCBU(build=self.build)
+
+    def serialize(self):
+        return [str(int(x)) for x in self.unit]
+
+    @classmethod
+    def deserialize(cls, descs):
+        assert len(descs) == 2
+        return cls.fromUnit(map(int, descs))
 
     def __repr__(self):
         return "{}({}, {})".format(type(self), self.x, self.y)
@@ -387,32 +341,8 @@ class Coord(AbstractCoord):
     #     """
     #     Return the Coord of the center of the chunk containing this Coord.
     #     """
-    #     return coordFromCBU(self.chunk, (0, 0),
+    #     return self.fromCBU(self.chunk, (0, 0),
     #                         (CHUNK_SIZE // 2, CHUNK_SIZE // 2))
 
     pass
-
-
-# FIXME: Remove
-def coordFromUnit(unit):
-    return Coord(unit)
-
-def coordFromCBU(chunk=(0,0), build=(0,0), unit=(0,0)):
-    cx, cy = chunk
-    bx, by = build
-    ux, uy = unit
-    x = cx * CHUNK_SIZE + bx * BUILD_SIZE + ux
-    y = cy * CHUNK_SIZE + by * BUILD_SIZE + uy
-    return Coord((x, y))
-
-def distanceFromUnit(unit):
-    return Distance(unit)
-
-def distanceFromCBU(chunk=(0,0), build=(0,0), unit=(0,0)):
-    cx, cy = chunk
-    bx, by = build
-    ux, uy = unit
-    x = cx * CHUNK_SIZE + bx * BUILD_SIZE + ux
-    y = cy * CHUNK_SIZE + by * BUILD_SIZE + uy
-    return Distance((x, y))
 

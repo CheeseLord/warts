@@ -335,13 +335,9 @@ class Backend(object):
 
 # TODO: Shouldn't these be in the GraphicsInterface if they're going to be
 # with a single component?
-def unitToGraphics(unitCoords):
-    """Convert unit (xu,yu) integers tuples to graphics (xg,yg) float tuples
-    """
-    return tuple(float(x) / GRAPHICS_SCALE for x in unitCoords)
+def worldToGraphics(wPos):
+    return tuple(float(x) / GRAPHICS_SCALE for x in wPos.unit)
 
-def graphicsToUnit(graphicsCoords):
-    """Convert graphics (xg,yg) float tuples to unit (xu,yu) integers tuples
-    """
-    return tuple(int(round(x * GRAPHICS_SCALE)) for x in graphicsCoords)
+def graphicsToWorld(gPos):
+    return Coord.fromUnit(int(round(x * GRAPHICS_SCALE)) for x in gPos)
 
