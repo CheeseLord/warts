@@ -1,11 +1,17 @@
+# TODO: Actually use this class.
+
+# Unreachable. You don't say.
+# pylint: disable=unreachable
+raise NotImplementedError, "This class doesn't work yet."
+
 # Size of every resource pool in build coordinates.
 RESOURCE_WIDTH  = 2
 RESOURCE_HEIGHT = 1
 
 class ResourcePool(object):
-    def __init__(self, bPos):
+    def __init__(self, pos):
         super(ResourcePool, self).__init__()
-        self.pos = bPos
+        self.pos = pos
 
     # Note: these next 8 will probably go in a general 'Structure' class.
 

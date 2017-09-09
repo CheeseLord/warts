@@ -1,7 +1,7 @@
 from collections import defaultdict
 
 from src.shared.exceptions import NoPathToTargetError
-from src.shared.geometry import findPath
+from src.shared.geometry import Coord, findPath
 from src.shared.ident import unitToPlayer
 from src.shared.logconfig import newLogger
 from src.shared.message_infrastructure import deserializeMessage, \
@@ -36,7 +36,8 @@ class ClientInterfacer(object):
         for x in range(len(gameState.groundTypes)):
             for y in range(len(gameState.groundTypes[x])):
                 groundType = gameState.groundTypes[x][y]
-                msg = messages.GroundInfo((x, y), groundType)
+                pos = Coord.fromCBU(chunk=(x, y))
+                msg = messages.GroundInfo(pos, groundType)
                 self.connectionManager.sendMessage(playerId, msg)
 
         # Send resource pool info.

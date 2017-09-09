@@ -1,13 +1,13 @@
 import pytest
 
-from src.shared.geometry import Coord, Distance, coordFromUnit, coordFromCBU
+from src.shared.geometry import Coord, Distance
 
 def test_coord_op_types():
     # Create two chunks and two distances.
-    c1 = coordFromUnit((1, 2))
-    c2 = coordFromCBU((3, 5), (8, 13), (21, 35))
-    d1 = Distance((88, 72))
-    d2 = Distance((84, 41))
+    c1 = Coord.fromUnit((1, 2))
+    c2 = Coord.fromCBU((3, 5), (8, 13), (21, 35))
+    d1 = Distance.fromUnit((88, 72))
+    d2 = Distance.fromCBU((1, 0), (2, 3), (4, 11))
 
     # Check that their types are what we expect. This part really shouldn't
     # fail.
@@ -15,6 +15,15 @@ def test_coord_op_types():
     assert type(c2) == Coord
     assert type(d1) == Distance
     assert type(d2) == Distance
+
+    # Start with scalar multiplication. Can scalar-multiply Distances, but not
+    # Coords.
+    with pytest.raises(TypeError):
+        2 * c1
+    with pytest.raises(TypeError):
+        c2 * 3
+    assert type(2 * d1) == Distance
+    assert type(d2 * 3) == Distance
 
     # Check that the types of all possible combinations of sums, differences,
     # and negations are correct (and that the appropriate ones give errors).

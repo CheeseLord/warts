@@ -2,7 +2,7 @@ from collections import deque
 
 from src.shared.game_state import GameState
 from src.shared.game_state_change import ResourceChange
-from src.shared.geometry import unitToBuild
+from src.shared.geometry import Coord
 from src.shared.ident import unitToPlayer
 from src.shared.logconfig import newLogger
 from src.shared import messages
@@ -59,9 +59,9 @@ class GameStateManager(object):
     def resolveResourceGathering(self):
         if self.elapsedTicks % 5 == 0:
             for uid in self.gameState.getAllUnits():
-                bPos = unitToBuild(self.gameState.getPos(uid))
+                bPos = self.gameState.getPos(uid).build
                 for pool in self.gameState.resourcePools:
-                    if bPos == pool:
+                    if bPos == pool.build:
                         playerId = unitToPlayer(uid)
                         self.scheduleChange(ResourceChange(playerId, 1))
 
@@ -173,10 +173,9 @@ def getDefaultGameState():
     gameState.groundTypes[3][2] = 1
 
     # Resource pools.
-    # TODO [#70]: Make use of BUILDS_PER_CHUNK.
     gameState.resourcePools.extend([
-        (13, 16),
-        (14, 16),
+        Coord.fromCBU(chunk=(2, 2), build=(1, 4)),
+        Coord.fromCBU(chunk=(2, 2), build=(2, 4))
     ])
 
     return gameState

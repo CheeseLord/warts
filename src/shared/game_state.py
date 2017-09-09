@@ -1,5 +1,4 @@
 from collections import defaultdict
-import math
 
 from src.shared.ident import UnitId, unitToPlayer, getUnitSubId
 
@@ -26,14 +25,14 @@ class GameState(object):
     def sizeInChunks(self):
         return self.mapSize
 
-    def chunkInBounds(self, cPos):
-        x, y = cPos
-        return (0 <= x < len(self.groundTypes) and
-                0 <= y < len(self.groundTypes[0]))
+    def inBounds(self, pos):
+        cx, cy = pos.chunk
+        return (0 <= cx < len(self.groundTypes) and
+                0 <= cy < len(self.groundTypes[0]))
 
-    def chunkIsPassable(self, cPos):
-        x, y = cPos
-        return self.chunkInBounds(cPos) and self.groundTypes[x][y] == 0
+    def isPassable(self, pos):
+        cx, cy = pos.chunk
+        return self.inBounds(pos) and self.groundTypes[cx][cy] == 0
 
     def addUnit(self, playerId, position):
         unitId = self.createNewUnitId(playerId)
@@ -50,7 +49,7 @@ class GameState(object):
         self.checkId(unitId)
 
         oldPos = self.getPos(unitId)
-        distance = math.hypot(dest[0] - oldPos[0], dest[1] - oldPos[1])
+        distance = (dest - oldPos).length()
         if distance <= MAX_SPEED:
             # We have enough speed to reach our destination this tick.
             newPos = dest
@@ -59,20 +58,9 @@ class GameState(object):
             # dividing by zero. (Or distance is NaN, in which case
             # distance !> MAX_SPEED, but we're still not dividing by zero.)
             fraction = MAX_SPEED / distance
-            newPos = (oldPos[0] + fraction * (dest[0] - oldPos[0]),
-                      oldPos[1] + fraction * (dest[1] - oldPos[1]))
+            newPos = oldPos + fraction * (dest - oldPos)
 
-        newPos = tuple(int(round(x)) for x in newPos)
         self.moveUnitTo(unitId, newPos)
-
-    # Does anyone actually use this function?
-    def moveUnitBy(self, unitId, deltaPos):
-        self.checkId(unitId)
-        x, y = self.getPos(unitId)
-        dx, dy = deltaPos
-        x += dx
-        y += dy
-        self.moveUnitTo(unitId, (x, y))
 
     def moveUnitTo(self, unitId, newPos):
         self.checkId(unitId)

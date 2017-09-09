@@ -2,9 +2,7 @@ import pytest
 
 from src.shared.exceptions import NoPathToTargetError
 from src.shared.game_state import GameState
-from src.shared.geometry import chunkToUnit, unitToChunk, getChunkCenter
-from src.shared.geometry import findPath
-
+from src.shared.geometry import Coord, findPath
 
 
 class TestBasics:
@@ -22,10 +20,9 @@ class TestBasics:
                 #######
             """
         )
-        # TODO: Maybe create the GameState and do the getChunkCenters in
-        # parseTestCase?
-        srcPos  = getChunkCenter(pointsOfInterest["A"])
-        destPos = getChunkCenter(pointsOfInterest["B"])
+        # TODO: Maybe create the GameState in parseTestCase?
+        srcPos  = pointsOfInterest["A"]
+        destPos = pointsOfInterest["B"]
 
         path = findPath(gameState, srcPos, destPos)
         checkWaypointsPassable(path, gameState.groundTypes)
@@ -44,8 +41,8 @@ class TestBasics:
                 ######
             """
         )
-        srcPos  = getChunkCenter(pointsOfInterest["A"])
-        destPos = getChunkCenter(pointsOfInterest["B"])
+        srcPos  = pointsOfInterest["A"]
+        destPos = pointsOfInterest["B"]
 
         with pytest.raises(NoPathToTargetError):
             findPath(gameState, srcPos, destPos)
@@ -58,8 +55,8 @@ class TestBasics:
                 ..#..
             """
         )
-        srcPos  = getChunkCenter(pointsOfInterest["A"])
-        destPos = getChunkCenter(pointsOfInterest["B"])
+        srcPos  = pointsOfInterest["A"]
+        destPos = pointsOfInterest["B"]
 
         with pytest.raises(NoPathToTargetError):
             findPath(gameState, srcPos, destPos)
@@ -80,8 +77,8 @@ class TestBasics:
                 ###########
             """
         )
-        srcPos  = getChunkCenter(pointsOfInterest["A"])
-        destPos = getChunkCenter(pointsOfInterest["B"])
+        srcPos  = pointsOfInterest["A"]
+        destPos = pointsOfInterest["B"]
 
         path = findPath(gameState, srcPos, destPos)
         checkWaypointsPassable(path, gameState.groundTypes)
@@ -99,8 +96,8 @@ class TestBasics:
                 ######
             """
         )
-        srcPos  = getChunkCenter(pointsOfInterest["A"])
-        destPos = getChunkCenter(pointsOfInterest["B"])
+        srcPos  = pointsOfInterest["A"]
+        destPos = pointsOfInterest["B"]
 
         path = findPath(gameState, srcPos, destPos)
         checkWaypointsPassable(path, gameState.groundTypes)
@@ -121,8 +118,8 @@ class TestBasics:
                 #########
             """
         )
-        srcPos  = getChunkCenter(pointsOfInterest["A"])
-        destPos = getChunkCenter(pointsOfInterest["B"])
+        srcPos  = pointsOfInterest["A"]
+        destPos = pointsOfInterest["B"]
 
         path = findPath(gameState, srcPos, destPos)
         checkWaypointsPassable(path, gameState.groundTypes)
@@ -141,8 +138,8 @@ class TestBasics:
                 #######
             """
         )
-        srcPos  = getChunkCenter(pointsOfInterest["A"])
-        destPos = getChunkCenter(pointsOfInterest["B"])
+        srcPos  = pointsOfInterest["A"]
+        destPos = pointsOfInterest["B"]
 
         path = findPath(gameState, srcPos, destPos)
         checkWaypointsPassable(path, gameState.groundTypes)
@@ -152,8 +149,8 @@ class TestBasics:
 
 # TODO: Maybe just take in the GameState?
 def checkWaypointsPassable(path, groundTypes):
-    for unitPos in path:
-        x, y = unitToChunk(unitPos)
+    for pos in path:
+        x, y = pos.chunk
         assert groundTypes[x][y] == 0
 
     # TODO: Check that none of the lines between waypoints pass through
@@ -199,7 +196,8 @@ def parseTestCase(desc):
                 # Points of interest are always passable, at least for now.
                 gameState.groundTypes[x][y] = 0
                 assert locDesc not in pointsOfInterest
-                pointsOfInterest[locDesc] = (x, y)
+                chunkPos = Coord.fromCBU(chunk=(x, y))
+                pointsOfInterest[locDesc] = chunkPos.chunkCenter
 
     return (gameState, pointsOfInterest)
 

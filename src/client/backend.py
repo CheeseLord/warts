@@ -1,11 +1,12 @@
 from src.shared import messages
 from src.shared.game_state import GameState
+from src.shared.geometry import Coord
 from src.shared.ident import unitToPlayer, getUnitSubId
 from src.shared.logconfig import newLogger
-from src.shared.unit_set import UnitSet
 from src.shared.message_infrastructure import deserializeMessage, \
     badIMessageCommand, illFormedEMessage, InvalidMessageError, \
     badEMessageCommand, badEMessageArgument
+from src.shared.unit_set import UnitSet
 from src.client import messages as cmessages
 
 # Constants
@@ -82,9 +83,10 @@ class Backend(object):
         self.allReady = True
 
         # Request obelisks.
-        msg = messages.OrderNew((10, 0))
+        # TODO[#3]: Magic numbers bad.
+        msg = messages.OrderNew(Coord.fromUnit((10, 0)))
         self.network.backendMessage(msg.serialize())
-        msg = messages.OrderNew((0, 10))
+        msg = messages.OrderNew(Coord.fromUnit((0, 10)))
         self.network.backendMessage(msg.serialize())
 
 
@@ -109,9 +111,10 @@ class Backend(object):
                 isSelected = (uid in self.unitSelection)
                 # TODO: Factor this out (maybe into gamestate?)
                 # "    {sel:1} {player:>2}: {subId:>3} @ {x:>4}, {y:>4}"
+                ux, uy = pos.unit
                 log.info("    %1s %2s: %3s @ %4s, %4s",
                          "*" if isSelected else "", unitToPlayer(uid),
-                         getUnitSubId(uid), pos[0], pos[1])
+                         getUnitSubId(uid), ux, uy)
             log.info("End unit dump.")
         else:
             self.network.backendMessage(message)
@@ -204,9 +207,9 @@ class Backend(object):
         elif isinstance(message, messages.GroundInfo):
             # Note: this isn't used in any way right now. I think it's right,
             # but it's definitely possible we transposed something, or worse.
-            x, y        = message.pos
+            cx, cy      = message.pos.chunk
             terrainType = message.terrainType
-            self.gameState.groundTypes[x][y] = terrainType
+            self.gameState.groundTypes[cx][cy] = terrainType
             forwardToGraphicsInterface = True
         elif isinstance(message, messages.MapSize):
             if self.gameState is not None:
@@ -227,50 +230,50 @@ class Backend(object):
             if message.button == 1:
                 # Left mouse button
                 gPos = message.pos
-                uPos = graphicsToUnit(gPos)
-                chosenUnit = self.getUnitAt(uPos)
+                wPos = graphicsToWorld(gPos)
+                chosenUnit = self.getUnitAt(wPos)
                 self.clearSelection()
                 if chosenUnit is not None:
                     self.addToSelection(chosenUnit)
             elif message.button == 3:
                 # Right mouse button
                 newMsg = messages.OrderMove(self.unitSelection,
-                                            graphicsToUnit(message.pos))
+                                            graphicsToWorld(message.pos))
                 self.network.backendMessage(newMsg.serialize())
         elif isinstance(message, cmessages.ShiftLClick):
             gPos = message.pos
-            uPos = graphicsToUnit(gPos)
-            chosenUnit = self.getUnitAt(uPos)
+            wPos = graphicsToWorld(gPos)
+            chosenUnit = self.getUnitAt(wPos)
             if chosenUnit is not None:
                 self.addToSelection(chosenUnit)
         elif isinstance(message, cmessages.ControlLClick):
             gPos = message.pos
-            uPos = graphicsToUnit(gPos)
-            chosenUnit = self.getUnitAt(uPos)
+            wPos = graphicsToWorld(gPos)
+            chosenUnit = self.getUnitAt(wPos)
             if chosenUnit is not None and chosenUnit in self.unitSelection:
                 self.removeFromSelection(chosenUnit)
         elif isinstance(message, cmessages.ShiftRClick):
-            newMsg = messages.OrderNew(graphicsToUnit(message.pos))
+            newMsg = messages.OrderNew(graphicsToWorld(message.pos))
             self.network.backendMessage(newMsg.serialize())
         elif isinstance(message, cmessages.ControlRClick):
             gPos = message.pos
-            uPos = graphicsToUnit(gPos)
-            chosenUnit = self.getUnitAt(uPos)
+            wPos = graphicsToWorld(gPos)
+            chosenUnit = self.getUnitAt(wPos)
             if chosenUnit is not None:
                 if chosenUnit in self.unitSelection:
                     self.removeFromSelection(chosenUnit)
                 newMsg = messages.OrderDel(UnitSet([chosenUnit]))
                 self.network.backendMessage(newMsg.serialize())
         elif isinstance(message, cmessages.DragBox):
-            ux1, uy1 = graphicsToUnit(message.corner1)
-            ux2, uy2 = graphicsToUnit(message.corner2)
+            ux1, uy1 = graphicsToWorld(message.corner1).unit
+            ux2, uy2 = graphicsToWorld(message.corner2).unit
             xMin = min(ux1, ux2)
             xMax = max(ux1, ux2)
             yMin = min(uy1, uy2)
             yMax = max(uy1, uy2)
             self.clearSelection()
-            for (uid, uPos) in self.gameState.positions.iteritems():
-                ux, uy = uPos
+            for (uid, wPos) in self.gameState.positions.iteritems():
+                ux, uy = wPos.unit
                 # TODO: Add a tolerance based on the size of the unit.
                 if unitToPlayer(uid) == self.myId:
                     if xMin <= ux <= xMax and yMin <= uy <= yMax:
@@ -295,8 +298,8 @@ class Backend(object):
         else:
             badIMessageCommand(message, log)
 
-    def getUnitAt(self, targetUPos):
-        targetX, targetY = targetUPos
+    def getUnitAt(self, targetWPos):
+        targetX, targetY = targetWPos.unit
 
         nearest = None
         # TODO: Compute the diameter of the world in unit coordinates when we
@@ -304,12 +307,12 @@ class Backend(object):
         # that+1 as UPOS_INFINITY or some such, and use that here instead of a
         # float.
         nearestDistance = float('inf')
-        for (uid, uPos) in self.gameState.positions.iteritems():
+        for (uid, wPos) in self.gameState.positions.iteritems():
             if unitToPlayer(uid) != self.myId:
                 continue
 
-            x, y = uPos
-            distance = (x - targetX)**2 + (y - targetY)**2
+            ux, uy = wPos.unit
+            distance = (ux - targetX)**2 + (uy - targetY)**2
             if distance < nearestDistance and distance < MAX_CLICK_DISTANCE:
                 nearest         = uid
                 nearestDistance = distance
@@ -334,13 +337,9 @@ class Backend(object):
 
 # TODO: Shouldn't these be in the GraphicsInterface if they're going to be
 # with a single component?
-def unitToGraphics(unitCoords):
-    """Convert unit (xu,yu) integers tuples to graphics (xg,yg) float tuples
-    """
-    return tuple(float(x) / GRAPHICS_SCALE for x in unitCoords)
+def worldToGraphics(wPos):
+    return tuple(float(x) / GRAPHICS_SCALE for x in wPos.unit)
 
-def graphicsToUnit(graphicsCoords):
-    """Convert graphics (xg,yg) float tuples to unit (xu,yu) integers tuples
-    """
-    return tuple(int(round(x * GRAPHICS_SCALE)) for x in graphicsCoords)
+def graphicsToWorld(gPos):
+    return Coord.fromUnit(int(round(x * GRAPHICS_SCALE)) for x in gPos)
 
