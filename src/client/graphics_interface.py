@@ -1,4 +1,5 @@
 from src.shared import messages
+from src.shared.geometry import Distance
 from src.shared.ident import unitToPlayer
 from src.shared.logconfig import newLogger
 from src.shared.message_infrastructure import deserializeMessage, \

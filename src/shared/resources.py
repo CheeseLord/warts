@@ -1,5 +1,7 @@
 # TODO: Actually use this class.
 
+# Unreachable. You don't say.
+# pylint: disable=unreachable
 raise NotImplementedError, "This class doesn't work yet."
 
 # Size of every resource pool in build coordinates.

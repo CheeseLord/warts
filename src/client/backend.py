@@ -1,11 +1,12 @@
 from src.shared import messages
 from src.shared.game_state import GameState
+from src.shared.geometry import Coord
 from src.shared.ident import unitToPlayer, getUnitSubId
 from src.shared.logconfig import newLogger
-from src.shared.unit_set import UnitSet
 from src.shared.message_infrastructure import deserializeMessage, \
     badIMessageCommand, illFormedEMessage, InvalidMessageError, \
     badEMessageCommand, badEMessageArgument
+from src.shared.unit_set import UnitSet
 from src.client import messages as cmessages
 
 # Constants
@@ -82,9 +83,10 @@ class Backend(object):
         self.allReady = True
 
         # Request obelisks.
-        msg = messages.OrderNew((10, 0))
+        # TODO[#3]: Magic numbers bad.
+        msg = messages.OrderNew(Coord.fromUnit((10, 0)))
         self.network.backendMessage(msg.serialize())
-        msg = messages.OrderNew((0, 10))
+        msg = messages.OrderNew(Coord.fromUnit((0, 10)))
         self.network.backendMessage(msg.serialize())
 
 
@@ -263,8 +265,8 @@ class Backend(object):
                 newMsg = messages.OrderDel(UnitSet([chosenUnit]))
                 self.network.backendMessage(newMsg.serialize())
         elif isinstance(message, cmessages.DragBox):
-            ux1, uy1 = graphicsToWorld(message.corner1)
-            ux2, uy2 = graphicsToWorld(message.corner2)
+            ux1, uy1 = graphicsToWorld(message.corner1).unit
+            ux2, uy2 = graphicsToWorld(message.corner2).unit
             xMin = min(ux1, ux2)
             xMax = max(ux1, ux2)
             yMin = min(uy1, uy2)

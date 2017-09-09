@@ -98,7 +98,7 @@ def findPath(gameState, srcPos, destPos):
                 neighborEstCost = neighborStartDist + neighborFwdDist
                 heapq.heappush(chunksToCheck, (neighborEstCost, neighbor))
 
-    if      (not gameState.inBounds(destChunk)) or \
+    if      (not _chunkInBounds(gameState, destChunk)) or \
             parents[destCX][destCY] is None:
         raise NoPathToTargetError("No path exists from {} to {}."
                                   .format(srcPos, destPos))
@@ -123,10 +123,7 @@ def findPath(gameState, srcPos, destPos):
     waypoints.reverse()
 
     # Now convert the chunk coordinates to unit coordinates.
-    waypoints = map(lambda chunk: Coord.fromCBU(
-            chunk=chunk, unit=(CHUNK_SIZE // 2, CHUNK_SIZE // 2)
-        ), waypoints
-    )
+    waypoints = [Coord.fromCBU(chunk=chunk).chunkCenter for chunk in waypoints]
 
     # Note: The very first waypoint is still valid, because it's in a chunk
     # orthogonally adjacent to the chunk containing the source point, so
@@ -176,8 +173,8 @@ def _getValidNeighbors(chunkPos, gameState):
     # Try diagonals first, so that when crossing a non-square rectangle we do
     # the diagonal part of the path before the orthogonal part.
     for neighbor in diagonals:
-        if      gameState.inBounds(neighbor) and \
-                gameState.isPassable(neighbor):
+        if      _chunkInBounds(gameState, neighbor) and \
+                _chunkIsPassable(gameState, neighbor):
             # Check that the other two corners of the square are passable, so
             # we don't try to move through zero-width spaces in cases like:
             #     @@ B
@@ -185,13 +182,19 @@ def _getValidNeighbors(chunkPos, gameState):
             #      /@@
             #     A @@
             nx, ny = neighbor
-            if      gameState.isPassable(( x, ny)) and \
-                    gameState.isPassable((nx,  y)):
+            if      _chunkIsPassable(gameState, ( x, ny)) and \
+                    _chunkIsPassable(gameState, (nx,  y)):
                 yield (DIAGONAL_COST, neighbor)
     for neighbor in orthogonals:
-        if      gameState.inBounds(neighbor) and \
-                gameState.isPassable(neighbor):
+        if      _chunkInBounds(gameState, neighbor) and \
+                _chunkIsPassable(gameState, neighbor):
             yield (ORTHOGONAL_COST, neighbor)
+
+def _chunkInBounds(gameState, chunkPos):
+    return gameState.inBounds(Coord.fromCBU(chunk=chunkPos))
+
+def _chunkIsPassable(gameState, chunkPos):
+    return gameState.isPassable(Coord.fromCBU(chunk=chunkPos))
 
 
 class AbstractCoord(object):
@@ -261,14 +264,14 @@ class AbstractCoord(object):
         )
 
     def __eq__(self, rhs):
-        if type(self) != type(rhs):
+        if not isinstance(self, type(rhs)) and not isinstance(rhs, type(self)):
             raise TypeError("Cannot compare {} with {}.".format(
                 type(self), type(rhs)
             ))
         return self.x == rhs.x and self.y == rhs.y
 
     def __ne__(self, rhs):
-        if type(self) != type(rhs):
+        if not isinstance(self, type(rhs)) and not isinstance(rhs, type(self)):
             raise TypeError("Cannot compare {} with {}.".format(
                 type(self), type(rhs)
             ))
@@ -326,23 +329,21 @@ class Distance(AbstractCoord):
         return Distance((x, y))
 
     def __rmul__(self, lhs):
-        if type(lhs) != int and type(lhs) != float:
+        if not isinstance(lhs, int) and not isinstance(lhs, float):
             raise TypeError("Cannot multiply Distance by {}.".format(
                 type(lhs)
             ))
-        return Distance(int(round(self.x * lhs)), int(rount(self.y * lhs)))
+        return Distance((int(round(self.x * lhs)), int(round(self.y * lhs))))
 
     def __mul__(self, rhs):
         return rhs * self
 
 class Coord(AbstractCoord):
-    # @property
-    # def chunkCenter(self):
-    #     """
-    #     Return the Coord of the center of the chunk containing this Coord.
-    #     """
-    #     return self.fromCBU(self.chunk, (0, 0),
-    #                         (CHUNK_SIZE // 2, CHUNK_SIZE // 2))
-
-    pass
+    @property
+    def chunkCenter(self):
+        """
+        Return the Coord of the center of the chunk containing this Coord.
+        """
+        return self.fromCBU(chunk=self.chunk,
+                            unit=(CHUNK_SIZE // 2, CHUNK_SIZE // 2))
 

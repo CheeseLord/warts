@@ -1,5 +1,4 @@
 from collections import defaultdict
-import math
 
 from src.shared.ident import UnitId, unitToPlayer, getUnitSubId
 
@@ -50,7 +49,7 @@ class GameState(object):
         self.checkId(unitId)
 
         oldPos = self.getPos(unitId)
-        distance = math.hypot((dest - oldPos).length())
+        distance = (dest - oldPos).length()
         if distance <= MAX_SPEED:
             # We have enough speed to reach our destination this tick.
             newPos = dest
