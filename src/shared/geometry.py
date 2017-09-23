@@ -253,7 +253,7 @@ class AbstractCoord(object):
         return cls.fromUnit(map(int, descs))
 
     def __repr__(self):
-        return "{}({}, {})".format(type(self), self.x, self.y)
+        return "{}({}, {})".format(type(self).__name__, self.x, self.y)
 
     def __str__(self):
         cx, cy = self.chunk
