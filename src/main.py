@@ -1,12 +1,14 @@
 import argparse
 import sys
 
-from src.shared.logconfig import enableDebugLogging
+from src.shared.logconfig import enableDebugLogging, newLogger
 from src.server.main import main as serverMain
 from src.client.main import main as clientMain
 
 HOST_DEFAULT = "127.0.0.1"
 PORT_DEFAULT = "16097"
+
+log = newLogger(__name__)
 
 
 def main():
@@ -15,16 +17,16 @@ def main():
     handleSharedArguments(args)
 
     if args.command == "server":
-        print "Running WaRTS server..."
+        log.info("Running WaRTS server...")
         serverMain(args)
 
     elif args.command == "client":
-        print "Connecting to WaRTS server..."
+        log.info("Connecting to WaRTS server...")
         clientMain(args)
 
     else:
         # This should be impossible, because argparse should prevent it.
-        print "Internal error: unrecognized command '{}'".format(args.command)
+        log.critical("Internal error: unrecognized command '%s'", args.command)
 
 
 def handleSharedArguments(args):
