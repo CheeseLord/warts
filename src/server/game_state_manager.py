@@ -2,7 +2,7 @@ from collections import deque
 
 from src.shared.game_state import GameState
 from src.shared.game_state_change import ResourceChange
-from src.shared.geometry import Coord
+from src.shared.geometry import Distance, Coord
 from src.shared.ident import unitToPlayer
 from src.shared.logconfig import newLogger
 from src.shared import messages
@@ -56,14 +56,32 @@ class GameStateManager(object):
         self.pendingChanges.clear()
         self.elapsedTicks += 1
 
+    def checkOverlapUnitAndResource(self, uid, pool):
+        # Pool Rectangle
+        pBottom, pLeft = pool.unit
+        pTop, pRight = (pool  + Distance.fromCBU(build=(1,1))).unit
+        # Get back into the build square
+        pTop, pRight = pTop - 1, pRight -1
+
+        # Unit rectangle
+        uX, uY = self.gameState.getPos(uid).unit
+        uWidth, uHeight = self.gameState.getSize(uid).unit
+        uTop = uY + uHeight//2
+        uBottom = uY - uHeight//2
+        uRight = uX + uWidth//2
+        uLeft = uX - uWidth//2
+
+        return ((uBottom < pTop and uTop  > pBottom) and
+                (uLeft < pRight and uRight  > pLeft))
+
     def resolveResourceGathering(self):
         if self.elapsedTicks % 5 == 0:
             for uid in self.gameState.getAllUnits():
-                bPos = self.gameState.getPos(uid).build
                 for pool in self.gameState.resourcePools:
-                    if bPos == pool.build:
+                    if self.checkOverlapUnitAndResource(uid, pool):
                         playerId = unitToPlayer(uid)
                         self.scheduleChange(ResourceChange(playerId, 1))
+                        break
 
     def scheduleChange(self, change):
         self.pendingChanges.append(change)
