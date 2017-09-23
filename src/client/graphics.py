@@ -224,8 +224,23 @@ class WartsApp(ShowBase):
                   gid, "" if isSelected else "not ")
         entity = self.entities[gid]
 
-        z = 5 if isSelected else 0
-        entity.model.setPos(0, 0, z)
+        if isSelected:
+            model = self.loader.loadModel(
+                getModelPath("unit-indicator-selected.egg")
+            )
+            # TODO: Save the model so we can remove it later.
+            model.reparentTo(entity.rootNode)
+
+            bound1, bound2 = entity.model.getTightBounds()
+            unitWidthX = abs(bound2[0] - bound1[0])
+            unitWidthY = abs(bound2[1] - bound1[1])
+
+            bound1, bound2 = model.getTightBounds()
+            indicatorWidthX = abs(bound2[0] - bound1[0])
+            indicatorWidthY = abs(bound2[1] - bound1[1])
+
+            model.setSx(unitWidthX / indicatorWidthX)
+            model.setSy(unitWidthY / indicatorWidthY)
 
     def displayResources(self, resourceAmt):
         self.resourceDisplay.setText("Resource: {}".format(resourceAmt))
