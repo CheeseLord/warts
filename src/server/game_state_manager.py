@@ -58,8 +58,8 @@ class GameStateManager(object):
 
     def checkOverlapUnitAndResource(self, uid, pool):
         # Pool Rectangle
-        pBottom, pLeft = pool.unit
-        pTop, pRight = (pool  + Distance.fromCBU(build=(1,1))).unit
+        pLeft, pBottom = pool.unit
+        pRight, pTop = (pool  + Distance.fromCBU(build=(1,1))).unit
         # Get back into the build square
         pTop, pRight = pTop - 1, pRight -1
 
