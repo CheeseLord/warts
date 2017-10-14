@@ -172,6 +172,14 @@ class WartsApp(ShowBase):
         entity = Entity(gid, model, rootNode, isExample)
         self.entities[gid] = entity
 
+        # TODO[#52]: Sigh. This is a terrible hack. Unfortunately, right now
+        # the client.Graphics doesn't have any concept of "is this my unit or
+        # someone else's?"
+        if isExample:
+            entity.setIndicator(self.loader.loadModel(
+                getModelPath("unit-indicator-mine.egg")
+            ))
+
     def removeEntity(self, gid):
         log.debug("Removing graphical entity %s", gid)
         entity = self.entities.pop(gid)
@@ -229,7 +237,9 @@ class WartsApp(ShowBase):
                 getModelPath("unit-indicator-selected.egg")
             ))
         else:
-            entity.removeIndicator()
+            entity.setIndicator(self.loader.loadModel(
+                getModelPath("unit-indicator-mine.egg")
+            ))
 
     def displayResources(self, resourceAmt):
         self.resourceDisplay.setText("Resource: {}".format(resourceAmt))
