@@ -12,6 +12,7 @@ UNIT_SIZE = Distance.fromCBU(build=(2,2))
 class GameState(object):
     def __init__(self, mapSize):
         self.positions = {}
+        self.unitTypes = {}
         self.resources = defaultdict(int)
 
         self.mapSize = tuple(mapSize)
@@ -36,16 +37,18 @@ class GameState(object):
         cx, cy = pos.chunk
         return self.inBounds(pos) and self.groundTypes[cx][cy] == 0
 
-    def addUnit(self, playerId, position):
+    def addUnit(self, playerId, unitType, position):
         unitId = self.createNewUnitId(playerId)
         assert unitId not in self.positions
 
         self.positions[unitId] = position
+        self.unitTypes[unitId] = unitType
         return unitId
 
     def removeUnit(self, unitId):
         self.checkId(unitId)
         del self.positions[unitId]
+        del self.unitTypes[unitId]
 
     def moveUnitToward(self, unitId, dest):
         self.checkId(unitId)

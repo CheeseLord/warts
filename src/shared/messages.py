@@ -91,6 +91,7 @@ UNIT_SET_ARG   = ArgumentSpecification(1,
                                        UnitSet.deserialize,
                                        UnitSet.serialize)
 UNIT_ID_ARG    = ArgumentSpecification(2, parseUnitId, encodeUnitId)
+UNIT_TYPE_ARG = INT_ARG
 
 # World coordinates.
 POS_ARG        = ArgumentSpecification(2, Coord.deserialize, Coord.serialize)
@@ -117,7 +118,8 @@ NewObelisk    = defineMessageType("new_obelisk",
 OrderDel      = defineMessageType("order_del", [("unitSet", UNIT_SET_ARG)])
 OrderMove     = defineMessageType("order_move", [("unitSet", UNIT_SET_ARG),
                                                  ("dest", POS_ARG)])
-OrderNew      = defineMessageType("order_new", [("pos", POS_ARG)])
+OrderNew      = defineMessageType("order_new", [("unitType", UNIT_TYPE_ARG),
+                                                ("pos", POS_ARG)])
 ResourceAmt   = defineMessageType("resource_amount", [("amount", INT_ARG)])
 ResourceLoc   = defineMessageType("resource_loc", [("pos", POS_ARG)])
 SetPos        = defineMessageType("set_pos",

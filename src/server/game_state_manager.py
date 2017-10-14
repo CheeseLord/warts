@@ -56,6 +56,24 @@ class GameStateManager(object):
         self.pendingChanges.clear()
         self.elapsedTicks += 1
 
+    def checkOverlapUnitAndResource(self, uid, pool):
+        # Pool Rectangle
+        pLeft, pBottom = pool.unit
+        pRight, pTop = (pool  + Distance.fromCBU(build=(1, 1))).unit
+        # Get back into the build square
+        pTop, pRight = pTop - 1, pRight - 1
+
+        # Unit rectangle
+        uX, uY = self.gameState.getPos(uid).unit
+        uWidth, uHeight = self.gameState.getSize(uid).unit
+        uTop = uY + uHeight // 2
+        uBottom = uY - uHeight // 2
+        uRight = uX + uWidth // 2
+        uLeft = uX - uWidth // 2
+
+        return ((uBottom < pTop and uTop  > pBottom) and
+                (uLeft < pRight and uRight  > pLeft))
+
     def resolveResourceGathering(self):
         if self.elapsedTicks % 5 == 0:
             for uid in self.gameState.getAllUnits():
@@ -92,8 +110,8 @@ class GameStateManager(object):
 
     def applyOrders(self):
         # Create any pending units.
-        for playerId, pos in self.unitOrders.getPendingNewUnits():
-            unitId = self.gameState.addUnit(playerId, pos)
+        for playerId, unitType, pos in self.unitOrders.getPendingNewUnits():
+            unitId = self.gameState.addUnit(playerId, unitType, pos)
             # Should have no effect, but just to make sure we have the right
             # position...
             pos = self.gameState.getPos(unitId)
@@ -177,9 +195,9 @@ def getDefaultGameState():
     # Resource pools.
     gameState.resourcePools.extend([
         Rect(Coord.fromCBU(chunk=(2, 2), build=(1, 4)),
-             Distance.fromCBU(build=(1,1))),
+             Distance.fromCBU(build=(1, 1))),
         Rect(Coord.fromCBU(chunk=(2, 2), build=(2, 4)),
-             Distance.fromCBU(build=(1,1))),
+             Distance.fromCBU(build=(1, 1))),
     ])
 
     return gameState

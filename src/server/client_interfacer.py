@@ -67,8 +67,10 @@ class ClientInterfacer(object):
             message = deserializeMessage(data)
             gameState = self.gameStateManager.gameState
             if isinstance(message, messages.OrderNew):
-                self.gameStateManager.unitOrders.createNewUnit(playerId,
-                                                               message.pos)
+                # TODO: This should be handled in the game state manager.
+                self.gameStateManager.unitOrders.createNewUnit(
+                    playerId, message.unitType, message.pos
+                )
             elif isinstance(message, messages.OrderDel):
                 for unitId in message.unitSet:
                     # TODO: Factor out this pair of checks? We're probably

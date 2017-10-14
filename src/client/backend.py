@@ -84,9 +84,9 @@ class Backend(object):
 
         # Request obelisks.
         # TODO[#3]: Magic numbers bad.
-        msg = messages.OrderNew(Coord.fromUnit((10, 0)))
+        msg = messages.OrderNew(0, Coord.fromUnit((10, 0)))
         self.network.backendMessage(msg.serialize())
-        msg = messages.OrderNew(Coord.fromUnit((0, 10)))
+        msg = messages.OrderNew(1, Coord.fromUnit((0, 10)))
         self.network.backendMessage(msg.serialize())
 
 
@@ -253,7 +253,7 @@ class Backend(object):
             if chosenUnit is not None and chosenUnit in self.unitSelection:
                 self.removeFromSelection(chosenUnit)
         elif isinstance(message, cmessages.ShiftRClick):
-            newMsg = messages.OrderNew(graphicsToWorld(message.pos))
+            newMsg = messages.OrderNew(1, graphicsToWorld(message.pos))
             self.network.backendMessage(newMsg.serialize())
         elif isinstance(message, cmessages.ControlRClick):
             gPos = message.pos

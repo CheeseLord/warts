@@ -4,8 +4,8 @@ class UnitOrders(object):
         # List of units to create at next tick.
         self.pendingNewUnits = []
 
-    def createNewUnit(self, playerId, pos):
-        self.pendingNewUnits.append((playerId, pos))
+    def createNewUnit(self, playerId, unitType, pos):
+        self.pendingNewUnits.append((playerId, unitType, pos))
 
     def getPendingNewUnits(self):
         for x in self.pendingNewUnits:
