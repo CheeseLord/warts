@@ -710,8 +710,7 @@ class Entity(object):
 
     def removeIndicator(self):
         if self.indicator is not None:
-            # TODO
-            pass
+            self.indicator.removeNode()
 
     def cleanup(self):
         self.removeIndicator()
