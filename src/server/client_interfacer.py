@@ -42,7 +42,7 @@ class ClientInterfacer(object):
 
         # Send resource pool info.
         for pool in self.gameStateManager.gameState.resourcePools:
-            msg = messages.ResourceLoc(pool)
+            msg = messages.ResourceLoc(pool.coord)
             self.connectionManager.sendMessage(playerId, msg)
 
         # Send positions of all existing obelisks.

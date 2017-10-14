@@ -347,3 +347,38 @@ class Coord(AbstractCoord):
         return self.fromCBU(chunk=self.chunk,
                             unit=(CHUNK_SIZE // 2, CHUNK_SIZE // 2))
 
+class Rect(object):
+    def __init__(self, coord, dist):
+        if not isinstance(coord, Coord):
+            raise TypeError("Rectangle must have Coordinate. Found {}".format(
+                type(coord)
+            ))
+        if not isinstance(dist, Distance):
+            raise TypeError("Rectangle must have Distance. Found {}".format(
+                type(dist)
+            ))
+        self.coord = coord
+        self.dist = dist
+
+def isRectCollision(rect1, rect2):
+    if not isinstance(rect1, Rect):
+        raise TypeError("Can only compare distance between rectangles."
+                        "Found {}".format(
+                            type(rect1)
+                        ))
+    if not isinstance(rect2, Rect):
+        raise TypeError("Can only compare distance between rectangles."
+                        "Found {}".format(
+                            type(rect2)
+                        ))
+    # Rectangle 1
+    left1, bottom1 = rect1.coord.unit
+    right1, top1 = (rect1.coord  + rect1.dist).unit
+    right1, top1 = right1 - 1, top1 -1
+
+    # Rectangle 2
+    left2, bottom2 = rect2.coord.unit
+    right2, top2 = (rect2.coord  + rect2.dist).unit
+    right2, top2 = right2 - 1, top2 -1
+    return ((bottom2 < top1 and top2  > bottom1) and
+            (left2 < right1 and right2  > left1))
