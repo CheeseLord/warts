@@ -225,22 +225,11 @@ class WartsApp(ShowBase):
         entity = self.entities[gid]
 
         if isSelected:
-            model = self.loader.loadModel(
+            entity.setIndicator(self.loader.loadModel(
                 getModelPath("unit-indicator-selected.egg")
-            )
-            # TODO: Save the model so we can remove it later.
-            model.reparentTo(entity.rootNode)
-
-            bound1, bound2 = entity.model.getTightBounds()
-            unitWidthX = abs(bound2[0] - bound1[0])
-            unitWidthY = abs(bound2[1] - bound1[1])
-
-            bound1, bound2 = model.getTightBounds()
-            indicatorWidthX = abs(bound2[0] - bound1[0])
-            indicatorWidthY = abs(bound2[1] - bound1[1])
-
-            model.setSx(unitWidthX / indicatorWidthX)
-            model.setSy(unitWidthY / indicatorWidthY)
+            ))
+        else:
+            entity.removeIndicator()
 
     def displayResources(self, resourceAmt):
         self.resourceDisplay.setText("Resource: {}".format(resourceAmt))
@@ -695,12 +684,37 @@ class Entity(object):
     """
 
     def __init__(self, graphicId, model, rootNode, isActor):
-        self.gid      = graphicId
-        self.model    = model
-        self.rootNode = rootNode
-        self.isActor  = isActor
+        self.gid       = graphicId
+        self.model     = model
+        self.rootNode  = rootNode
+        self.isActor   = isActor
+        self.indicator = None
+
+    def setIndicator(self, model):
+        self.removeIndicator()
+
+        model.reparentTo(self.rootNode)
+
+        bound1, bound2 = self.model.getTightBounds()
+        unitWidthX = abs(bound2[0] - bound1[0])
+        unitWidthY = abs(bound2[1] - bound1[1])
+
+        bound1, bound2 = model.getTightBounds()
+        indicatorWidthX = abs(bound2[0] - bound1[0])
+        indicatorWidthY = abs(bound2[1] - bound1[1])
+
+        model.setSx(unitWidthX / indicatorWidthX)
+        model.setSy(unitWidthY / indicatorWidthY)
+
+        self.indicator = model
+
+    def removeIndicator(self):
+        if self.indicator is not None:
+            # TODO
+            pass
 
     def cleanup(self):
+        self.removeIndicator()
         if self.isActor:
             self.model.cleanup()
         self.model.removeNode()
