@@ -76,6 +76,7 @@ class GameState(object):
         return self.positions[unitId]
 
     def getRect(self, unitId):
+        "Get rekt."
         self.checkId(unitId)
         return Rect(self.positions[unitId], UNIT_SIZE)
 
