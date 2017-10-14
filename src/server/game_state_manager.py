@@ -31,6 +31,10 @@ class GameStateManager(object):
         self.elapsedTicks = 0
 
     def removePlayer(self, playerId):
+        # If a client connects and then disconnects in the same tick, just
+        # don't create their units. This is the easiest way to ensure we don't
+        # leak units in such cases.
+        self.unitOrders.clearPendingNewUnitsForPlayer(playerId)
         for unitId in self.gameState.getAllUnitsForPlayer(playerId):
             self.unitOrders.giveOrders(unitId, [DelUnitOrder()])
 

@@ -11,6 +11,10 @@ class UnitOrders(object):
         for x in self.pendingNewUnits:
             yield x
 
+    def clearPendingNewUnitsForPlayer(self, playerId):
+        self.pendingNewUnits = [x for x in self.pendingNewUnits
+                                if x[0] != playerId]
+
     def clearPendingNewUnits(self):
         self.pendingNewUnits = []
 
