@@ -87,8 +87,8 @@ class GraphicsInterface(object):
                 # sizes. Actually use one of those functions here.
                 goalGSize = tuple(float(x) / GRAPHICS_SCALE for x in goalUSize)
 
-                gMessage = cmessages.AddEntity(gid, gPos, isExample, goalGSize,
-                                               modelPath)
+                gMessage = cmessages.AddEntity(gid, gPos, isExample, True,
+                                               goalGSize, modelPath)
                 self.graphics.interfaceMessage(gMessage.serialize())
             elif isinstance(message, messages.GroundInfo):
                 wPos        = message.pos.truncToChunk
@@ -117,8 +117,8 @@ class GraphicsInterface(object):
                 gPos      = (goalCenterX, goalCenterY)
                 goalGSize = (goalWidthX,  goalWidthY)
 
-                gMessage = cmessages.AddEntity(gid, gPos, False, goalGSize,
-                                               modelName)
+                gMessage = cmessages.AddEntity(gid, gPos, False, False,
+                                               goalGSize, modelName)
                 self.graphics.interfaceMessage(gMessage.serialize())
             elif isinstance(message, messages.DeleteObelisk):
                 uid = message.unitId
@@ -169,8 +169,8 @@ class GraphicsInterface(object):
                 gPos      = (goalCenterX, goalCenterY)
                 goalGSize = (goalWidthX,  goalWidthY)
 
-                gMessage = cmessages.AddEntity(gid, gPos, False, goalGSize,
-                                               modelName)
+                gMessage = cmessages.AddEntity(gid, gPos, False, False,
+                                               goalGSize, modelName)
                 self.graphics.interfaceMessage(gMessage.serialize())
             elif isinstance(message, cmessages.MarkUnitSelected):
                 uid = message.unitId

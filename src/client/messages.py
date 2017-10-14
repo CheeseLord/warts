@@ -21,6 +21,7 @@ AddEntity          = defineMessageType("add_entity",
                                        [("gid", GRAPHICS_ID_ARG),
                                         ("pos", G_POS_ARG),
                                         ("isExample", BOOL_ARG),
+                                        ("isUnit", BOOL_ARG),
                                         ("goalSize", FLOAT_PAIR_ARG),
                                         ("modelPath", MODEL_PATH_ARG)])
 CenterCamera       = defineMessageType("center_camera",

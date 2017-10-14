@@ -85,7 +85,7 @@ class WartsApp(ShowBase):
         message = deserializeMessage(data)
         if isinstance(message, cmessages.AddEntity):
             self.addEntity(message.gid, message.pos, message.modelPath,
-                           message.isExample, message.goalSize)
+                           message.isExample, message.isUnit, message.goalSize)
         elif isinstance(message, cmessages.RemoveEntity):
             self.removeEntity(message.gid)
         elif isinstance(message, cmessages.MoveEntity):
@@ -97,7 +97,7 @@ class WartsApp(ShowBase):
         else:
             badIMessageCommand(message, log)
 
-    def addEntity(self, gid, pos, modelPath, isExample, goalSize):
+    def addEntity(self, gid, pos, modelPath, isExample, isUnit, goalSize):
         """
         pos is given in graphics coordinates.
 
@@ -172,13 +172,21 @@ class WartsApp(ShowBase):
         entity = Entity(gid, model, rootNode, isExample)
         self.entities[gid] = entity
 
-        # TODO[#52]: Sigh. This is a terrible hack. Unfortunately, right now
-        # the client.Graphics doesn't have any concept of "is this my unit or
-        # someone else's?"
-        if isExample:
-            entity.setIndicator(self.loader.loadModel(
-                getModelPath("unit-indicator-mine.egg")
-            ))
+        if isUnit:
+            # TODO[#52]: Sigh. This is a terrible hack. I guess we could pipe
+            # through yet another bool for "is this my unit", but I don't want
+            # to have a growing collection of bools that need to be passed into
+            # the graphics for each unit. For now, "is this an example model?"
+            # and "is this my unit" are equivalent, so I guess we'll just
+            # piggyback off of isExample....
+            if isExample:
+                entity.setIndicator(self.loader.loadModel(
+                    getModelPath("unit-indicator-mine.egg")
+                ))
+            else:
+                entity.setIndicator(self.loader.loadModel(
+                    getModelPath("unit-indicator-notmine.egg")
+                ))
 
     def removeEntity(self, gid):
         log.debug("Removing graphical entity %s", gid)
@@ -237,6 +245,8 @@ class WartsApp(ShowBase):
                 getModelPath("unit-indicator-selected.egg")
             ))
         else:
+            # You can't currently select others' units, so if a unit is being
+            # deselected it must be mine.
             entity.setIndicator(self.loader.loadModel(
                 getModelPath("unit-indicator-mine.egg")
             ))
@@ -713,8 +723,8 @@ class Entity(object):
         indicatorWidthX = abs(bound2[0] - bound1[0])
         indicatorWidthY = abs(bound2[1] - bound1[1])
 
-        model.setSx(unitWidthX / indicatorWidthX)
-        model.setSy(unitWidthY / indicatorWidthY)
+        model.setSx(1.5 * unitWidthX / indicatorWidthX)
+        model.setSy(1.5 * unitWidthY / indicatorWidthY)
 
         self.indicator = model
 
