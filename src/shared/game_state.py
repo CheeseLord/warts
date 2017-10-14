@@ -1,7 +1,7 @@
 from collections import defaultdict
 
 from src.shared.ident import UnitId, unitToPlayer, getUnitSubId
-from src.shared.geometry import Distance
+from src.shared.geometry import Distance, Rect
 
 # Maximum distance (in unit coords) a unit can move in one tick.
 # TODO: Take in elapsed ticks; have an actual speed, rather than a constant
@@ -72,9 +72,9 @@ class GameState(object):
         self.checkId(unitId)
         return self.positions[unitId]
 
-    def getSize(self, unitId):
+    def getRect(self, unitId):
         self.checkId(unitId)
-        return UNIT_SIZE
+        return Rect(self.positions[unitId], UNIT_SIZE)
 
     # Internal helper function to generate a new unit id.
     def createNewUnitId(self, playerId):
