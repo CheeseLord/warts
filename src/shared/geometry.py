@@ -275,7 +275,7 @@ class AbstractCoord(object):
             raise TypeError("Cannot compare {} with {}.".format(
                 type(self), type(rhs)
             ))
-        return self.x != rhs.x and self.y != rhs.y
+        return self.x != rhs.x or self.y != rhs.y
 
     # Coord + Coord = err
     # Coord + Dist  = Coord
