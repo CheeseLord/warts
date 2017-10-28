@@ -1,6 +1,6 @@
 import math
 
-from src.shared.geometry import Coord
+from src.shared.geometry import Coord, Distance, Rect
 from src.shared.ident import encodeUnitId, parseUnitId
 from src.shared.message_infrastructure import defineMessageType, \
     ArgumentSpecification, InvalidMessageError
@@ -95,6 +95,10 @@ UNIT_TYPE_ARG = INT_ARG
 
 # World coordinates.
 POS_ARG        = ArgumentSpecification(2, Coord.deserialize, Coord.serialize)
+DIST_ARG       = ArgumentSpecification(2,
+                                       Distance.deserialize,
+                                       Distance.serialize)
+RECT_ARG       = ArgumentSpecification(4, Rect.deserialize, Rect.serialize)
 
 # The type of ground on a certain chunk.
 TERRAIN_TYPE_ARG = INT_ARG

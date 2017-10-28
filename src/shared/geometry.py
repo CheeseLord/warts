@@ -360,6 +360,20 @@ class Rect(object):
         self.coord = coord
         self.dist = dist
 
+    @property
+    def center(self):
+        return self.coord + 0.5*self.dist
+
+    def serialize(self):
+        return self.coord.serialize() + self.dist.serialize()
+
+    @classmethod
+    def deserialize(cls, descs):
+        assert len(descs) == 4
+        cdesc = descs[:2]
+        ddesc = descs[2:]
+        return cls(Coord.deserialize(cdesc), Distance.deserialize(ddesc))
+
 def isRectCollision(rect1, rect2):
     if not isinstance(rect1, Rect):
         raise TypeError("Can only compare distance between rectangles."
