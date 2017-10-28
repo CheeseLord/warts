@@ -1,6 +1,6 @@
 from src.shared import messages
 from src.shared.game_state import GameState
-from src.shared.geometry import Coord
+from src.shared.geometry import Coord, Distance
 from src.shared.ident import unitToPlayer, getUnitSubId
 from src.shared.logconfig import newLogger
 from src.shared.message_infrastructure import deserializeMessage, \
@@ -230,7 +230,7 @@ class Backend(object):
             if message.button == 1:
                 # Left mouse button
                 gPos = message.pos
-                wPos = graphicsToWorld(gPos)
+                wPos = graphicsToWorldPos(gPos)
                 chosenUnit = self.getUnitAt(wPos)
                 self.clearSelection()
                 if chosenUnit is not None:
@@ -238,26 +238,26 @@ class Backend(object):
             elif message.button == 3:
                 # Right mouse button
                 newMsg = messages.OrderMove(self.unitSelection,
-                                            graphicsToWorld(message.pos))
+                                            graphicsToWorldPos(message.pos))
                 self.network.backendMessage(newMsg.serialize())
         elif isinstance(message, cmessages.ShiftLClick):
             gPos = message.pos
-            wPos = graphicsToWorld(gPos)
+            wPos = graphicsToWorldPos(gPos)
             chosenUnit = self.getUnitAt(wPos)
             if chosenUnit is not None:
                 self.addToSelection(chosenUnit)
         elif isinstance(message, cmessages.ControlLClick):
             gPos = message.pos
-            wPos = graphicsToWorld(gPos)
+            wPos = graphicsToWorldPos(gPos)
             chosenUnit = self.getUnitAt(wPos)
             if chosenUnit is not None and chosenUnit in self.unitSelection:
                 self.removeFromSelection(chosenUnit)
         elif isinstance(message, cmessages.ShiftRClick):
-            newMsg = messages.OrderNew(1, graphicsToWorld(message.pos))
+            newMsg = messages.OrderNew(1, graphicsToWorldPos(message.pos))
             self.network.backendMessage(newMsg.serialize())
         elif isinstance(message, cmessages.ControlRClick):
             gPos = message.pos
-            wPos = graphicsToWorld(gPos)
+            wPos = graphicsToWorldPos(gPos)
             chosenUnit = self.getUnitAt(wPos)
             if chosenUnit is not None:
                 if chosenUnit in self.unitSelection:
@@ -265,8 +265,8 @@ class Backend(object):
                 newMsg = messages.OrderDel(UnitSet([chosenUnit]))
                 self.network.backendMessage(newMsg.serialize())
         elif isinstance(message, cmessages.DragBox):
-            ux1, uy1 = graphicsToWorld(message.corner1).unit
-            ux2, uy2 = graphicsToWorld(message.corner2).unit
+            ux1, uy1 = graphicsToWorldPos(message.corner1).unit
+            ux2, uy2 = graphicsToWorldPos(message.corner2).unit
             xMin = min(ux1, ux2)
             xMax = max(ux1, ux2)
             yMin = min(uy1, uy2)
@@ -337,9 +337,15 @@ class Backend(object):
 
 # TODO: Shouldn't these be in the GraphicsInterface if they're going to be
 # with a single component?
-def worldToGraphics(wPos):
+def worldToGraphicsPos(wPos):
     return tuple(float(x) / GRAPHICS_SCALE for x in wPos.unit)
 
-def graphicsToWorld(gPos):
+def graphicsToWorldPos(gPos):
     return Coord.fromUnit(int(round(x * GRAPHICS_SCALE)) for x in gPos)
+
+def worldToGraphicsDist(wDist):
+    return tuple(float(x) / GRAPHICS_SCALE for x in wDist.unit)
+
+def graphicsToWorldDist(gDist):
+    return Distance.fromUnit(int(round(x * GRAPHICS_SCALE)) for x in gDist)
 
