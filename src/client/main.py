@@ -5,11 +5,14 @@ from twisted.python import log as twistedLog
 
 from src.shared.logconfig import newLogger
 
-from src.client.graphics_interface    import GraphicsInterface
-from src.client.backend    import Backend
-from src.client.networking import setupNetworking
-from src.client.stdio      import setupStdio
-from src.client.graphics   import WartsApp, DESIRED_FPS
+from src.client.graphics_interface import GraphicsInterface
+from src.client.backend     import Backend
+from src.client.networking  import setupNetworking
+from src.client.stdio       import setupStdio
+from src.client.graphics    import WartsApp    as OldWartsApp, \
+                                   DESIRED_FPS as OLD_DESIRED_FPS
+from src.client.newgraphics import WartsApp    as NewWartsApp, \
+                                   DESIRED_FPS as NEW_DESIRED_FPS
 
 log = newLogger(__name__)
 
@@ -33,12 +36,17 @@ def twistedMain(reactor, args):
     graphicsInterface = GraphicsInterface(backend)
     setupStdio(backend)
     setupNetworking(reactor, backend, args.host, args.port)
-    setupGraphics(reactor, graphicsInterface)
+    setupGraphics(reactor, graphicsInterface, args.new_graphics)
 
     return done
 
-def setupGraphics(reactor, graphicsInterface):
-    app = WartsApp(graphicsInterface)
+def setupGraphics(reactor, graphicsInterface, isNew):
+    # Pylint doesn't like this, but I don't see a better way.
+    # pylint:disable=redefined-variable-type
+    if isNew:
+        app = NewWartsApp(graphicsInterface)
+    else:
+        app = OldWartsApp(graphicsInterface)
 
     def onGraphicsException(failure):
         log.error("Shutting down client due to unhandled exception "
@@ -51,6 +59,9 @@ def setupGraphics(reactor, graphicsInterface):
         reactor.stop()
 
     loop = LoopingCall(app.taskMgr.step)
-    deferred = loop.start(1.0 / DESIRED_FPS)
+    if isNew:
+        deferred = loop.start(1.0 / NEW_DESIRED_FPS)
+    else:
+        deferred = loop.start(1.0 / OLD_DESIRED_FPS)
     deferred.addErrback(onGraphicsException)
 
