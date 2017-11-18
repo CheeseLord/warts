@@ -192,7 +192,8 @@ class GameStateManager(object):
 # TODO[#10]: Why is this in GameStateManager?
 def getDefaultGameState():
     # TODO [#3]: Magic numbers bad.
-    gameState = GameState((10, 5))
+    gameState = GameState()
+    gameState.setSize((10, 5))
 
     # Some impassable squares, to better exercise the pathfinding.
     gameState.groundTypes[5][3] = 1

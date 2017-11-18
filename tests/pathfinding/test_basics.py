@@ -183,7 +183,8 @@ def parseTestCase(desc):
     pointsOfInterest = {}
 
     # Actually parse the description.
-    gameState = GameState((width, height))
+    gameState = GameState()
+    gameState.setSize((width, height))
     for y in range(height):
         for x in range(width):
             locDesc = lines[height - 1 - y][x]

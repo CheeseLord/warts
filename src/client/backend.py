@@ -33,7 +33,7 @@ class Backend(object):
 
         self.myId = -1
 
-        self.gameState     = None
+        self.gameState     = GameState()
         self.unitSelection = UnitSet()
 
     @property
@@ -214,9 +214,11 @@ class Backend(object):
             self.gameState.groundTypes[cx][cy] = terrainType
             forwardToGraphicsInterface = True
         elif isinstance(message, messages.MapSize):
-            if self.gameState is not None:
-                log.warn("Got multiple map_size messages.")
-            self.gameState = GameState(message.size)
+            if self.gameState.hasSize:
+                log.error("A size, you have, GameState. "
+                          "Impossible, to take on a second.")
+            else:
+                self.gameState.setSize(message.size)
         else:
             badEMessageCommand(message, log)
 

@@ -10,19 +10,29 @@ MAX_SPEED = 3.0
 UNIT_SIZE = Distance.fromCBU(build=(2,2))
 
 class GameState(object):
-    def __init__(self, mapSize):
+    def __init__(self):
         self.positions = {}
         self.unitTypes = {}
         self.resources = defaultdict(int)
 
+        self.mapSize     = None
+        self.groundTypes = None
+        # List of build coordinates. For now, individual resource pools are
+        # 1x1, so if you want something larger just create multiple pools.
+        self.resourcePools = []
+
+    def setSize(self, mapSize):
+        if self.hasSize:
+            raise RuntimeError("GameState size already set; can't change.")
         self.mapSize = tuple(mapSize)
         mapWidth, mapHeight = self.mapSize
         # Reference chunks as [x][y].
         self.groundTypes = [[0 for _x in range(mapHeight)]
                             for _y in range(mapWidth)]
-        # List of build coordinates. For now, individual resource pools are
-        # 1x1, so if you want something larger just create multiple pools.
-        self.resourcePools = []
+
+    @property
+    def hasSize(self):
+        return self.mapSize is not None
 
     @property
     def sizeInChunks(self):
