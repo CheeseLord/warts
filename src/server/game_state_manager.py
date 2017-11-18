@@ -48,6 +48,11 @@ class GameStateManager(object):
     # gameStateManager.tick. But there's very little that needs to be done on
     # a tick boundary that isn't updating game state, so it's not really clear
     # there needs to be a function above GameStateManager.tick."
+    #
+    # TODO: Well, one thing that now needs to happen every tick that doesn't
+    # involve updating the gamestate is to actually tell the clients that a
+    # tick has elapsed. As a hack, throwing that in here, but we should really
+    # create a top-level tick() function to put that in.
     def tick(self):
         # FIXME: Shouldn't really go in tick(); I just put it here so we could
         # test handling of ResourceAmt in client.
@@ -59,6 +64,7 @@ class GameStateManager(object):
 
         self.pendingChanges.clear()
         self.elapsedTicks += 1
+        self.connectionManager.broadcastMessage(messages.Tick())
 
     def checkOverlapUnitAndResource(self, uid, pool):
         # Pool Rectangle

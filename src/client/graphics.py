@@ -11,6 +11,7 @@ from panda3d.core import Point2, Point3, Mat4, Filename, LineSegs, \
     ClockObject, TextNode
 
 from src.shared import config
+from src.shared import messages
 from src.shared.logconfig import newLogger
 from src.shared.message_infrastructure import deserializeMessage, \
     badIMessageCommand
@@ -83,7 +84,9 @@ class WartsApp(ShowBase):
         # Messages from GraphicsInterface to Graphics are always internal
         # client messages, so no need to catch InvalidMessageError.
         message = deserializeMessage(data)
-        if isinstance(message, cmessages.AddEntity):
+        if isinstance(message, messages.Tick):
+            pass
+        elif isinstance(message, cmessages.AddEntity):
             self.addEntity(message.gid, message.pos, message.modelPath,
                            message.isExample, message.isUnit, message.goalSize)
         elif isinstance(message, cmessages.RemoveEntity):

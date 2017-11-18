@@ -36,7 +36,9 @@ class GraphicsInterface(object):
     def backendMessage(self, data):
         try:
             message = deserializeMessage(data)
-            if isinstance(message, messages.YourIdIs):
+            if isinstance(message, messages.Tick):
+                self.graphics.interfaceMessage(data)
+            elif isinstance(message, messages.YourIdIs):
                 # TODO: This should never happen, because the backend already
                 # did the same check.
                 if self.myId >= 0:

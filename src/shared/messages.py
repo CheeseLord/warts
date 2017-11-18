@@ -129,5 +129,6 @@ ResourceLoc   = defineMessageType("resource_loc", [("pos", POS_ARG)])
 SetPos        = defineMessageType("set_pos",
                                   [("unitId", UNIT_ID_ARG),
                                    ("pos", POS_ARG)])
+Tick          = defineMessageType("tick", [])
 YourIdIs      = defineMessageType("your_id_is", [("playerId", PLAYER_ID_ARG)])
 

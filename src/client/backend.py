@@ -152,7 +152,9 @@ class Backend(object):
         """
 
         forwardToGraphicsInterface = False
-        if isinstance(message, messages.YourIdIs):
+        if isinstance(message, messages.Tick):
+            forwardToGraphicsInterface = True
+        elif isinstance(message, messages.YourIdIs):
             if self.myId >= 0:
                 raise RuntimeError("ID already set; can't change it now.")
             self.myId = message.playerId
