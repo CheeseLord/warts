@@ -19,8 +19,10 @@ log = newLogger(__name__)
 DESIRED_FPS = 60
 
 class WartsApp(ShowBase):
-    def __init__(self, graphicsInterface):
+    def __init__(self, graphicsInterface, gameState):
         ShowBase.__init__(self)
+
+        self.gameState = gameState
 
         self.groundNodes = None
         self.firstTick = True
@@ -41,12 +43,19 @@ class WartsApp(ShowBase):
         log.debug("Graphics: tick()")
 
         if self.firstTick:
-            self.groundNodes = []
+            if not self.gameState.hasSize:
+                log.error("GameState must be assigned a size before first "
+                          "tick().")
+                return
+            width, height = self.gameState.sizeInChunks
+            self.groundNodes = [[None for _x in range(height)]
+                                for _y in range(width)]
+            for cx in range(width):
+                for cy in range(height):
+                    self.addGround((cx, cy),
+                                   self.gameState.groundTypes[cx][cy])
 
-        # TODO: Call addGround() if this is the first time. We need a reference
-        # to the GameState to do that.
-
-        self.firstTick = False
+            self.firstTick = False
 
     def addGround(self, chunkIndex, terrainType):
         cx, cy = chunkIndex

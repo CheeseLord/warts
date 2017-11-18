@@ -36,15 +36,17 @@ def twistedMain(reactor, args):
     graphicsInterface = GraphicsInterface(backend)
     setupStdio(backend)
     setupNetworking(reactor, backend, args.host, args.port)
-    setupGraphics(reactor, graphicsInterface, args.new_graphics)
+    # TODO: Create gamestate here, pass it to both backend and (new) graphics.
+    setupGraphics(reactor, graphicsInterface, backend.gameState,
+                  args.new_graphics)
 
     return done
 
-def setupGraphics(reactor, graphicsInterface, isNew):
+def setupGraphics(reactor, graphicsInterface, gameState, isNew):
     # Pylint doesn't like this, but I don't see a better way.
     # pylint:disable=redefined-variable-type
     if isNew:
-        app = NewWartsApp(graphicsInterface)
+        app = NewWartsApp(graphicsInterface, gameState)
     else:
         app = OldWartsApp(graphicsInterface)
 
