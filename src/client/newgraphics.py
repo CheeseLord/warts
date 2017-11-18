@@ -59,6 +59,9 @@ class WartsApp(ShowBase):
 
         graphicsInterface.graphicsReady(self)
 
+    def cleanup(self):
+        pass
+
     # For backward compatibility.
     # TODO[#84]: Remove when old graphics goes away; have backend just call
     # tick() directly.
