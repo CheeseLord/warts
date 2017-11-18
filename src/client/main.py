@@ -15,6 +15,9 @@ log = newLogger(__name__)
 
 
 def main(args):
+    if args.new_graphics:
+        log.info("Using new graphics.")
+
     # TODO: Where do we put this call, which starts the Twisted event loop?
     task.react(twistedMain, (args,))
 

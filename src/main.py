@@ -62,6 +62,9 @@ def parseArguments():
                               help="server port [Default: %(default)s]")
     clientParser.add_argument('--log-debug', action="store_true",
                               help="Enable debug-level logging")
+    clientParser.add_argument('--new-graphics', action="store_true",
+                              help="Use new graphics implementation "
+                                   "(under construction)")
 
     return parser.parse_args()
 
