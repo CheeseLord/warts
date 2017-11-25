@@ -225,7 +225,7 @@ class Backend(object):
         return forwardToGraphicsInterface
 
     # New API to replace graphicsMessage:
-    def worldClick(self, button, uPos, modifiers):
+    def worldClick(self, uPos, button, modifiers):
         # TODO: Use better format for modifiers.
         # The new API has the graphics convert to world coordinates, but the
         # old API has the backend convert. So for now, have the backend convert
@@ -250,7 +250,7 @@ class Backend(object):
             return
         self.graphicsMessage(message.serialize())
 
-    def worldDrag(self, button, startUPos, endUPos, modifiers):
+    def worldDrag(self, startUPos, endUPos, button, modifiers):
         if button == 1 and modifiers == []:
             startGPos = worldToGraphicsPos(startUPos)
             endGPos   = worldToGraphicsPos(endUPos)
