@@ -349,9 +349,9 @@ class WartsApp(ShowBase):
         sideways = translateSpeed * (moveRight - moveLeft)
         self.cameraHolder.setPos(self.cameraHolder, sideways, forward, 0)
 
-        # Selection box logic -- TODO
-        # if sideways != 0 or forward != 0:
-        #     self.updateSelectionBox()
+        # Selection box logic
+        if sideways != 0 or forward != 0:
+            self.updateSelectionBox()
 
         rotate = rotateSpeed * (self.keys["a"] - self.keys["d"])
         self.cameraHolder.setHpr(self.cameraHolder, rotate, 0, 0)
