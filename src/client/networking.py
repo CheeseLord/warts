@@ -48,6 +48,8 @@ class NetworkConnection(Int16StringReceiver):
         self.backend.networkReady(self)
 
     def stringReceived(self, message):
+        # TODO: Multiple levels of log.debug, so we can avoid spam like this.
+        # if message != "tick":
         log.debug("[receive] %s", message)
         self.backend.networkMessage(message)
 

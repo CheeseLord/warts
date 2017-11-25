@@ -84,7 +84,9 @@ class WartsApp(ShowBase):
         # Ignore everything else.
 
     def tick(self):
-        log.debug("Graphics: tick()")
+        # TODO: Multiple levels of log.debug. For now, this is too spammy, so
+        # skip it.
+        # log.debug("Graphics: tick()")
 
         if self.firstTick:
             if not self.gameState.hasSize:
@@ -269,6 +271,10 @@ class WartsApp(ShowBase):
 
         self.usingCustomCamera = True
 
+        # Need a task to handle mouse-dragging because there doesn't seem to be
+        # a built-in mouseMove event.
+        self.taskMgr.add(self.mouseMoveTask, "MouseMoveTask")
+
     def setCameraDefault(self):
         """
         Change to using the default mouse-based camera controls.
@@ -396,6 +402,7 @@ class WartsApp(ShowBase):
         return Task.cont
 
     def pandaEventMouseDown(self, buttonId, modifiers):
+        log.debug("Mouse down: button %s w/ mod %s", buttonId, modifiers)
         if buttonId in self.mouseState:
             # Call pandaEventMouseUp just to clear any state related to the
             # button being down, so we can handle this buttonDown event as if
@@ -409,6 +416,7 @@ class WartsApp(ShowBase):
         self.mouseState[buttonId] = state
 
     def pandaEventMouseUp(self, buttonId):
+        log.debug("Mouse up: button %s", buttonId)
         if buttonId not in self.mouseState:
             # Drop the event, since there's nothing to do.
             log.warn("Mouse button %s is already up.", buttonId)
