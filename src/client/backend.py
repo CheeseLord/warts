@@ -224,6 +224,43 @@ class Backend(object):
 
         return forwardToGraphicsInterface
 
+    # New API to replace graphicsMessage:
+    def worldClick(self, button, uPos, modifiers):
+        # TODO: Use better format for modifiers.
+        # The new API has the graphics convert to world coordinates, but the
+        # old API has the backend convert. So for now, have the backend convert
+        # _back_ to graphics coordinates so that it can call off to its old
+        # (message-based) API which will convert to world coordinates once
+        # again. Obviously TODO: get rid of this silliness.
+        gPos = worldToGraphicsPos(uPos)
+        if modifiers == []:
+            message = cmessages.Click(button, gPos)
+        elif button == 1 and modifiers == ["shift"]:
+            message = cmessages.ShiftLClick(gPos)
+        elif button == 1 and modifiers == ["control"]:
+            message = cmessages.ControlLClick(gPos)
+        elif button == 3 and modifiers == ["shift"]:
+            message = cmessages.ShiftRClick(gPos)
+        elif button == 3 and modifiers == ["control"]:
+            message = cmessages.ControlRClick(gPos)
+        else:
+            # Other cases not handled for now...
+            log.debug("Ignoring worldClick with button=%d, modifiers=%s.",
+                      button, modifiers)
+            return
+        self.graphicsMessage(message.serialize())
+
+    def worldDrag(self, button, startUPos, endUPos, modifiers):
+        if button == 1 and modifiers == []:
+            startGPos = worldToGraphicsPos(startUPos)
+            endGPos   = worldToGraphicsPos(endUPos)
+            message = cmessages.DragBox(startGPos, endGPos)
+            self.graphicsMessage(message.serialize())
+        else:
+            # Other cases not handled for now...
+            log.debug("Ignoring worldDrag with button=%d, modifiers=%s.",
+                      button, modifiers)
+
     def graphicsMessage(self, messageStr):
         message = deserializeMessage(messageStr)
         if isinstance(message, cmessages.Click):
