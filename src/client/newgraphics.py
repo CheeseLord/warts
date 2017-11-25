@@ -103,6 +103,9 @@ class WartsApp(ShowBase):
 
             self.firstTick = False
 
+        # For now, just call this every tick. Optimize later.
+        self.rescanUnits()
+
     def addGround(self, chunkIndex, terrainType):
         cx, cy = chunkIndex
         wPos = Coord.fromCBU(chunk=(chunkIndex))
@@ -175,6 +178,51 @@ class WartsApp(ShowBase):
         rootNode.setPos(goalCenterX, goalCenterY, 0.0)
 
         self.groundNodes[cx][cy] = rootNode
+
+    def rescanUnits(self):
+        """
+        Check for units that have moved or been added/removed since the last
+        scan. Update the display accordingly.
+        """
+
+        # TODO: Actually write this.
+        pass
+
+        # Divide all unit ids from my own list of units and the gamestate's
+        # current list into three parts:
+        #   - ids in both lists (potential moves)
+        #   - ids only in the gamestate's list (additions)
+        #   - ids only in my list (removals)
+        #
+        # Call:
+        #     moveUnit()   for each potential move
+        #     addUnit()    for each addition
+        #     removeUnit() for each removal
+
+    def moveUnit(self, uid, newPos):
+
+        # TODO: Actually write this.
+        pass
+
+        # Set unit's node to move to new position.
+        # Play "walk" animation
+        # ...whatever else we used to do?
+
+    def addUnit(self, uid, pos):
+
+        # TODO: Actually write this.
+        pass
+
+        # Create unit/model/node as we used to.
+        # Also add it to our uid->unit mapping.
+
+    def removeUnit(self, uid, pos):
+
+        # TODO: Actually write this.
+        pass
+
+        # Remove+cleanup unit/model/node as we used to.
+        # Also remove it from our uid->unit mapping.
 
     def createSelectionBox(self, corner1, corner2):
         """
